@@ -1,0 +1,22 @@
+{% extends 'layout.html' %}
+{% block title %}Summary{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-16">
+    <div class="max-w-4xl mx-auto">
+        <a href="{{ url_for('dashboard.index') }}" class="themed-text-secondary hover:text-primary-blue font-medium transition-colors mb-6 inline-block">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+        </a>
+        
+        <div class="themed-card p-8 md:p-12 rounded-xl animate-fade-in-up">
+            <h1 class="text-3xl md:text-4xl font-bold text-indigo-500 mb-6">
+                Your Summary
+            </h1>
+            
+            <div class="themed-text text-lg md:text-xl leading-relaxed whitespace-pre-wrap space-y-4">
+                {{ summary_text }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

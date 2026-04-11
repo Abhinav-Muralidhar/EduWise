@@ -1,0 +1,41 @@
+{% extends 'layout.html' %}
+{% block title %}Quiz Time!{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-16">
+    <div class="max-w-3xl mx-auto themed-card p-8 md:p-12 rounded-xl animate-fade-in-up">
+        
+        <h1 class="text-3xl md:text-4xl font-bold text-accent-green mb-8 text-center">
+            Test Your Knowledge
+        </h1>
+
+        <form method="POST" action="{{ url_for('generation.submit_quiz') }}" class="space-y-8">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            
+            {% for q in questions %}
+            <div class="themed-text border-b border-current-border pb-6">
+                <p class="text-xl font-semibold mb-4">{{ q.question }}</p>
+                
+                <div class="space-y-3">
+                    
+                    {% for option in q.options %}
+                    <label for="q-{{ q.id }}-{{ loop.index0 }}" class="flex items-center p-3 rounded-lg border border-current-border hover:bg-primary-blue/10 transition-colors cursor-pointer">
+                        <input type="radio" id="q-{{ q.id }}-{{ loop.index0 }}" 
+                               name="question_{{ q.id }}" 
+                               value="{{ loop.index0 }}" required
+                               class="h-5 w-5 text-primary-blue focus:ring-primary-blue border-current-border">
+                        <span class="ml-3 text-lg">{{ option }}</span>
+                    </label>
+                    {% endfor %}
+                    </div>
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="w-full py-3 bg-accent-green text-white font-semibold rounded-lg shadow-md hover:bg-accent-dark-green transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent-green focus:ring-opacity-75">
+                Submit Quiz <i class="fas fa-check-circle ml-2"></i>
+            </button>
+
+        </form>
+    </div>
+</div>
+{% endblock %}

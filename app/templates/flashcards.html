@@ -1,0 +1,43 @@
+{% extends 'layout.html' %}
+{% block title %}Flashcards{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-16">
+    <div class="max-w-4xl mx-auto">
+        <a href="{{ url_for('dashboard.index') }}" class="themed-text-secondary hover:text-primary-blue font-medium transition-colors mb-6 inline-block">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+        </a>
+
+        <h1 class="text-3xl md:text-4xl font-bold text-purple-500 mb-8 text-center">
+            Your Flashcards
+        </h1>
+        <p class="themed-text-secondary text-center text-lg mb-8">Click on any card to flip it.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for card in flashcards %}
+            <div class="flashcard-container h-64 [perspective:1000px]" onclick="this.classList.toggle('is-flipped')">
+                <div class="flashcard-inner w-full h-full relative transition-transform duration-700 [transform-style:preserve-3d]">
+                    <div class="flashcard-front absolute w-full h-full themed-card rounded-xl p-6 flex flex-col justify-center items-center text-center [backface-visibility:hidden]">
+                        <span class="text-sm themed-text-secondary mb-2">Question</span>
+                        <p class="text-lg font-semibold themed-text">{{ card.question }}</p>
+                    </div>
+                    <div class="flashcard-back absolute w-full h-full themed-card rounded-xl p-6 flex flex-col justify-center items-center text-center [transform:rotateY(180deg)] [backface-visibility:hidden]">
+                        <span class="text-sm themed-text-secondary mb-2">Answer</span>
+                        <p class="text-lg font-medium themed-text">{{ card.answer }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+    /* Add this style for the flip animation */
+    .flashcard-container.is-flipped .flashcard-inner {
+        transform: rotateY(180deg);
+    }
+</style>
+{% endblock %}

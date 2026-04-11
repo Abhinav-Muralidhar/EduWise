@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduWise • AI‑Powered Knowledge Hub</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { inter: ['Inter', 'sans-serif'] },
+          colors: {
+            'primary-blue': '#3B82F6',
+            'primary-dark': '#2563EB',
+            'accent-green': '#22C55E',
+            'accent-dark': '#16A34A',
+            'bg-light': '#F9FAFB',
+            'bg-dark': '#1F2937',
+            'text-light': '#111827',
+            'text-dark': '#F9FAFB',
+            'edu-border-light': '#D1E0F5',
+            'edu-border-dark': '#4A5568',
+            'edu-accent-light': '#BFDBFE',
+            'edu-accent-dark': '#374151',
+            'edu-icon-bg-light': '#EBF5FF',
+            'edu-icon-bg-dark': '#2C3E50',
+            'hero-start-light': '#E0E7FF', /* Lighter blue for hero wave base */
+            'hero-end-light': 'rgba(59, 130, 246, 0.1)', /* Transparent blue for mid-gradient */
+            'hero-start-dark': '#2C3E50', /* Darker base for hero wave */
+            'hero-end-dark': 'rgba(37, 99, 235, 0.2)' /* Transparent dark blue for mid-gradient */
+          },
+          keyframes: {
+            fadeUp: { '0%': { opacity: 0, transform: 'translateY(20px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
+            float: {
+              '0%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-10px)' },
+              '100%': { transform: 'translateY(0px)' }
+            },
+            gradientShift: { /* Adjusted gradient shift for better visual */
+                '0%': { backgroundPosition: '0% 50%' },
+                '100%': { backgroundPosition: '100% 50%' }
+            }
+          },
+          animation: {
+            fadeUp: 'fadeUp 0.6s ease-out forwards',
+            float: 'float 3s ease-in-out infinite',
+            gradientShift: 'gradientShift 15s ease infinite alternate' /* Applied to hero background */
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    [data-theme='dark'] {
+      background: #1F2937;
+      color: #F9FAFB;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .animate-fadeUp,
+      .animate-float,
+      .animate-gradientShift {
+        animation: none !important;
+      }
+    }
+
+    button[type="submit"] {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button[type="submit"]:hover {
+      transform: scale(1.03);
+      box-shadow: 0 8px 18px rgba(59, 130, 246, 0.5);
+    }
+
+    input:focus, textarea:focus {
+      border-color: #3B82F6;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3);
+      outline: none;
+    }
+    .dark input:focus, .dark textarea:focus {
+      border-color: #2563EB;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.4);
+    }
+
+    #modal {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    #modal.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #modal > div {
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+    }
+
+    #modal.show > div {
+      transform: translateY(0);
+    }
+
+    /* Hero Button Hover Effects - Enhanced with more subtle glow */
+    .btn-hero {
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .btn-hero:hover,
+    .btn-hero:focus {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 10px 25px rgba(59, 130, 246, 0.5); /* Stronger, wider shadow */
+    }
+
+    /* Feature Card Icon Hover */
+    .feature-icon {
+      transition: transform 0.5s cubic-bezier(0.3,1,0.22,1);
+    }
+    .feature-card:hover .feature-icon {
+      transform: scale(1.1) rotate(5deg);
+    }
+
+    /* Modal Slide-In */
+    #modal .modal-dialog {
+      transform: translateY(30px);
+      opacity: 0;
+      transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+    }
+    #modal.show .modal-dialog {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Hero Background Wave/Pattern - Corrected and More Aesthetic */
+    .hero-background {
+      position: absolute;
+      inset: 0;
+      z-index: 0; /* Behind content */
+      /* Use defined colors for better theme control */
+      background: linear-gradient(135deg, var(--hero-start-light) 0%, var(--hero-end-light) 50%, var(--accent-green) 100%);
+      background-size: 200% 200%; /* Make gradient larger for shift */
+      animation: gradientShift 15s ease infinite alternate; /* Apply gradient shift animation */
+      overflow: hidden; /* Hide anything outside */
+    }
+    .dark .hero-background {
+      background: linear-gradient(135deg, var(--hero-start-dark) 0%, var(--hero-end-dark) 50%, var(--accent-dark) 100%);
+    }
+
+    /* Abstract shapes within hero background for "knowledge flow" */
+    .hero-shape {
+        position: absolute;
+        opacity: 0.2; /* Very subtle */
+        filter: blur(2px); /* Soft blur */
+        animation: float 6s ease-in-out infinite; /* Apply float animation */
+    }
+    .hero-shape.circle {
+        width: 100px; height: 100px;
+        background-color: var(--primary-blue);
+        border-radius: 50%;
+        top: 20%; left: 10%;
+        animation-delay: 0.5s;
+    }
+    .hero-shape.square {
+        width: 80px; height: 80px;
+        background-color: var(--accent-green);
+        top: 70%; right: 15%;
+        transform: rotate(45deg);
+        animation-delay: 1.5s;
+    }
+    .hero-shape.triangle {
+        width: 0; height: 0;
+        border-left: 60px solid transparent;
+        border-right: 60px solid transparent;
+        border-bottom: 100px solid var(--primary-blue);
+        bottom: 15%; left: 30%;
+        animation-delay: 2.5s;
+    }
+    .hero-shape.dot-grid {
+        top: 40%; left: 45%;
+        width: 120px; height: 120px;
+        background-image: radial-gradient(var(--accent-green) 2px, transparent 2px);
+        background-size: 15px 15px;
+        opacity: 0.15;
+        animation-delay: 3.5s;
+    }
+
+    /* Feature Icon Wrapper for better visual - MORE PROMINENT */
+    .icon-wrapper {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background-color: var(--edu-icon-bg-light);
+        border: 2px solid var(--edu-border-light);
+        margin-bottom: 1.25rem;
+        transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+    }
+
+    .dark .icon-wrapper {
+        background-color: var(--edu-icon-bg-dark);
+        border: 2px solid var(--edu-border-dark);
+    }
+
+    .group:hover .icon-wrapper {
+        background-color: var(--edu-accent-light);
+        border-color: var(--primary-blue);
+        transform: translateY(-5px);
+    }
+    .dark .group:hover .icon-wrapper {
+        background-color: var(--edu-accent-dark);
+        border-color: var(--primary-dark);
+    }
+
+    /* Header EduWise branding */
+    .eduwise-logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .eduwise-logo .icon-book {
+        font-size: 2rem;
+        color: #3B82F6;
+        transform: rotate(-10deg);
+        transition: transform 0.3s ease;
+    }
+    .eduwise-logo:hover .icon-book {
+        transform: rotate(0deg) scale(1.1);
+    }
+    .dark .eduwise-logo .icon-book {
+        color: #2563EB;
+    }
+  </style>
+</head>
+<body class="relative overflow-x-hidden bg-bg-light text-text-light dark:bg-bg-dark dark:text-text-dark">
+
+  <header class="fixed top-0 inset-x-0 z-50 bg-white dark:bg-gray-900 shadow-md">
+    <div class="max-w-6xl mx-auto flex justify-between items-center p-4">
+      <div class="eduwise-logo">
+          <i class="fas fa-book-open icon-book"></i>
+          <h1 class="text-2xl font-extrabold text-primary-blue dark:text-primary-dark">EduWise</h1>
+      </div>
+      <button id="themeToggle" aria-label="Toggle Theme" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 focus:ring">
+        <i class="fas fa-moon text-lg dark:hidden"></i>
+        <i class="fas fa-sun text-lg hidden dark:block"></i>
+      </button>
+    </div>
+  </header>
+
+  <section class="pt-20 pb-32 flex items-center justify-center text-center relative overflow-hidden">
+    <div class="hero-background animate-gradientShift">
+        <div class="hero-shape circle" style="top: 20%; left: 10%;"></div>
+        <div class="hero-shape square" style="top: 70%; right: 15%; animation-delay: 1s;"></div>
+        <div class="hero-shape triangle" style="bottom: 15%; left: 30%; animation-delay: 2s;"></div>
+        <div class="hero-shape dot-grid" style="top: 40%; left: 45%; animation-delay: 3s;"></div>
+        <div class="hero-shape circle" style="top: 5%; right: 5%; width: 60px; height: 60px; opacity: 0.1; animation-delay: 0.3s;"></div>
+        <div class="hero-shape square" style="bottom: 5%; left: 5%; width: 50px; height: 50px; opacity: 0.15; animation-delay: 2.3s;"></div>
+    </div>
+    <div class="relative z-10 max-w-4xl mx-auto px-4 animate-fadeUp">
+      <h2 class="text-5xl md:text-6xl font-extrabold text-primary-blue dark:text-primary-dark mb-6">AI‑Powered Learning, Reimagined</h2>
+      <p class="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-10">Unlock your growth with tools to generate PPTs, PDFs, quizzes, flashcards, explanations—and more!</p>
+      <div class="flex flex-wrap justify-center gap-4">
+        <a href="#features" class="btn-hero px-6 py-3 bg-primary-blue text-white rounded-full shadow-lg hover:bg-primary-dark transition">Explore Features</a>
+        <button onclick="openForm('quizForm')" class="btn-hero px-6 py-3 bg-accent-green text-white rounded-full shadow-lg hover:bg-accent-dark transition">Try a Quiz</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" class="pb-24">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 px-4">
+
+      <div class="group feature-card p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition animate-fadeUp" style="animation-delay: .1s">
+        <div class="icon-wrapper">
+            <i class="fas fa-file-powerpoint text-primary-blue dark:text-primary-dark text-4xl feature-icon"></i>
+        </div>
+        <h3 class="font-semibold mb-3">Dynamic Presentations</h3>
+        <p class="text-gray-600 dark:text-gray-300 mb-6">Auto‑generate stylish PPTs tailored to your topic.</p>
+        <button onclick="openForm('pptForm')" class="px-4 py-2 bg-primary-blue text-white rounded-full hover:bg-primary-dark transition focus:ring">Create PPT</button>
+      </div>
+
+      <div class="group feature-card p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition animate-fadeUp" style="animation-delay: .2s">
+        <div class="icon-wrapper">
+            <i class="fas fa-file-pdf text-red-500 text-4xl feature-icon"></i>
+        </div>
+        <h3 class="font-semibold mb-3">Comprehensive Study Notes</h3>
+        <p class="text-gray-600 dark:text-gray-300 mb-6">Generate detailed, well-structured PDF notes.</p>
+        <button onclick="openForm('pdfForm')" class="px-4 py-2 bg-primary-blue text-white rounded-full hover:bg-primary-dark transition focus:ring">Get Notes</button>
+      </div>
+
+      <div class="group feature-card p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition animate-fadeUp" style="animation-delay: .3s">
+        <div class="icon-wrapper">
+            <i class="fas fa-lightbulb text-yellow-500 text-4xl feature-icon"></i>
+        </div>
+        <h3 class="font-semibold mb-3">Crystal-Clear Explanations</h3>
+        <p class="text-gray-600 dark:text-gray-300 mb-6">Demystify complex subjects with ease.</p>
+        <button onclick="openForm('explainForm')" class="px-4 py-2 bg-primary-blue text-white rounded-full hover:bg-primary-dark transition focus:ring">Explain It</button>
+      </div>
+
+      <div class="group feature-card p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition animate-fadeUp" style="animation-delay: .4s">
+        <div class="icon-wrapper">
+            <i class="fas fa-clipboard-question text-accent-green text-4xl feature-icon"></i>
+        </div>
+        <h3 class="font-semibold mb-3">Personalized AI Quizzes</h3>
+        <p class="text-gray-600 dark:text-gray-300 mb-6">Upload materials & generate quizzes instantly.</p>
+        <button onclick="openForm('quizForm')" class="px-4 py-2 bg-primary-blue text-white rounded-full hover:bg-primary-dark transition focus:ring">Get Quiz</button>
+      </div>
+
+      <div class="group feature-card p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition animate-fadeUp" style="animation-delay: .5s">
+        <div class="icon-wrapper">
+            <i class="fas fa-sync-alt text-purple-500 text-4xl feature-icon"></i>
+        </div>
+        <h3 class="font-semibold mb-3">Interactive Flashcards</h3>
+        <p class="text-gray-600 dark:text-gray-300 mb-6">Turn text into dynamic study flashcards.</p>
+        <button onclick="openForm('flashcardForm')" class="px-4 py-2 bg-primary-blue text-white rounded-full hover:bg-primary-dark transition focus:ring">Create Cards</button>
+      </div>
+
+      <div class="group feature-card p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition animate-fadeUp" style="animation-delay: .6s">
+        <div class="icon-wrapper">
+            <i class="fas fa-paragraph text-indigo-500 text-4xl feature-icon"></i>
+        </div>
+        <h3 class="font-semibold mb-3">Concise Summaries</h3>
+        <p class="text-gray-600 dark:text-gray-300 mb-6">Extract key points from articles & papers.</p>
+        <button onclick="openForm('summarizeForm')" class="px-4 py-2 bg-primary-blue text-white rounded-full hover:bg-primary-dark transition focus:ring">Summarize Text</button>
+      </div>
+
+    </div>
+  </section>
+
+  <div id="modal" class="fixed inset-0 bg-black/50 flex items-center justify-center p-6 hidden z-50">
+  <div class="modal-dialog bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-lg p-8 relative">
+    <button
+      onclick="closeForm()"
+      aria-label="Close modal"
+      class="absolute top-4 right-4 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white focus:outline-none focus:ring">
+      <i class="fas fa-times fa-lg"></i>
+    </button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<div class="hidden">
+  <form id="pptForm" class="space-y-5 text-gray-800 dark:text-gray-100">
+    <h2 class="text-2xl font-semibold mb-4">Generate PPT Presentation</h2>
+    <label class="block">
+      <span class="font-medium">Topic</span>
+      <input type="text" required placeholder="Your topic here..." class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-700" />
+    </label>
+    <label class="block">
+      <span class="font-medium">Number of Slides</span>
+      <input type="number" min="1" max="50" value="10" required class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-700" />
+    </label>
+    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md py-3 transition">Generate PPT</button>
+  </form>
+
+  <form id="pdfForm" class="space-y-5 text-gray-800 dark:text-gray-100">
+    <h2 class="text-2xl font-semibold mb-4">Generate PDF Notes</h2>
+    <label class="block">
+      <span class="font-medium">Subject or Topic</span>
+      <input type="text" required placeholder="Enter subject or topic" class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-700" />
+    </label>
+    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md py-3 transition">Generate PDF</button>
+  </form>
+
+  <form id="explainForm" class="space-y-5 text-gray-800 dark:text-gray-100">
+    <h2 class="text-2xl font-semibold mb-4">Get Explanation</h2>
+    <label class="block">
+      <span class="font-medium">Question or Topic</span>
+      <textarea required rows="4" placeholder="Enter what you want explained" class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-700"></textarea>
+    </label>
+    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md py-3 transition">Explain</button>
+  </form>
+
+  <form id="quizForm" class="space-y-5 text-gray-800 dark:text-gray-100">
+    <h2 class="text-2xl font-semibold mb-4">Create AI Quiz</h2>
+    <label class="block">
+      <span class="font-medium">Upload Material (PDF/DOC)</span>
+      <input type="file" accept=".pdf,.doc,.docx" required class="mt-1 block w-full text-gray-900 dark:text-gray-100" />
+    </label>
+    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md py-3 transition">Generate Quiz</button>
+  </form>
+
+  <form id="flashcardForm" class="space-y-5 text-gray-800 dark:text-gray-100">
+    <h2 class="text-2xl font-semibold mb-4">Create Flashcards</h2>
+    <label class="block">
+      <span class="font-medium">Text Content</span>
+      <textarea required rows="5" placeholder="Paste text to generate flashcards" class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-700"></textarea>
+    </label>
+    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md py-3 transition">Create Cards</button>
+  </form>
+
+  <form id="summarizeForm" class="space-y-5 text-gray-800 dark:text-gray-100">
+    <h2 class="text-2xl font-semibold mb-4">Summarize Text</h2>
+    <label class="block">
+      <span class="font-medium">Paste Text</span>
+      <textarea required rows="6" placeholder="Paste article or paper here" class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-700"></textarea>
+    </label>
+    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md py-3 transition">Summarize</button>
+  </form>
+</div>
+
+<script>
+  // Modal functions to open/close form modals
+  function openForm(formId) {
+    const modal = document.getElementById('modal');
+    const modalContent = document.getElementById('modalContent');
+    modalContent.innerHTML = document.getElementById(formId).innerHTML;
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+      modal.classList.add('show');
+    }, 10);
+    const firstInput = modalContent.querySelector('input, textarea, button');
+    if (firstInput) firstInput.focus();
+  }
+
+  function closeForm() {
+    const modal = document.getElementById('modal');
+    modal.classList.remove('show');
+    setTimeout(() => {
+      modal.classList.add('hidden');
+      document.getElementById('modalContent').innerHTML = '';
+    }, 300);
+  }
+
+  document.getElementById('modal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeForm();
+  });
+
+  window.addEventListener('keydown', e => {
+    if(e.key === "Escape" && !document.getElementById('modal').classList.contains('hidden')) {
+      closeForm();
+    }
+  });
+</script>
+
+
+  <div class="hidden">
+    <div id="pptForm">
+      <h2 class="text-2xl font-bold mb-4">🎓 Create Engaging Presentations</h2>
+      <form method="post" action="/generate">
+        <label class="block mb-2">Topic:</label>
+        <input class="w-full mb-4 p-2 border dark:bg-gray-700 dark:border-gray-600 rounded focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-700" type="text" name="topic" placeholder="Quantum Physics, The Internet..." required>
+        <button type="submit" class="w-full py-2 bg-accent-green text-white rounded hover:bg-accent-dark focus:ring">Create PPT Slides</button>
+      </form>
+    </div>
+
+    <div id="pdfForm">
+      <h2 class="text-2xl font-bold mb-4">📄 Generate Study Notes</h2>
+      <form method="post" action="/generate_pdf">
+        <label class="block mb-2">Topic:</label>
+        <input class="w-full mb-4 p-2 border dark:bg-gray-700 dark:border-gray-600 rounded focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-700" type="text" name="topic" placeholder="Physics, Shakespeare..." required>
+        <label class="block mb-2">Subtopics (comma separated):</label>
+        <input class="w-full mb-4 p-2 border dark:bg-gray-700 dark:border-gray-600 rounded focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-700" type="text" name="subtopics" placeholder="Force, Energy, Torque">
+        <button type="submit" class="w-full py-2 bg-accent-green text-white rounded hover:bg-accent-dark focus:ring">Generate PDF Notes</button>
+      </form>
+    </div>
+
+    <div id="explainForm">
+      <h2 class="text-2xl font-bold mb-4">🧠 Explain a Topic</h2>
+      <form method="post" action="/present">
+        <label class="block mb-2">Topic:</label>
+        <input class="w-full mb-4 p-2 border dark:bg-gray-700 dark:border-gray-600 rounded focus:border-blue-500 focus:ring-2 focus:focus-ring-blue-200 dark:focus:ring-blue-700" type="text" name="topic" placeholder="Neural Networks, French Revolution..." required>
+        <button type="submit" class="w-full py-2 bg-accent-green text-white rounded hover:bg-accent-dark focus:ring">Get Explanation</button>
+      </form>
+    </div>
+
+    <div id="quizForm">
+      <h2 class="text-2xl font-bold mb-4">📝 Generate Quiz</h2>
+      <form method="post" enctype="multipart/form-data" action="/generate_quiz">
+        <label class="block mb-2">Upload File:</label>
+        <input class="w-full mb-4 file:py-2 file:px-4 file:bg-primary-blue file:text-white rounded cursor-pointer dark:bg-gray-700" type="file" name="file" accept=".pdf,.docx,.txt" required>
+        <button type="submit" class="w-full py-2 bg-accent-green text-white rounded hover:bg-accent-dark focus:ring">Generate Quiz</button>
+      </form>
+    </div>
+
+    <div id="flashcardForm">
+      <h2 class="text-2xl font-bold mb-4">✨ Create Flashcards</h2>
+      <form method="post" action="/generate_flashcards">
+        <label class="block mb-2">Topic or Text:</label>
+        <textarea class="w-full mb-4 p-2 border dark:bg-gray-700 dark:border-gray-600 rounded focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-700" name="topic_or_text" rows="6" placeholder="Key concepts..." required></textarea>
+        <button type="submit" class="w-full py-2 bg-accent-green text-white rounded hover:bg-accent-dark focus:ring">Create Flashcards</button>
+      </form>
+    </div>
+
+    <div id="summarizeForm">
+      <h2 class="text-2xl font-bold mb-4">📝 Summarize Text</h2>
+      <form method="post" action="/summarize_text">
+        <label class="block mb-2">Paste Your Text:</label>
+        <textarea class="w-full mb-4 p-2 border dark:bg-gray-700 dark:border-gray-600 rounded focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-700" name="text" rows="8" placeholder="Insert any lengthy text..." required></textarea>
+        <button type="submit" class="w-full py-2 bg-accent-green text-white rounded hover:bg-accent-dark focus:ring">Get Summary</button>
+      </form>
+    </div>
+  </div>
+
+  <footer class="text-center py-6 bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400">
+    &copy; 2025 EduWise. All rights reserved.
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+  <script>
+    // Theme toggle
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    });
+    if(localStorage.getItem('theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+
+    // Modal handling
+    function openForm(formId) {
+      const modal = document.getElementById('modal');
+      const modalContent = document.getElementById('modalContent');
+      modalContent.innerHTML = document.getElementById(formId).innerHTML;
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        modal.classList.add('show');
+      }, 10);
+      const firstInput = modalContent.querySelector('input, textarea, button');
+      if (firstInput) firstInput.focus();
+    }
+
+    function closeForm() {
+      const modal = document.getElementById('modal');
+      modal.classList.remove('show');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+        document.getElementById('modalContent').innerHTML = '';
+      }, 300);
+    }
+
+    document.getElementById('modal').addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeForm();
+    });
+
+    window.addEventListener('keydown', e => {
+      if(e.key === "Escape" && !document.getElementById('modal').classList.contains('hidden')) {
+        closeForm();
+      }
+    });
+  </script>
+</body>
+</html>

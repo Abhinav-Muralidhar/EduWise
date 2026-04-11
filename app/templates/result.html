@@ -1,0 +1,58 @@
+{% extends 'layout.html' %}
+{% block title %}Quiz Results{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-16">
+    <div class="max-w-3xl mx-auto themed-card p-8 md:p-12 rounded-xl animate-fade-in-up">
+        
+        <h1 class="text-3xl md:text-4xl font-bold text-primary-blue mb-4 text-center">
+            Quiz Results
+        </h1>
+        
+        <h2 class="text-5xl font-bold text-accent-green text-center mb-8">
+            {{ score }} / {{ questions|length }}
+        </h2>
+
+        <div class="space-y-8">
+            {% for q in questions %}
+            <div class="themed-text border-b border-current-border pb-6">
+                <p class="text-xl font-semibold mb-4">{{ q.question }}</p>
+                
+                <div class="space-y-3">
+                    
+                    {% set user_ans_idx = user_answers[q.id] %}
+                    {% set correct_ans_idx = q.correct_index %}
+                    
+                    {% for option in q.options %}
+                        {% set current_idx = loop.index0 %}
+                        
+                        {% set is_correct = (current_idx == correct_ans_idx) %}
+                        {% set is_user_ans = (current_idx == user_ans_idx) %}
+                        
+                        <div class="p-3 rounded-lg border
+                            {% if is_correct %} border-green-500 bg-green-100/50 dark:bg-green-900/30
+                            {% elif is_user_ans and not is_correct %} border-red-500 bg-red-100/50 dark:bg-red-900/30
+                            {% else %} border-current-border {% endif %}">
+                            
+                            <span class="text-lg">{{ option }}</span>
+                            
+                            {% if is_correct %}
+                                <span class="ml-3 font-bold text-green-600 dark:text-green-400">(Correct Answer)</span>
+                            {% elif is_user_ans and not is_correct %}
+                                <span class="ml-3 font-bold text-red-600 dark:text-red-400">(Your Answer)</span>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-8">
+            <a href="{{ url_for('dashboard.index') }}" class="px-8 py-3 bg-primary-blue text-white font-semibold rounded-full shadow-lg hover:bg-primary-dark-blue transform hover:scale-105 transition-all duration-300">
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
