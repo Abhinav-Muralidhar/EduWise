@@ -1,315 +1,562 @@
 {% extends 'layout.html' %}
-{% block title %}Dashboard - EduWise{% endblock %}
+{% block title %}Dashboard — EduWise{% endblock %}
 
 {% block content %}
-<div id="loadingOverlay" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-500">
-    <div class="text-center">
-        <div class="relative w-24 h-24 mx-auto mb-8">
-            <div class="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
-            <div class="absolute inset-0 border-4 border-primary rounded-full border-t-transparent animate-spin"></div>
-            <i class="fas fa-magic absolute inset-0 flex items-center justify-center text-primary text-2xl animate-pulse"></i>
-        </div>
-        <h2 class="text-3xl font-display font-black text-white mb-2">Generating Magic...</h2>
-        <p class="text-slate-400">Our AI is crafting your masterpiece.</p>
-    </div>
+<style>
+    .r-icon-pptx { background: var(--accent-surface); color: var(--accent); }
+    .r-icon-pdf { background: var(--coral-surface); color: var(--coral); }
+    .r-icon-quiz { background: var(--sage-surface); color: var(--sage); }
+    .r-icon-flashcard { background: var(--plum-surface); color: var(--plum); }
+    .r-icon-default { background: var(--amber-surface); color: var(--amber); }
+    
+    .btn-fav { border: 1px solid var(--border); }
+    .btn-fav.active { color: var(--amber); }
+    .btn-fav.inactive { color: var(--text-ghost); }
+</style>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay hidden">
+    <div class="loading-spinner"></div>
+    <p class="text-sm font-medium" style="color: var(--text-primary);">Generating your materials…</p>
+    <p class="text-xs mt-1" style="color: var(--text-muted);">This may take a moment.</p>
 </div>
 
-<div class="min-h-screen bg-slate-50 dark:bg-slate-950/50 pt-24 pb-20">
-    <div class="container mx-auto px-6">
-        
-        <!-- Welcome Header -->
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12" data-aos>
-            <div>
-                <h1 class="text-4xl md:text-5xl font-display font-black text-slate-950 dark:text-white mb-2">
-                    Welcome back, <span class="text-primary">{{ session.username }}</span>.
-                </h1>
-                <p class="text-lg text-slate-500 dark:text-slate-400">Ready to master something new today?</p>
-            </div>
-            <div class="flex items-center gap-4">
-                <div class="hidden lg:flex flex-col items-end mr-2">
-                    <span class="text-sm font-bold text-slate-400 uppercase tracking-widest">Plan</span>
-                    <span class="text-primary font-black">PRO PILOT</span>
-                </div>
-                <div class="w-14 h-14 bg-gradient-to-br from-primary to-indigo-600 rounded-2xl flex items-center justify-center text-white text-xl shadow-xl shadow-primary/20">
-                    {{ session.username[0].upper() }}
-                </div>
-            </div>
+<div style="background: var(--surface-page); min-height: calc(100vh - var(--header-height));">
+    <div class="max-w-5xl mx-auto px-6 pt-10 pb-20">
+
+        <!-- ─── Greeting ─── -->
+        <div class="mb-10 animate-enter">
+            <p class="text-xs font-medium uppercase tracking-widest mb-2" style="color: var(--text-muted);">
+                <i class="fas fa-circle text-[6px] mr-1" style="color: var(--sage);"></i> Dashboard
+            </p>
+            <h1 class="text-[28px] font-semibold tracking-tight" style="color: var(--text-primary); letter-spacing: -0.02em;">
+                Hey, {{ session.username }}.
+            </h1>
+            <p class="text-[15px] mt-1" style="color: var(--text-secondary);">
+                Pick a tool below to get started, or revisit your history.
+            </p>
         </div>
 
-        <!-- Quick Tools Grid -->
-        <h2 class="text-xl font-bold text-slate-400 uppercase tracking-[0.2em] mb-8" data-aos>Creation Suite</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-20">
-            
-            <!-- Tool Card -->
-            <button onclick="showFormModal('pptForm')" class="premium-card p-6 flex flex-col items-center text-center group">
-                <div class="w-14 h-14 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                    <i class="fas fa-file-powerpoint text-2xl"></i>
+        <!-- ─── Tool Grid ─── -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-16">
+
+            <!-- PPT -->
+            <button onclick="showFormModal('pptForm')" class="tool-tile animate-enter delay-1" data-color="blue">
+                <span class="kbd-hint">1</span>
+                <div class="tile-icon" style="background: var(--accent-surface); color: var(--accent);">
+                    <i class="fas fa-file-powerpoint"></i>
                 </div>
-                <h3 class="font-bold text-slate-900 dark:text-white mb-2">PPT Slides</h3>
-                <span class="text-sm text-slate-400">Create Deck</span>
+                <div class="tile-title">Slides</div>
+                <div class="tile-desc">AI presentations</div>
             </button>
 
-            <button onclick="showFormModal('pdfForm')" class="premium-card p-6 flex flex-col items-center text-center group">
-                <div class="w-14 h-14 bg-rose-500/10 text-rose-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                    <i class="fas fa-file-pdf text-2xl"></i>
+            <!-- PDF -->
+            <button onclick="showFormModal('pdfForm')" class="tool-tile animate-enter delay-2" data-color="red">
+                <span class="kbd-hint">2</span>
+                <div class="tile-icon" style="background: var(--coral-surface); color: var(--coral);">
+                    <i class="fas fa-file-pdf"></i>
                 </div>
-                <h3 class="font-bold text-slate-900 dark:text-white mb-2">Study Notes</h3>
-                <span class="text-sm text-slate-400">Export PDF</span>
+                <div class="tile-title">Notes</div>
+                <div class="tile-desc">Study documents</div>
             </button>
 
-            <button onclick="showFormModal('explainForm')" class="premium-card p-6 flex flex-col items-center text-center group">
-                <div class="w-14 h-14 bg-amber-500/10 text-amber-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                    <i class="fas fa-brain text-2xl"></i>
+            <!-- Explain -->
+            <button onclick="showFormModal('explainForm')" class="tool-tile animate-enter delay-3" data-color="amber">
+                <span class="kbd-hint">3</span>
+                <div class="tile-icon" style="background: var(--amber-surface); color: var(--amber);">
+                    <i class="fas fa-brain"></i>
                 </div>
-                <h3 class="font-bold text-slate-900 dark:text-white mb-2">AI Explainer</h3>
-                <span class="text-sm text-slate-400">Understand</span>
+                <div class="tile-title">Explain</div>
+                <div class="tile-desc">Concept clarity</div>
             </button>
 
-            <button onclick="showFormModal('quizForm')" class="premium-card p-6 flex flex-col items-center text-center group">
-                <div class="w-14 h-14 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                    <i class="fas fa-puzzle-piece text-2xl"></i>
+            <!-- Quiz -->
+            <button onclick="showFormModal('quizForm')" class="tool-tile animate-enter delay-4" data-color="green">
+                <span class="kbd-hint">4</span>
+                <div class="tile-icon" style="background: var(--sage-surface); color: var(--sage);">
+                    <i class="fas fa-puzzle-piece"></i>
                 </div>
-                <h3 class="font-bold text-slate-900 dark:text-white mb-2">Smart Quiz</h3>
-                <span class="text-sm text-slate-400">Self Test</span>
+                <div class="tile-title">Quiz</div>
+                <div class="tile-desc">Test yourself</div>
             </button>
 
-            <button onclick="showFormModal('flashcardForm')" class="premium-card p-6 flex flex-col items-center text-center group">
-                <div class="w-14 h-14 bg-purple-500/10 text-purple-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                    <i class="fas fa-layer-group text-2xl"></i>
+            <!-- Flashcards -->
+            <button onclick="showFormModal('flashcardForm')" class="tool-tile animate-enter delay-5" data-color="plum">
+                <span class="kbd-hint">5</span>
+                <div class="tile-icon" style="background: var(--plum-surface); color: var(--plum);">
+                    <i class="fas fa-layer-group"></i>
                 </div>
-                <h3 class="font-bold text-slate-900 dark:text-white mb-2">Flashcards</h3>
-                <span class="text-sm text-slate-400">Memorize</span>
+                <div class="tile-title">Cards</div>
+                <div class="tile-desc">Active recall</div>
             </button>
 
-            <button onclick="showFormModal('summarizeForm')" class="premium-card p-6 flex flex-col items-center text-center group">
-                <div class="w-14 h-14 bg-indigo-500/10 text-indigo-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                    <i class="fas fa-compress-alt text-2xl"></i>
+            <!-- Summarize -->
+            <button onclick="showFormModal('summarizeForm')" class="tool-tile animate-enter delay-6" data-color="sky">
+                <span class="kbd-hint">6</span>
+                <div class="tile-icon" style="background: var(--sky-surface); color: var(--sky);">
+                    <i class="fas fa-compress-alt"></i>
                 </div>
-                <h3 class="font-bold text-slate-900 dark:text-white mb-2">Summarizer</h3>
-                <span class="text-sm text-slate-400">Quick Read</span>
+                <div class="tile-title">Summarize</div>
+                <div class="tile-desc">Distill text</div>
             </button>
         </div>
 
-        <!-- Content Library Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12" data-aos>
-            <!-- Left: Library Search & Filters -->
-            <div class="lg:col-span-12">
-                <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
-                    <h2 class="text-3xl font-display font-black text-slate-950 dark:text-white">Your Knowledge Library</h2>
-                    
-                    <form method="GET" action="{{ url_for('dashboard.index') }}#resource-history" class="w-full md:w-auto flex flex-col sm:flex-row gap-3">
-                        <div class="relative w-full md:w-80">
-                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            <input type="text" name="q" class="premium-input pl-11" placeholder="Search library..." value="{{ search_query or '' }}">
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" name="favorites" value="true" class="sr-only peer" {% if showing_favorites %}checked{% endif %} onchange="this.form.submit()">
-                                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                                <span class="ml-3 text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Favorites</span>
-                            </label>
-                            <button type="submit" class="premium-button py-2 px-4 text-sm bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-700">
-                                <i class="fas fa-filter"></i>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Resources List -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <!-- ─── History Section ─── -->
+        <div class="animate-enter" style="animation-delay: 400ms;">
+            <!-- Section header -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                <div class="flex items-center gap-3">
+                    <h2 class="text-[18px] font-semibold" style="color: var(--text-primary);">History</h2>
                     {% if resources %}
-                        {% for resource in resources %}
-                            <div class="premium-card p-6 flex flex-col group relative overflow-hidden">
-                                <!-- Type Badge Float -->
-                                <div class="absolute top-4 right-4">
-                                    <button class="w-8 h-8 rounded-full flex items-center justify-center transition-colors {{ 'text-yellow-500 bg-yellow-500/10' if resource.is_favorite else 'text-slate-400 bg-slate-400/10 hover:text-yellow-500' }}" onclick="toggleFavorite(event, {{ resource.id }})">
-                                        <i id="fav-icon-{{ resource.id }}" class="{{ 'fas' if resource.is_favorite else 'far' }} fa-star text-sm"></i>
-                                    </button>
-                                </div>
-
-                                <div class="w-10 h-10 rounded-xl mb-4 flex items-center justify-center
-                                    {% if resource.resource_type == 'pptx' %} bg-blue-500/20 text-blue-500
-                                    {% elif resource.resource_type == 'pdf' %} bg-rose-500/20 text-rose-500
-                                    {% elif resource.resource_type == 'quiz' %} bg-emerald-500/20 text-emerald-500
-                                    {% elif resource.resource_type == 'flashcard' %} bg-purple-500/20 text-purple-500
-                                    {% else %} bg-amber-500/20 text-amber-500 {% endif %}">
-                                    {% if resource.resource_type == 'pptx' %}<i class="fas fa-file-powerpoint"></i>
-                                    {% elif resource.resource_type == 'pdf' %}<i class="fas fa-file-pdf"></i>
-                                    {% elif resource.resource_type == 'quiz' %}<i class="fas fa-puzzle-piece"></i>
-                                    {% elif resource.resource_type == 'flashcard' %}<i class="fas fa-layer-group"></i>
-                                    {% else %}<i class="fas fa-brain"></i>{% endif %}
-                                </div>
-
-                                <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2 truncate pr-6">{{ resource.topic }}</h3>
-                                <p class="text-sm text-slate-500 dark:text-slate-400 mb-6 flex items-center gap-2">
-                                    <i class="far fa-calendar"></i> {{ resource.created_at.strftime('%b %d, %Y') }}
-                                </p>
-
-                                <div class="mt-auto flex gap-3">
-                                    {% if resource.resource_type in ['pptx', 'pdf'] and resource.filename %}
-                                        <a href="{{ url_for('dashboard.download', resource_id=resource.id) }}" 
-                                           class="flex-1 premium-button py-2 text-xs bg-primary/10 text-primary hover:bg-primary hover:text-white border border-primary/20">
-                                            <i class="fas fa-download"></i> Download
-                                        </a>
-                                    {% else %}
-                                        <button class="flex-1 premium-button py-2 text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-white hover:bg-primary hover:text-white">
-                                            <i class="fas fa-eye"></i> View Online
-                                        </button>
-                                    {% endif %}
-                                    <button class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors">
-                                        <i class="fas fa-trash-alt text-xs"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="lg:col-span-4 py-20 premium-card text-center">
-                            <i class="fas fa-ghost text-6xl text-slate-200 dark:text-slate-800 mb-6"></i>
-                            <h3 class="text-2xl font-black text-slate-400 mb-2">No resources found</h3>
-                            <p class="text-slate-500">Time to generate your first learning material!</p>
-                        </div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                              style="background: var(--surface-raised); color: var(--text-muted);">
+                            {{ resources|length }}
+                        </span>
                     {% endif %}
                 </div>
+
+                <form method="GET" action="{{ url_for('dashboard.index') }}" class="flex items-center gap-3">
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[11px]" style="color: var(--text-ghost);"></i>
+                        <input type="text" name="q" placeholder="Search topics…" value="{{ search_query or '' }}" 
+                               class="search-input">
+                    </div>
+                    <label class="flex items-center gap-1.5 cursor-pointer select-none">
+                        <input type="checkbox" name="favorites" value="true" 
+                               {% if showing_favorites %}checked{% endif %} 
+                               onchange="this.form.submit()" 
+                               class="w-3.5 h-3.5 rounded cursor-pointer accent-amber-500">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider" style="color: var(--text-muted);">Favs</span>
+                    </label>
+                </form>
+            </div>
+
+            <!-- Resource list -->
+            <div class="space-y-2">
+                {% if resources %}
+                    {% for resource in resources %}
+                        <div class="resource-row group">
+                            {% set icon_class = 'r-icon-' ~ resource.resource_type if resource.resource_type in ['pptx', 'pdf', 'quiz', 'flashcard'] else 'r-icon-default' %}
+                            <div class="resource-icon {{ icon_class }}">
+                                {% if resource.resource_type == 'pptx' %}<i class="fas fa-file-powerpoint"></i>
+                                {% elif resource.resource_type == 'pdf' %}<i class="fas fa-file-pdf"></i>
+                                {% elif resource.resource_type == 'quiz' %}<i class="fas fa-puzzle-piece"></i>
+                                {% elif resource.resource_type == 'flashcard' %}<i class="fas fa-layer-group"></i>
+                                {% else %}<i class="fas fa-brain"></i>{% endif %}
+                            </div>
+
+                            <!-- Content -->
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-[14px] font-semibold truncate" style="color: var(--text-primary);">{{ resource.topic }}</h3>
+                                <p class="text-[11px]" style="color: var(--text-muted);">
+                                    {{ resource.resource_type.upper() }} &middot; {{ resource.created_at.strftime('%b %d, %Y') }}
+                                </p>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex items-center gap-2 flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity">
+                                {% set fav_status = 'active' if resource.is_favorite else 'inactive' %}
+                                <button onclick="toggleFavorite(event, this.dataset.id)" data-id="{{ resource.id }}"
+                                        class="w-7 h-7 rounded-md flex items-center justify-center transition-colors btn-fav {{ fav_status }}">
+                                    <i id="fav-icon-{{ resource.id }}" class="{{ 'fas' if resource.is_favorite else 'far' }} fa-star text-[11px]"></i>
+                                </button>
+                                
+                                {% if resource.resource_type in ['pptx', 'pdf'] and resource.filename %}
+                                    <a href="{{ url_for('dashboard.download', resource_id=resource.id) }}" class="btn-soft text-[12px] py-1.5 px-3">
+                                        <i class="fas fa-download text-[10px] mr-1"></i> Download
+                                    </a>
+                                {% else %}
+                                    <span class="text-[11px] font-medium px-3 py-1.5 rounded-md"
+                                          style="background: var(--surface-raised); color: var(--text-muted);">
+                                        Online
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Empty state -->
+                    <div class="text-center py-16 rounded-2xl" style="border: 2px dashed var(--border); background: var(--surface-card);">
+                        <div class="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center" style="background: var(--surface-raised);">
+                            <i class="fas fa-inbox text-lg" style="color: var(--text-ghost);"></i>
+                        </div>
+                        <p class="text-[14px] font-medium mb-1" style="color: var(--text-secondary);">No materials yet</p>
+                        <p class="text-[12px]" style="color: var(--text-muted);">Choose a tool above to create your first resource.</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
-
     </div>
 </div>
 
-<!-- Modal Structure Refined -->
+<!-- ─── Modal Container ─── -->
 <div id="formModal" class="modal-overlay">
-    <div class="modal-content p-10 relative">
-        <button onclick="closeFormModal()" class="absolute top-6 right-6 w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-primary transition-colors flex items-center justify-center">
-            <i class="fas fa-times"></i>
-        </button>
-        <div id="modalFormContent" class="animate-modal-slide-in">
-            <!-- Content injected via JS -->
+    <div class="modal-content">
+        <div class="p-7 sm:p-8">
+            <div id="modalFormContent"></div>
         </div>
     </div>
 </div>
 
-<!-- Templates -->
+<!-- ─── Form Templates (hidden) ─── -->
 <div id="hiddenFormTemplates" class="hidden">
 
-    <!-- PPT Template -->
-    <div id="pptFormTemplate" class="form-template">
-        <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-blue-500 shadow-xl shadow-blue-500/20 rounded-2xl flex items-center justify-center text-white text-2xl mx-auto mb-6">
+    <!-- ━━━ PPT Template ━━━ -->
+    <div id="pptFormTemplate">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: var(--accent-surface); color: var(--accent);">
                 <i class="fas fa-file-powerpoint"></i>
             </div>
-            <h2 class="text-3xl font-display font-black text-slate-900 dark:text-white">Create Deck</h2>
+            <div>
+                <h3 class="text-[16px] font-semibold" style="color: var(--text-primary);">Create Presentation</h3>
+                <p class="text-[12px]" style="color: var(--text-muted);">AI-designed slides on any topic</p>
+            </div>
         </div>
-        
-        <form method="post" action="{{ url_for('generation.generate_pptx') }}" class="space-y-6" onsubmit="showLoading(true)">
+        <form method="post" action="{{ url_for('generation.generate_pptx') }}" onsubmit="showLoading(true)" class="space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             
-            <div class="space-y-4">
-                <label class="block text-sm font-black text-slate-400 uppercase tracking-widest">Core Topic</label>
-                <input type="text" name="topic" placeholder="e.g., Quantum Physics" required maxlength="100" class="premium-input">
+            <div>
+                <label class="label-caps block mb-1.5">Topic</label>
+                <input type="text" name="topic" required maxlength="100" class="studio-input" placeholder="e.g. Quantum Physics 101">
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
-                <div class="space-y-4">
-                    <label class="block text-sm font-black text-slate-400 uppercase tracking-widest">Theme Base</label>
-                    <select name="theme_base" class="premium-input">
-                        <option value="ai_choice" selected>Let AI Decide</option>
-                        <option value="light">Professional Light</option>
-                        <option value="dark">Modern Dark</option>
-                        <option value="vibrant">Vibrant Creative</option>
-                    </select>
-                </div>
-                <div class="space-y-4">
-                    <label class="block text-sm font-black text-slate-400 uppercase tracking-widest">Image Strategy</label>
-                    <select name="image_strategy" class="premium-input">
-                        <option value="all_slides" selected>All Slides</option>
-                        <option value="cover_only">Cover Only</option>
-                        <option value="none">No Images</option>
-                    </select>
-                </div>
+            <div>
+                <label class="label-caps block mb-1.5">Context <span style="color: var(--text-ghost);">(optional)</span></label>
+                <textarea name="context" rows="2" class="studio-input" style="resize: none;" placeholder="e.g. 'For a 10th-grade class', 'Focus on economic impact'"></textarea>
             </div>
 
-            <button type="submit" class="premium-button w-full py-4 text-lg">
-                Generate Presentation <i class="fas fa-bolt ml-2"></i>
-            </button>
+            <!-- Advanced -->
+            <details class="group pt-2">
+                <summary class="flex items-center justify-between cursor-pointer text-[12px] font-semibold transition-colors mb-3" style="color: var(--accent);">
+                    <span><i class="fas fa-sliders-h mr-1.5 text-[10px]"></i> Customize</span>
+                    <i class="fas fa-chevron-down text-[9px] group-open:rotate-180 transition-transform"></i>
+                </summary>
+                
+                <div class="space-y-4 pt-1" style="border-top: 1px solid var(--border);">
+                    <div class="grid grid-cols-2 gap-3 pt-3">
+                        <div>
+                            <label class="label-caps block mb-1">Slides</label>
+                            <input type="number" name="slide_count" min="3" max="10" value="5" class="studio-input text-center">
+                        </div>
+                        <div>
+                            <label class="label-caps block mb-1">Theme</label>
+                            <select name="theme_base" class="studio-select">
+                                <option value="ai_choice">AI Choice</option>
+                                <option value="light">Light & Pro</option>
+                                <option value="dark">Dark & Modern</option>
+                                <option value="vibrant">Vibrant</option>
+                                <option value="minimalist">Minimal</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="label-caps block mb-1">Image Strategy</label>
+                        <select name="image_strategy" class="studio-select" onchange="handleImageStrategyChange(this, 'ppt_image_style_group')">
+                            <option value="all_slides" selected>All slides</option>
+                            <option value="cover_only">Cover only</option>
+                            <option value="none">No images</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-5">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="intro_slide" value="true" checked class="w-3.5 h-3.5 rounded accent-[var(--accent)]">
+                            <span class="text-[12px]" style="color: var(--text-secondary);">Intro slide</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="thanks_slide" value="true" checked class="w-3.5 h-3.5 rounded accent-[var(--accent)]">
+                            <span class="text-[12px]" style="color: var(--text-secondary);">Thank-you slide</span>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="label-caps block mb-1">Font Style</label>
+                            <select name="font_style" class="studio-select">
+                                <option value="ai_choice">AI Choice</option>
+                                <option value="sans">Sans-Serif</option>
+                                <option value="serif">Serif</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="label-caps block mb-1">Subtopics</label>
+                            <input type="text" name="subtopics" class="studio-input" placeholder="A, B, C…">
+                        </div>
+                    </div>
+
+                    <!-- Color overrides -->
+                    <details class="pt-1">
+                        <summary class="text-[11px] font-semibold cursor-pointer" style="color: var(--text-muted);">
+                            <i class="fas fa-palette mr-1 text-[9px]"></i> Color Overrides
+                        </summary>
+                        <div class="grid grid-cols-3 gap-3 pt-3">
+                            <div>
+                                <label class="text-[10px] block mb-0.5" style="color: var(--text-muted);">Background</label>
+                                <input type="color" name="bg_color" value="#FFFFFF" class="w-full h-8 rounded cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="text-[10px] block mb-0.5" style="color: var(--text-muted);">Text</label>
+                                <input type="color" name="font_color" value="#333333" class="w-full h-8 rounded cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="text-[10px] block mb-0.5" style="color: var(--text-muted);">Accent</label>
+                                <input type="color" name="accent_color" value="#3B5BDB" class="w-full h-8 rounded cursor-pointer">
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-center mt-1" style="color: var(--text-ghost);">Change from defaults to override AI theme.</p>
+                    </details>
+
+                    <div>
+                        <label class="label-caps block mb-1">Visual Plan <span style="color: var(--text-ghost);">(optional)</span></label>
+                        <textarea name="visual_instructions" rows="2" class="studio-input" style="resize: none;" placeholder="e.g. 'Slide 1: image of the sun. Slide 3: atom diagram.'"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="label-caps block mb-1">Extra Instructions <span style="color: var(--text-ghost);">(optional)</span></label>
+                        <textarea name="extra_instructions" rows="2" class="studio-input" style="resize: none;" placeholder="e.g. 'Use a playful tone'"></textarea>
+                    </div>
+                </div>
+            </details>
+
+            <div class="pt-2 space-y-2">
+                <button type="submit" class="btn-primary w-full">
+                    <i class="fas fa-play text-[11px]"></i> Generate Slides
+                </button>
+                <button type="button" onclick="closeFormModal()" class="btn-ghost w-full">Cancel</button>
+            </div>
         </form>
     </div>
 
-    <!-- Similar Refinements for other templates... -->
-    <div id="pdfFormTemplate" class="form-template">
-        <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-rose-500 shadow-xl shadow-rose-500/20 rounded-2xl flex items-center justify-center text-white text-2xl mx-auto mb-6">
+    <!-- ━━━ PDF Template ━━━ -->
+    <div id="pdfFormTemplate">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: var(--coral-surface); color: var(--coral);">
                 <i class="fas fa-file-pdf"></i>
             </div>
-            <h2 class="text-3xl font-display font-black text-slate-900 dark:text-white">Study Notes</h2>
+            <div>
+                <h3 class="text-[16px] font-semibold" style="color: var(--text-primary);">Create Study Notes</h3>
+                <p class="text-[12px]" style="color: var(--text-muted);">Well-structured PDF documents</p>
+            </div>
         </div>
-        <form method="post" action="{{ url_for('generation.generate_pdf') }}" class="space-y-6" onsubmit="showLoading(true)">
+        <form method="post" action="{{ url_for('generation.generate_pdf') }}" onsubmit="showLoading(true)" class="space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <input type="text" name="topic" placeholder="e.g., European History" required class="premium-input">
-            <input type="text" name="subtopics" placeholder="Add specific areas (optional)" class="premium-input">
-            <button type="submit" class="premium-button w-full py-4 bg-rose-500 hover:bg-rose-600 shadow-rose-500/20">Create PDF Notes</button>
+            
+            <div>
+                <label class="label-caps block mb-1.5">Topic</label>
+                <input type="text" name="topic" required maxlength="100" class="studio-input" placeholder="e.g. Organic Chemistry Review">
+            </div>
+
+            <div>
+                <label class="label-caps block mb-1.5">Subtopics <span style="color: var(--text-ghost);">(optional)</span></label>
+                <input type="text" name="subtopics" class="studio-input" placeholder="e.g. Force, Energy, Torque">
+            </div>
+
+            <!-- Advanced -->
+            <details class="group pt-2">
+                <summary class="flex items-center justify-between cursor-pointer text-[12px] font-semibold transition-colors mb-3" style="color: var(--accent);">
+                    <span><i class="fas fa-sliders-h mr-1.5 text-[10px]"></i> Customize</span>
+                    <i class="fas fa-chevron-down text-[9px] group-open:rotate-180 transition-transform"></i>
+                </summary>
+                
+                <div class="space-y-4 pt-1" style="border-top: 1px solid var(--border);">
+                    <div class="pt-3">
+                        <label class="label-caps block mb-1">Context / Background</label>
+                        <textarea name="context" rows="3" class="studio-input" style="resize: none;" placeholder="Provide extra material or context for the AI..."></textarea>
+                    </div>
+
+                    <div>
+                        <label class="label-caps block mb-1">Image Strategy</label>
+                        <select name="image_strategy" class="studio-select" onchange="handleImageStrategyChange(this, 'pdf_image_style_group')">
+                            <option value="all_slides" selected>Throughout document</option>
+                            <option value="cover_only">Cover only</option>
+                            <option value="none">No images</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-5">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="intro_slide" value="true" checked class="w-3.5 h-3.5 rounded accent-[var(--accent)]">
+                            <span class="text-[12px]" style="color: var(--text-secondary);">Intro page</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="thanks_slide" value="true" class="w-3.5 h-3.5 rounded accent-[var(--accent)]">
+                            <span class="text-[12px]" style="color: var(--text-secondary);">Thank-you page</span>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="label-caps block mb-1">Theme</label>
+                            <select name="theme_base" class="studio-select">
+                                <option value="ai_choice">AI Choice</option>
+                                <option value="light">Light & Pro</option>
+                                <option value="vibrant">Vibrant</option>
+                                <option value="minimalist">Minimal</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="label-caps block mb-1">Font Style</label>
+                            <select name="font_style" class="studio-select">
+                                <option value="ai_choice">AI Choice</option>
+                                <option value="sans">Sans-Serif</option>
+                                <option value="serif">Serif</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] block mb-0.5" style="color: var(--text-muted);">Text Color</label>
+                            <input type="color" name="font_color" value="#333333" class="w-full h-8 rounded cursor-pointer">
+                        </div>
+                        <div>
+                            <label class="text-[10px] block mb-0.5" style="color: var(--text-muted);">Accent Color</label>
+                            <input type="color" name="accent_color" value="#007BFF" class="w-full h-8 rounded cursor-pointer">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="label-caps block mb-1">Extra Instructions <span style="color: var(--text-ghost);">(optional)</span></label>
+                        <textarea name="extra_instructions" rows="2" class="studio-input" style="resize: none;" placeholder="e.g. 'Use simple language'"></textarea>
+                    </div>
+                </div>
+            </details>
+
+            <div class="pt-2 space-y-2">
+                <button type="submit" class="btn-primary w-full">
+                    <i class="fas fa-file-export text-[11px]"></i> Generate PDF
+                </button>
+                <button type="button" onclick="closeFormModal()" class="btn-ghost w-full">Cancel</button>
+            </div>
         </form>
     </div>
 
-    <div id="explainFormTemplate" class="form-template">
-        <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-amber-500 shadow-xl shadow-amber-500/20 rounded-2xl flex items-center justify-center text-white text-2xl mx-auto mb-6">
+    <!-- ━━━ Explain Template ━━━ -->
+    <div id="explainFormTemplate">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: var(--amber-surface); color: var(--amber);">
                 <i class="fas fa-brain"></i>
             </div>
-            <h2 class="text-3xl font-display font-black text-slate-900 dark:text-white">AI Explainer</h2>
+            <div>
+                <h3 class="text-[16px] font-semibold" style="color: var(--text-primary);">AI Explainer</h3>
+                <p class="text-[12px]" style="color: var(--text-muted);">Demystify any concept</p>
+            </div>
         </div>
-        <form method="post" action="{{ url_for('generation.present') }}" class="space-y-6" onsubmit="showLoading(false)">
+        <form method="post" action="{{ url_for('generation.present') }}" class="space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <input type="text" name="topic" placeholder="What do you want to understand?" required class="premium-input">
-            <button type="submit" class="premium-button w-full py-4 bg-amber-500 hover:bg-amber-600 shadow-amber-500/20">Get Explanation</button>
+            <div>
+                <label class="label-caps block mb-1.5">What should I explain?</label>
+                <input type="text" name="topic" placeholder="e.g. Artificial Neural Networks" required class="studio-input">
+            </div>
+            <div class="pt-2 space-y-2">
+                <button type="submit" class="btn-primary w-full">
+                    <i class="fas fa-lightbulb text-[11px]"></i> Explain
+                </button>
+                <button type="button" onclick="closeFormModal()" class="btn-ghost w-full">Cancel</button>
+            </div>
         </form>
     </div>
 
-    <!-- Flashcard, Quiz, Summarize following suit -->
-    <div id="quizFormTemplate" class="form-template">
-        <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-emerald-500 shadow-xl shadow-emerald-500/20 rounded-2xl flex items-center justify-center text-white text-2xl mx-auto mb-6">
+    <!-- ━━━ Quiz Template ━━━ -->
+    <div id="quizFormTemplate">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: var(--sage-surface); color: var(--sage);">
                 <i class="fas fa-puzzle-piece"></i>
             </div>
-            <h2 class="text-3xl font-display font-black text-slate-900 dark:text-white">Smart Quiz</h2>
+            <div>
+                <h3 class="text-[16px] font-semibold" style="color: var(--text-primary);">Smart Quiz</h3>
+                <p class="text-[12px]" style="color: var(--text-muted);">Topic-based or from your files</p>
+            </div>
         </div>
-        <form method="post" enctype="multipart/form-data" action="{{ url_for('generation.generate_quiz') }}" class="space-y-6" onsubmit="showLoading(false)">
+        <form method="post" enctype="multipart/form-data" action="{{ url_for('generation.generate_quiz') }}" class="space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <input type="text" name="topic_manual" placeholder="Topic for quiz" class="premium-input">
-            <div class="text-center text-slate-400 font-bold">OR</div>
-            <input type="file" name="file" accept=".pdf,.docx,.txt" class="premium-input file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
-            <button type="submit" class="premium-button w-full py-4 bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20">Start Quiz</button>
+            
+            <div class="text-center text-[11px] font-semibold uppercase tracking-wider py-2 px-3 rounded-lg"
+                 style="background: var(--surface-raised); color: var(--text-muted);">
+                Enter a topic <span style="color: var(--text-ghost);">or</span> upload a file
+            </div>
+
+            <div>
+                <label class="label-caps block mb-1.5">Topic</label>
+                <input type="text" name="topic_manual" placeholder="e.g. History of Rome" class="studio-input">
+            </div>
+
+            <div class="flex items-center gap-3">
+                <div class="flex-1 h-px" style="background: var(--border);"></div>
+                <span class="text-[10px] font-bold uppercase" style="color: var(--text-ghost);">or</span>
+                <div class="flex-1 h-px" style="background: var(--border);"></div>
+            </div>
+
+            <div>
+                <label class="label-caps block mb-1.5">Upload Material</label>
+                <input type="file" name="file" accept=".pdf,.docx,.txt" 
+                       class="studio-input text-[13px] file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-[12px] file:font-semibold file:cursor-pointer"
+                       style="padding: 8px 12px;">
+            </div>
+            
+            <div class="pt-2 space-y-2">
+                <button type="submit" class="btn-primary w-full">
+                    <i class="fas fa-brain text-[11px]"></i> Generate Quiz
+                </button>
+                <button type="button" onclick="closeFormModal()" class="btn-ghost w-full">Cancel</button>
+            </div>
         </form>
     </div>
 
-    <div id="flashcardFormTemplate" class="form-template">
-        <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-purple-500 shadow-xl shadow-purple-500/20 rounded-2xl flex items-center justify-center text-white text-2xl mx-auto mb-6">
+    <!-- ━━━ Flashcard Template ━━━ -->
+    <div id="flashcardFormTemplate">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: var(--plum-surface); color: var(--plum);">
                 <i class="fas fa-layer-group"></i>
             </div>
-            <h2 class="text-3xl font-display font-black text-slate-900 dark:text-white">Flashcards</h2>
+            <div>
+                <h3 class="text-[16px] font-semibold" style="color: var(--text-primary);">Generate Flashcards</h3>
+                <p class="text-[12px]" style="color: var(--text-muted);">From topics or pasted content</p>
+            </div>
         </div>
-        <form method="post" action="{{ url_for('generation.generate_flashcards') }}" class="space-y-6" onsubmit="showLoading(false)">
+        <form method="post" action="{{ url_for('generation.generate_flashcards') }}" class="space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <textarea name="topic_or_text" rows="5" placeholder="Topic or paste text content..." required class="premium-input"></textarea>
-            <button type="submit" class="premium-button w-full py-4 bg-purple-500 hover:bg-purple-600 shadow-purple-500/20">Create Flashcards</button>
+            <div>
+                <label class="label-caps block mb-1.5">Topic or Text</label>
+                <textarea name="topic_or_text" rows="5" placeholder="e.g. Key concepts of photosynthesis…" required class="studio-input" style="resize: vertical;"></textarea>
+            </div>
+            <div class="pt-2 space-y-2">
+                <button type="submit" class="btn-primary w-full" style="background: var(--plum);">
+                    <i class="fas fa-layer-group text-[11px]"></i> Create Flashcards
+                </button>
+                <button type="button" onclick="closeFormModal()" class="btn-ghost w-full">Cancel</button>
+            </div>
         </form>
     </div>
 
-    <div id="summarizeFormTemplate" class="form-template">
-        <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-indigo-500 shadow-xl shadow-indigo-500/20 rounded-2xl flex items-center justify-center text-white text-2xl mx-auto mb-6">
+    <!-- ━━━ Summarize Template ━━━ -->
+    <div id="summarizeFormTemplate">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: var(--sky-surface); color: var(--sky);">
                 <i class="fas fa-compress-alt"></i>
             </div>
-            <h2 class="text-3xl font-display font-black text-slate-900 dark:text-white">Summarizer</h2>
+            <div>
+                <h3 class="text-[16px] font-semibold" style="color: var(--text-primary);">Summarizer</h3>
+                <p class="text-[12px]" style="color: var(--text-muted);">Distill long text to key points</p>
+            </div>
         </div>
-        <form method="post" action="{{ url_for('generation.summarize_text') }}" class="space-y-6" onsubmit="showLoading(false)">
+        <form method="post" action="{{ url_for('generation.summarize_text') }}" class="space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <textarea name="text" rows="8" placeholder="Paste your text here..." required class="premium-input"></textarea>
-            <button type="submit" class="premium-button w-full py-4 bg-indigo-500 hover:bg-indigo-600 shadow-indigo-500/20">Summarize</button>
+            <div>
+                <label class="label-caps block mb-1.5">Paste your text</label>
+                <textarea name="text" rows="8" placeholder="Paste your article, paper, or document here…" required class="studio-input" style="resize: vertical;"></textarea>
+            </div>
+            <div class="pt-2 space-y-2">
+                <button type="submit" class="btn-primary w-full" style="background: var(--sky);">
+                    <i class="fas fa-compress-alt text-[11px]"></i> Summarize
+                </button>
+                <button type="button" onclick="closeFormModal()" class="btn-ghost w-full">Cancel</button>
+            </div>
         </form>
     </div>
-
 </div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -318,38 +565,49 @@
     const modalContent = document.getElementById('modalFormContent');
     const loadingOverlay = document.getElementById('loadingOverlay');
 
+    // Image strategy conditional
+    function handleImageStrategyChange(selectElement, optionsGroupId) {
+        const optionsGroup = document.getElementById(optionsGroupId);
+        if (optionsGroup) {
+            optionsGroup.style.display = selectElement.value === 'none' ? 'none' : '';
+        }
+    }
+
     function showFormModal(formId) {
         const template = document.getElementById(`${formId}Template`);
         if (!template) return;
-        
-        modalContent.innerHTML = '';
-        modalContent.appendChild(template.cloneNode(true));
+        modalContent.innerHTML = template.innerHTML;
         modal.classList.add('open');
         document.body.style.overflow = 'hidden';
+        
+        // Auto-focus first input
+        requestAnimationFrame(() => {
+            const firstInput = modalContent.querySelector('input[type="text"]:not([type="hidden"])');
+            if (firstInput) firstInput.focus();
+        });
     }
 
     function closeFormModal() {
         modal.classList.remove('open');
         document.body.style.overflow = '';
-        setTimeout(() => { modalContent.innerHTML = ''; }, 300);
     }
 
     function hideLoading() {
-        loadingOverlay.classList.remove('opacity-100');
-        setTimeout(() => { loadingOverlay.classList.add('hidden'); }, 500);
+        loadingOverlay.classList.add('hidden');
+        loadingOverlay.classList.remove('visible');
     }
 
     function showLoading(isDownload = false) {
         closeFormModal();
         loadingOverlay.classList.remove('hidden');
-        setTimeout(() => { loadingOverlay.classList.add('opacity-100'); }, 10);
-
+        requestAnimationFrame(() => loadingOverlay.classList.add('visible'));
+        
         if (isDownload) {
             let attempts = 0;
             const interval = setInterval(function() {
                 const cookieValue = document.cookie.split('; ').find(row => row.startsWith('fileDownload='));
                 attempts++;
-                if (cookieValue || attempts > 20) {
+                if (cookieValue || attempts > 25) {
                     clearInterval(interval);
                     hideLoading();
                     document.cookie = "fileDownload=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -372,24 +630,37 @@
                 const btn = icon.parentElement;
                 if (data.is_favorite) {
                     icon.classList.replace('far', 'fas');
-                    btn.classList.replace('text-slate-400', 'text-yellow-500');
-                    btn.classList.replace('bg-slate-400/10', 'bg-yellow-500/10');
+                    btn.style.color = 'var(--amber)';
                 } else {
                     icon.classList.replace('fas', 'far');
-                    btn.classList.replace('text-yellow-500', 'text-slate-400');
-                    btn.classList.replace('bg-yellow-500/10', 'bg-slate-400/10');
+                    btn.style.color = 'var(--text-ghost)';
                 }
             }
         });
     }
 
-    // Modal click out
+    // Keyboard shortcuts for tool tiles
+    document.addEventListener('keydown', (e) => {
+        if (modal.classList.contains('open')) {
+            if (e.key === 'Escape') closeFormModal();
+            return;
+        }
+        // Don't fire when user is typing in an input
+        if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+        
+        const keyMap = { '1': 'pptForm', '2': 'pdfForm', '3': 'explainForm', '4': 'quizForm', '5': 'flashcardForm', '6': 'summarizeForm' };
+        if (keyMap[e.key]) {
+            e.preventDefault();
+            showFormModal(keyMap[e.key]);
+        }
+    });
+
+    // Close modal on backdrop click
     modal.addEventListener('click', (e) => {
         if (e.target === modal) closeFormModal();
     });
 
-    document.addEventListener('DOMContentLoaded', () => {
-        hideLoading();
-    });
+    // Ensure loading overlay is hidden on normal page loads
+    document.addEventListener('DOMContentLoaded', hideLoading);
 </script>
 {% endblock %}

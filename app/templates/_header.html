@@ -1,37 +1,74 @@
-<nav class="w-full glass-header sticky top-0 z-50 py-4">
-    <div class="container mx-auto px-6 flex justify-between items-center">
-        <a href="{{ url_for('dashboard.index') if session.user_id else url_for('dashboard.home') }}" 
-           class="text-2xl font-black text-primary hover:opacity-80 transition-opacity flex items-center gap-2">
-            <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
+<style>
+    .nav-active {
+        background: var(--accent-surface);
+        color: var(--accent);
+    }
+
+    .nav-inactive {
+        background: transparent;
+        color: var(--text-muted);
+        hover: var(--text-primary);
+    }
+</style>
+<nav class="w-full sticky top-0 z-50"
+    style="background: var(--surface-card); border-bottom: 1px solid var(--border); height: var(--header-height);">
+    <div class="max-w-5xl mx-auto px-6 h-full flex justify-between items-center">
+        <!-- Brand -->
+        <a href="{{ url_for('dashboard.index') if session.user_id else url_for('dashboard.home') }}"
+            class="flex items-center gap-2.5 group">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-transform group-hover:scale-105"
+                style="background: var(--accent-surface); color: var(--accent);">
                 <i class="fas fa-graduation-cap"></i>
             </div>
-            <span>EduWise</span>
+            <span class="text-[16px] font-semibold tracking-tight" style="color: var(--text-primary);">EduWise</span>
         </a>
 
-        <div class="flex items-center gap-6">
-            <div class="hidden md:flex items-center gap-6">
+        <!-- Right side -->
+        <div class="flex items-center gap-3">
+            <!-- Nav links -->
+            <div class="hidden sm:flex items-center gap-1">
                 {% if session.user_id %}
-                    <a href="{{ url_for('dashboard.index') }}" class="font-semibold text-muted hover:text-primary transition-colors">Dashboard</a>
-                    <a href="{{ url_for('auth.logout') }}" class="premium-button py-2 px-6 text-sm">
-                        Logout <i class="fas fa-sign-out-alt ml-1"></i>
-                    </a>
+                {% set nav_class = 'nav-active' if request.path == url_for('dashboard.index') else 'nav-inactive' %}
+                <a href="{{ url_for('dashboard.index') }}"
+                    class="px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors {{ nav_class }}">
+                    Dashboard
+                </a>
                 {% else %}
-                    <a href="{{ url_for('auth.login') }}" class="font-semibold text-muted hover:text-primary transition-colors">Login</a>
-                    <a href="{{ url_for('auth.signup') }}" class="premium-button py-2 px-6 text-sm">
-                        Get Started
-                    </a>
+                <a href="{{ url_for('auth.login') }}" class="px-3 py-1.5 text-[13px] font-medium transition-colors"
+                    style="color: var(--text-muted);">
+                    Login
+                </a>
                 {% endif %}
             </div>
 
-            <button id="themeToggle" class="w-10 h-10 rounded-xl themed-card flex items-center justify-center hover:bg-muted/10 transition-colors focus:ring-2 focus:ring-primary">
-                <i class="fas fa-moon text-yellow-500 text-lg dark:hidden"></i>
-                <i class="fas fa-sun text-orange-500 text-lg hidden dark:block"></i>
+            <!-- Divider -->
+            <div class="w-px h-5 mx-1" style="background: var(--border);"></div>
+
+            <!-- Theme Toggle -->
+            <button id="themeToggle" onclick="applyTheme(htmlElement.classList.contains('dark') ? 'light' : 'dark')"
+                class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                style="border: 1px solid var(--border);" title="Toggle theme">
+                <i class="fas fa-moon text-xs dark:hidden" style="color: var(--text-muted);"></i>
+                <i class="fas fa-sun text-xs hidden dark:block" style="color: var(--amber);"></i>
             </button>
-            
-            <!-- Mobile Menu Toggle (Simplified for now) -->
-            <button class="md:hidden text-2xl text-muted">
-                <i class="fas fa-bars"></i>
-            </button>
+
+            <!-- User -->
+            {% if session.user_id %}
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
+                    style="background: var(--accent-surface); color: var(--accent);">
+                    {{ session.username[0].upper() }}
+                </div>
+                <a href="{{ url_for('auth.logout') }}" class="text-xs font-medium transition-colors"
+                    style="color: var(--text-muted);">
+                    Log out
+                </a>
+            </div>
+            {% else %}
+            <a href="{{ url_for('auth.signup') }}" class="btn-primary text-xs py-2 px-4 rounded-lg">
+                Get Started
+            </a>
+            {% endif %}
         </div>
     </div>
 </nav>

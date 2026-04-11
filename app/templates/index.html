@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduWise - The Future of Learning with AI</title>
+    <title>EduWise — Study smarter. Retain more.</title>
     
-    <!-- Meta Tags for SEO -->
-    <meta name="description" content="EduWise is an AI-powered study toolkit that generates PPTs, PDFs, quizzes, and flashcards in seconds. Boost your grades with AI.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -15,382 +18,159 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: {
-                            DEFAULT: '#3B82F6',
-                            hover: '#2563EB',
-                            light: '#60A5FA',
-                            dark: '#1D4ED8',
-                        },
-                        slate: {
-                            950: '#020617',
-                        }
+                        ink:     { DEFAULT: '#1B1F3B', soft: '#2D3256', faint: '#4A4E6E' },
+                        paper:   { DEFAULT: '#FAF9F7', warm: '#F5F3F0', deep: '#ECEAE6' },
+                        accent:  { DEFAULT: '#4361EE', hover: '#3651D4', glow: 'rgba(67,97,238,0.12)', surface: '#EEF1FE' },
                     },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        display: ['Outfit', 'sans-serif'],
-                    },
-                    animation: {
-                        'blob': 'blob 7s infinite',
-                        'drift': 'drift 10s infinite alternate',
-                        'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
-                        'float': 'float 3s ease-in-out infinite',
-                    },
-                    keyframes: {
-                        blob: {
-                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
-                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
-                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
-                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
-                        },
-                        drift: {
-                            '0%': { transform: 'translateX(-5%) rotate(0deg)' },
-                            '100%': { transform: 'translateX(5%) rotate(2deg)' },
-                        },
-                        fadeInUp: {
-                            '0%': { opacity: '0', transform: 'translateY(30px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' },
-                        }
-                    }
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
                 }
             }
         }
     </script>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        :root {
-            --primary: #3B82F6;
-            --primary-glow: rgba(59, 130, 246, 0.4);
-            --bg-blur: rgba(255, 255, 255, 0.1);
-        }
-
-        .dark {
-            --bg-blur: rgba(2, 6, 23, 0.8);
-        }
-
-        body {
-            background: #F8FAFC;
-            transition: background 0.3s ease;
-        }
-        .dark body {
-            background: #020617;
-        }
-
-        .glass {
-            background: var(--bg-blur);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .hero-gradient {
-            background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.15), transparent 40%),
-                        radial-gradient(circle at bottom right, rgba(139, 92, 246, 0.1), transparent 40%);
-        }
-        .dark .hero-gradient {
-            background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.2), transparent 40%),
-                        radial-gradient(circle at bottom right, rgba(139, 92, 246, 0.15), transparent 40%);
-        }
-
-        .premium-button {
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .premium-button::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 120%;
-            height: 120%;
-            background: rgba(255, 255, 255, 0.2);
-            transform: translate(-50%, -50%) scale(0);
-            border-radius: 50%;
-            transition: transform 0.5s ease;
-        }
-        .premium-button:hover::after {
-            transform: translate(-50%, -50%) scale(1);
-        }
-
-        .feature-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .feature-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
-        }
-        .dark .feature-card:hover {
-            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
-            border-color: var(--primary);
-        }
-
-        [data-aos] {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.6s ease-out;
-        }
-        [data-aos].aos-animate {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    </style>
 </head>
-<body class="font-sans antialiased selection:bg-primary/30">
+<body class="font-sans" style="background: var(--surface-page); color: var(--text-secondary);">
 
     <!-- Navbar -->
-    <nav class="fixed top-0 w-full z-50 glass border-b border-white/10 px-6 py-4 flex justify-between items-center">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-xl shadow-primary/30">
-                <i class="fas fa-graduation-cap text-lg"></i>
-            </div>
-            <span class="text-2xl font-display font-black text-slate-900 dark:text-white tracking-tight">EduWise</span>
-        </div>
-        
-        <div class="flex items-center gap-6">
-            <div class="hidden md:flex gap-8 font-medium text-slate-600 dark:text-slate-300">
-                <a href="#features" class="hover:text-primary transition-colors">Features</a>
-                <a href="{{ url_for('auth.login') }}" class="hover:text-primary transition-colors">Login</a>
-            </div>
-            <a href="{{ url_for('auth.signup') }}" class="premium-button bg-primary text-white py-2.5 px-6 rounded-xl shadow-lg shadow-primary/25 font-semibold hover:bg-primary-hover">
-                Get Started Free
+    <nav class="sticky top-0 z-50" style="background: var(--surface-card); border-bottom: 1px solid var(--border); height: var(--header-height);">
+        <div class="max-w-5xl mx-auto px-6 h-full flex justify-between items-center">
+            <a href="/" class="flex items-center gap-2.5 group">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-transform group-hover:scale-105"
+                     style="background: var(--accent-surface); color: var(--accent);">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <span class="text-[16px] font-semibold tracking-tight" style="color: var(--text-primary);">EduWise</span>
             </a>
-            <button id="themeToggle" class="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center hover:scale-110 transition-transform">
-                <i class="fas fa-moon text-slate-700 dark:hidden"></i>
-                <i class="fas fa-sun text-yellow-500 hidden dark:block"></i>
-            </button>
+            <div class="flex items-center gap-4">
+                {% if session.user_id %}
+                    <a href="{{ url_for('dashboard.index') }}" class="btn-soft text-[13px] py-2 px-5">Dashboard</a>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="text-[13px] font-medium transition-colors" style="color: var(--text-muted);">Login</a>
+                    <a href="{{ url_for('auth.signup') }}" class="btn-primary text-[13px] py-2 px-5">Get started</a>
+                {% endif %}
+            </div>
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="relative min-h-screen pt-32 pb-20 flex flex-col items-center justify-center overflow-hidden hero-gradient">
-        <!-- Background Blobs -->
-        <div class="absolute top-1/4 left-1/4 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob pointer-events-none"></div>
-        <div class="absolute top-1/3 right-1/4 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 pointer-events-none"></div>
-        <div class="absolute bottom-1/4 left-1/2 w-72 h-72 bg-teal-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000 pointer-events-none"></div>
-
-        <div class="container mx-auto px-6 relative z-10 text-center">
-            <div class="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-primary font-semibold text-sm mb-8 animate-fade-in-up">
-                <span class="flex h-2 w-2 relative">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                </span>
-                AI-Driven Study Transformation
+    <!-- Hero -->
+    <section class="py-24 px-6">
+        <div class="max-w-5xl mx-auto flex flex-col lg:flex-row items-center gap-16">
+            <div class="flex-1 max-w-xl animate-enter">
+                <p class="text-[11px] font-bold uppercase tracking-[0.15em] mb-4" style="color: var(--accent);">
+                    <i class="fas fa-circle text-[5px] mr-1.5"></i> AI-Powered Study Tools
+                </p>
+                <h1 class="text-[32px] font-semibold leading-tight mb-6" style="color: var(--text-primary); letter-spacing: -0.02em;">
+                    Study smarter.<br>Retain more.
+                </h1>
+                <p class="text-[15px] leading-relaxed mb-8" style="color: var(--text-secondary);">
+                    EduWise transforms your lecture notes and topics into comprehensive study materials. Generate decks, summaries, and adaptive quizzes in seconds.
+                </p>
+                <div class="flex flex-wrap gap-3">
+                    <a href="{{ url_for('auth.signup') }}" class="btn-primary py-3 px-8">
+                        Get started <i class="fas fa-arrow-right text-[10px] ml-1"></i>
+                    </a>
+                    <a href="#tools" class="btn-ghost py-3 px-8" style="border: 1px solid var(--border);">
+                        See the tools
+                    </a>
+                </div>
             </div>
             
-            <h1 class="text-5xl md:text-7xl lg:text-8xl font-display font-black text-slate-950 dark:text-white leading-[1.1] mb-8 animate-fade-in-up md:max-w-4xl mx-auto">
-                Study Smarter, Not Harder with <span class="text-primary bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-600">EduWise</span>.
-            </h1>
-            
-            <p class="text-xl md:text-2xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-12 animate-fade-in-up animation-delay-500">
-                Transform any topic into stunning presentations, comprehensive notes, and interactive quizzes in less than 30 seconds.
-            </p>
-            
-            <div class="flex flex-col sm:flex-row gap-6 justify-center items-center animate-fade-in-up animation-delay-1000">
-                <a href="{{ url_for('auth.signup') }}" class="premium-button w-full sm:w-auto bg-primary text-white text-lg py-4 px-10 rounded-2xl shadow-2xl shadow-primary/40 font-bold hover:bg-primary-hover flex items-center justify-center gap-3 group">
-                    Start Learning Free 
-                    <i class="fas fa-bolt group-hover:scale-125 transition-transform"></i>
-                </a>
-                <a href="#features" class="w-full sm:w-auto bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 backdrop-blur-md text-slate-900 dark:text-white text-lg py-4 px-10 rounded-2xl font-semibold hover:border-primary/50 transition-all text-center">
-                    Explore Toolkit
-                </a>
-            </div>
-            
-            <!-- Floating Elements / Social Proof -->
-            <div class="mt-20 flex flex-wrap justify-center gap-12 opacity-50 grayscale hover:grayscale-0 transition-all">
-                <div class="flex items-center gap-2"><i class="fas fa-rocket"></i> <span class="font-display font-bold">Fast Generation</span></div>
-                <div class="flex items-center gap-2"><i class="fas fa-shield-halved"></i> <span class="font-display font-bold">Secure Data</span></div>
-                <div class="flex items-center gap-2"><i class="fas fa-brain"></i> <span class="font-display font-bold">Smart Analysis</span></div>
-                <div class="flex items-center gap-2"><i class="fas fa-mobile-screen-button"></i> <span class="font-display font-bold">Mobile First</span></div>
+            <!-- Dashboard Mockup -->
+            <div class="flex-1 w-full hidden lg:block animate-enter" style="animation-delay: 200ms;">
+                <div class="studio-card p-6 overflow-hidden">
+                    <div class="flex items-center justify-between mb-8">
+                        <div class="h-4 w-32 rounded" style="background: var(--surface-raised);"></div>
+                        <div class="flex gap-2">
+                            <div class="h-6 w-6 rounded-full" style="background: var(--surface-raised);"></div>
+                            <div class="h-6 w-12 rounded" style="background: var(--surface-raised);"></div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 mb-8">
+                        <div class="h-24 rounded-lg" style="background: var(--accent-surface); border: 1px solid rgba(67,97,238,0.15);"></div>
+                        <div class="h-24 rounded-lg" style="background: var(--surface-raised); border: 1px solid var(--border);"></div>
+                        <div class="h-24 rounded-lg" style="background: var(--surface-raised); border: 1px solid var(--border);"></div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="h-10 rounded-lg w-full" style="background: var(--surface-raised); border: 1px solid var(--border);"></div>
+                        <div class="h-10 rounded-lg w-full" style="background: var(--surface-raised); border: 1px solid var(--border);"></div>
+                        <div class="h-10 rounded-lg w-3/4" style="background: var(--surface-raised); border: 1px solid var(--border);"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- Features Grid -->
-    <section id="features" class="py-32 relative bg-white dark:bg-slate-950">
-        <div class="container mx-auto px-6">
-            <div class="text-center mb-20" data-aos>
-                <h2 class="text-4xl md:text-5xl font-display font-black text-slate-950 dark:text-white mb-6">Your Personal Learning Lab</h2>
-                <p class="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">One toolkit. Six powerful AI driven features. Designed for efficiency.</p>
+    <!-- How it Works -->
+    <section class="py-20" style="background: var(--surface-card);">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <div class="space-y-4 animate-enter">
+                    <span class="text-[11px] font-bold tracking-[0.2em] uppercase" style="color: var(--accent);">01</span>
+                    <h3 class="text-[17px] font-semibold" style="color: var(--text-primary);">Input Source</h3>
+                    <p class="text-[14px] leading-relaxed">Paste your notes or upload a PDF. EduWise understands context instantly.</p>
+                </div>
+                <div class="space-y-4 animate-enter" style="animation-delay: 100ms;">
+                    <span class="text-[11px] font-bold tracking-[0.2em] uppercase" style="color: var(--accent);">02</span>
+                    <h3 class="text-[17px] font-semibold" style="color: var(--text-primary);">AI Synthesis</h3>
+                    <p class="text-[14px] leading-relaxed">Our models extract key concepts and structure them for optimal retention.</p>
+                </div>
+                <div class="space-y-4 animate-enter" style="animation-delay: 200ms;">
+                    <span class="text-[11px] font-bold tracking-[0.2em] uppercase" style="color: var(--accent);">03</span>
+                    <h3 class="text-[17px] font-semibold" style="color: var(--text-primary);">Active Review</h3>
+                    <p class="text-[14px] leading-relaxed">Master the material through flashcards, quizzes, and high-fidelity notes.</p>
+                </div>
             </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- PPT Generator -->
-                <div class="feature-card p-10 rounded-3xl bg-blue-50/50 dark:bg-blue-500/5 border border-blue-200 dark:border-white/5 relative overflow-hidden group" data-aos>
-                    <div class="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center text-white mb-8 group-hover:scale-110 transition-transform shadow-lg shadow-blue-500/20">
-                        <i class="fas fa-file-powerpoint text-2xl"></i>
+        </div>
+    </section>
+
+    <!-- Tool Index -->
+    <section id="tools" class="py-24 px-6" style="background: var(--surface-page);">
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center justify-center gap-4 mb-14">
+                <div class="h-px w-8" style="background: var(--border-strong);"></div>
+                <span class="label-caps">The Toolkit</span>
+                <div class="h-px w-8" style="background: var(--border-strong);"></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {% set tools = [
+                    ('fa-file-powerpoint', 'Presentations', 'Generate structured slide decks with key takeaways and visual spacing.', '--accent-surface', '--accent'),
+                    ('fa-file-pdf', 'Study Notes', 'Create comprehensive, formatted PDFs optimized for reading.', '--coral-surface', '--coral'),
+                    ('fa-puzzle-piece', 'Adaptive Quizzes', 'Test yourself with questions tailored to your specific input.', '--sage-surface', '--sage'),
+                    ('fa-layer-group', 'Smart Flashcards', 'Digital cards for active recall and spaced repetition study.', '--plum-surface', '--plum'),
+                    ('fa-brain', 'Concept Explainer', 'Simplify dense topics into clear, easy-to-follow explanations.', '--amber-surface', '--amber'),
+                    ('fa-compress-alt', 'Summarizer', 'Condense long articles or chapters into high-value summaries.', '--sky-surface', '--sky'),
+                ] %}
+                {% for icon, title, desc, bg, fg in tools %}
+                <div class="studio-card studio-card-lift p-7 flex flex-col animate-enter" {{ ('style="animation-delay: ' ~ (loop.index0 * 60) ~ 'ms;"')|safe }}>
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-5" {{ ('style="background: var(' ~ bg ~ '); color: var(' ~ fg ~ ');"')|safe }}>
+                        <i class="fas {{ icon }}"></i>
                     </div>
-                    <h3 class="text-2xl font-display font-bold text-slate-950 dark:text-white mb-4">Smart Presentations</h3>
-                    <p class="text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">AI creates fully structured PPTs with custom themes, high-quality images, and expert bullet points on any topic.</p>
-                    <a href="{{ url_for('auth.signup') }}" class="text-blue-500 font-bold flex items-center gap-2 group/link">
-                        Try Generator <i class="fas fa-chevron-right group-hover/link:translate-x-1 transition-transform"></i>
+                    <h4 class="text-[16px] font-semibold mb-2" style="color: var(--text-primary);">{{ title }}</h4>
+                    <p class="text-[13px] leading-relaxed mb-6 flex-grow">{{ desc }}</p>
+                    <a href="{{ url_for('auth.signup') }}" class="text-[13px] font-semibold flex items-center gap-1.5 hover:gap-2.5 transition-all" {{ ('style="color: var(' ~ fg ~ ');"')|safe }}>
+                        Try it <i class="fas fa-arrow-right text-[9px]"></i>
                     </a>
                 </div>
-                
-                <!-- PDF Notes -->
-                <div class="feature-card p-10 rounded-3xl bg-rose-50/50 dark:bg-rose-500/5 border border-rose-200 dark:border-white/5 relative overflow-hidden group" data-aos>
-                    <div class="w-16 h-16 bg-rose-500 rounded-2xl flex items-center justify-center text-white mb-8 group-hover:scale-110 transition-transform shadow-lg shadow-rose-500/20">
-                        <i class="fas fa-file-pdf text-2xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-display font-bold text-slate-950 dark:text-white mb-4">Comprehensive Notes</h3>
-                    <p class="text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">Deep-dive into subjects with multi-page PDF study guides, complete with tables, code blocks, and clear formatting.</p>
-                    <a href="{{ url_for('auth.signup') }}" class="text-rose-500 font-bold flex items-center gap-2 group/link">
-                        Generate Notes <i class="fas fa-chevron-right group-hover/link:translate-x-1 transition-transform"></i>
-                    </a>
-                </div>
-                
-                <!-- AI Quiz -->
-                <div class="feature-card p-10 rounded-3xl bg-emerald-50/50 dark:bg-emerald-500/5 border border-emerald-200 dark:border-white/5 relative overflow-hidden group" data-aos>
-                    <div class="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center text-white mb-8 group-hover:scale-110 transition-transform shadow-lg shadow-emerald-500/20">
-                        <i class="fas fa-puzzle-piece text-2xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-display font-bold text-slate-950 dark:text-white mb-4">Adaptive Quizzes</h3>
-                    <p class="text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">Turn your documents or topics into MCQs with instant scoring and detailed feedback to track your progress.</p>
-                    <a href="{{ url_for('auth.signup') }}" class="text-emerald-500 font-bold flex items-center gap-2 group/link">
-                        Take a Quiz <i class="fas fa-chevron-right group-hover/link:translate-x-1 transition-transform"></i>
-                    </a>
-                </div>
-                
-                <!-- Flashcards -->
-                <div class="feature-card p-10 rounded-3xl bg-purple-50/50 dark:bg-purple-500/5 border border-purple-200 dark:border-white/5 relative overflow-hidden group" data-aos>
-                    <div class="w-16 h-16 bg-purple-500 rounded-2xl flex items-center justify-center text-white mb-8 group-hover:scale-110 transition-transform shadow-lg shadow-purple-500/20">
-                        <i class="fas fa-layer-group text-2xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-display font-bold text-slate-950 dark:text-white mb-4">Smart Flashcards</h3>
-                    <p class="text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">Master facts with AI-generated flashcards. Perfect for active recall and spaced repetition during exam prep.</p>
-                </div>
-                
-                <!-- Explainer -->
-                <div class="feature-card p-10 rounded-3xl bg-amber-50/50 dark:bg-amber-500/5 border border-amber-200 dark:border-white/5 relative overflow-hidden group" data-aos>
-                    <div class="w-16 h-16 bg-amber-500 rounded-2xl flex items-center justify-center text-white mb-8 group-hover:scale-110 transition-transform shadow-lg shadow-amber-500/20">
-                        <i class="fas fa-chalkboard-teacher text-2xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-display font-bold text-slate-950 dark:text-white mb-4">AI Tutor</h3>
-                    <p class="text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">Need a complex concept explained simply? Our AI tutor breaks down topics into easy-to-understand language.</p>
-                </div>
-                
-                <!-- Summarizer -->
-                <div class="feature-card p-10 rounded-3xl bg-indigo-50/50 dark:bg-indigo-500/5 border border-indigo-200 dark:border-white/5 relative overflow-hidden group" data-aos>
-                    <div class="w-16 h-16 bg-indigo-500 rounded-2xl flex items-center justify-center text-white mb-8 group-hover:scale-110 transition-transform shadow-lg shadow-indigo-500/20">
-                        <i class="fas fa-compress-alt text-2xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-display font-bold text-slate-950 dark:text-white mb-4">Focus Summaries</h3>
-                    <p class="text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">Distill long articles or research papers into concise key takeaways. Save hours of reading every week.</p>
-                </div>
+                {% endfor %}
             </div>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="bg-slate-950 text-white py-20 px-6 border-t border-white/5">
-        <div class="container mx-auto">
-            <div class="flex flex-col md:flex-row justify-between items-start gap-12 mb-20">
-                <div class="max-w-sm">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white">
-                            <i class="fas fa-graduation-cap"></i>
-                        </div>
-                        <span class="text-2xl font-display font-black tracking-tight">EduWise</span>
-                    </div>
-                    <p class="text-slate-400 leading-relaxed italic border-l-2 border-primary pl-4">
-                        "Empowering the next generation of learners with advanced AI technology. Because everyone deserves a personalized education."
-                    </p>
+    <footer class="py-10 px-6" style="border-top: 1px solid var(--border); background: var(--surface-card);">
+        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-md flex items-center justify-center text-sm" style="background: var(--accent-surface); color: var(--accent);">
+                    <i class="fas fa-graduation-cap"></i>
                 </div>
-                
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-12">
-                    <div class="space-y-4">
-                        <h4 class="font-bold">Product</h4>
-                        <ul class="text-slate-400 space-y-2">
-                            <li><a href="#" class="hover:text-primary transition-colors">Pricing</a></li>
-                            <li><a href="#" class="hover:text-primary transition-colors">Features</a></li>
-                            <li><a href="#" class="hover:text-primary transition-colors">Changelog</a></li>
-                        </ul>
-                    </div>
-                    <div class="space-y-4">
-                        <h4 class="font-bold">Company</h4>
-                        <ul class="text-slate-400 space-y-2">
-                            <li><a href="#" class="hover:text-primary transition-colors">About</a></li>
-                            <li><a href="#" class="hover:text-primary transition-colors">Contact</a></li>
-                            <li><a href="#" class="hover:text-primary transition-colors">Legal</a></li>
-                        </ul>
-                    </div>
-                    <div class="space-y-4">
-                        <h4 class="font-bold">Follow Us</h4>
-                        <div class="flex gap-4 text-2xl">
-                            <a href="#"><i class="fab fa-twitter hover:text-primary transition-colors"></i></a>
-                            <a href="#"><i class="fab fa-github hover:text-primary transition-colors"></i></a>
-                            <a href="#"><i class="fab fa-linkedin hover:text-primary transition-colors"></i></a>
-                        </div>
-                    </div>
-                </div>
+                <span class="font-semibold text-sm" style="color: var(--text-primary);">EduWise</span>
             </div>
-            
-            <div class="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-white/5 text-slate-500 text-sm">
-                <p>&copy; 2024 EduWise AI. All rights reserved.</p>
-                <div class="flex gap-6 mt-4 md:mt-0">
-                    <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
-                    <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
-                </div>
+            <p class="text-xs" style="color: var(--text-muted);">&copy; 2025 EduWise &middot; Built with intention.</p>
+            <div class="flex gap-5 text-xs">
+                <a href="#" class="hover:underline" style="color: var(--text-muted);">Privacy</a>
+                <a href="#" class="hover:underline" style="color: var(--text-muted);">Terms</a>
             </div>
         </div>
     </footer>
 
-    <script>
-        // AOS-like simple implementation for scroll animations
-        const observerOptions = {
-            threshold: 0.1
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('aos-animate');
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('[data-aos]').forEach(el => observer.observe(el));
-
-        // Theme Toggle Logic
-        const themeToggle = document.getElementById('themeToggle');
-        const html = document.documentElement;
-
-        function applyTheme(theme) {
-            if (theme === 'dark') {
-                html.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                html.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-            }
-        }
-
-        // Initialize theme
-        const savedTheme = localStorage.getItem('theme') || 
-            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        applyTheme(savedTheme);
-
-        themeToggle.addEventListener('click', () => {
-            applyTheme(html.classList.contains('dark') ? 'light' : 'dark');
-        });
-
-        // Smooth scroll for anchors
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
-    </script>
 </body>
 </html>

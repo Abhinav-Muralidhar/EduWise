@@ -32,10 +32,10 @@ def signup():
 @limiter.limit("10 per minute")
 def login():
     if request.method == 'POST':
-        username = request.form.get('username')
+        identifier = request.form.get('username_or_email')
         password = request.form.get('password')
         
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter((User.username == identifier) | (User.email == identifier)).first()
         if user and check_password_hash(user.password, password):
             session['user_id'] = user.id
             session['username'] = user.username

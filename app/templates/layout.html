@@ -5,328 +5,110 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}EduWise{% endblock %}</title>
     
+    <!-- Typography — Inter (400, 500, 600, 700) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Design System -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // Tailwind CSS configuration with custom theme and animations
         tailwind.config = {
-            darkMode: 'class', // Enable class-based dark mode
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        'primary-blue': 'var(--primary-blue)',
-                        'primary-dark-blue': 'var(--primary-dark-blue)',
-                        'accent-green': 'var(--accent-green)',
-                        'accent-dark-green': 'var(--accent-dark-green)',
-                        'bg-light': 'var(--bg-light)',
-                        'bg-dark': 'var(--bg-dark)',
-                        'text-light': 'var(--text-light)',
-                        'text-dark': 'var(--text-dark)',
-                        'text-secondary-light': 'var(--text-secondary-light)',
-                        'text-secondary-dark': 'var(--text-secondary-dark)',
-                        'card-light': 'var(--card-light)',
-                        'card-dark': 'var(--card-dark)',
-                        'border-light': 'var(--border-light)',
-                        'border-dark': 'var(--border-dark)',
-                        'input-bg-light': 'var(--input-bg-light)',
-                        'input-bg-dark': 'var(--input-bg-dark)',
-                        'input-border-light': 'var(--input-border-light)',
-                        'input-border-dark': 'var(--input-border-dark)',
-                        'placeholder-light': 'var(--placeholder-light)',
-                        'placeholder-dark': 'var(--placeholder-dark)',
+                        ink:     { DEFAULT: '#1B1F3B', soft: '#2D3256', faint: '#4A4E6E' },
+                        paper:   { DEFAULT: '#FAF9F7', warm: '#F5F3F0', deep: '#ECEAE6' },
+                        accent:  { DEFAULT: '#4361EE', hover: '#3651D4', glow: 'rgba(67,97,238,0.12)', surface: '#EEF1FE' },
+                        sage:    { DEFAULT: '#2B8A3E', surface: '#EDFCF0' },
+                        coral:   { DEFAULT: '#E03131', surface: '#FFF0F0' },
+                        plum:    { DEFAULT: '#7048E8', surface: '#F3F0FF' },
+                        amber:   { DEFAULT: '#E67700', surface: '#FFF9EB' },
+                        sky:     { DEFAULT: '#1C7ED6', surface: '#E7F5FF' },
                     },
                     fontFamily: {
-                        inter: ['Inter', 'sans-serif'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
                     },
-                    keyframes: {
-                        fadeInUp: {
-                            '0%': { opacity: '0', transform: 'translateY(20px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        },
-                        scaleIn: {
-                            '0%': { opacity: '0', transform: 'scale(0.9)' },
-                            '100%': { opacity: '1', transform: 'scale(1)' },
-                        },
-                        modalSlideIn: {
-                            '0%': { transform: 'translateY(100%)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' },
-                        }
-                    },
-                    animation: {
-                        'fade-in-up': 'fadeInUp 0.6s ease-out forwards',
-                        'fade-in': 'fadeIn 0.8s ease-out forwards',
-                        'scale-in': 'scaleIn 0.5s ease-out forwards',
-                        'modal-slide-in': 'modalSlideIn 0.3s ease-out forwards',
+                    borderRadius: {
+                        'studio': '14px',
                     }
                 }
             }
         }
     </script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <style>
-        :root {
-            /* Refined Color Palette */
-            --primary: #3B82F6;
-            --primary-hover: #2563EB;
-            --secondary: #64748B;
-            --accent: #22C55E;
-            --accent-hover: #16A34A;
-            
-            /* Light Mode scale */
-            --bg-main: #F8FAFC;
-            --bg-card: #FFFFFF;
-            --text-main: #0F172A;
-            --text-muted: #64748B;
-            --border-color: #E2E8F0;
-            --ring-color: rgba(59, 130, 246, 0.2);
-            
-            /* Elevation */
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-            
-            /* Current theme bindings - Maintaining backward compatibility where possible */
-            --current-bg: var(--bg-main);
-            --current-text: var(--text-main);
-            --current-text-secondary: var(--text-muted);
-            --current-card-bg: var(--bg-card);
-            --current-border: var(--border-color);
-            --current-shadow: var(--shadow-md);
-            --primary-blue: var(--primary);
-            --primary-dark-blue: var(--primary-hover);
-            --accent-green: var(--accent);
-            --accent-dark-green: var(--accent-hover);
-        }
-
-        .dark {
-            /* Dark Mode scale */
-            --bg-main: #0F172A;
-            --bg-card: #1E293B;
-            --text-main: #F8FAFC;
-            --text-muted: #94A3B8;
-            --border-color: #334155;
-            --ring-color: rgba(59, 130, 246, 0.4);
-            
-            --current-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
-        }
-
-        body {
-            background-color: var(--current-bg);
-            color: var(--current-text);
-            font-family: 'Inter', sans-serif;
-            transition: background-color 0.3s ease, color 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            line-height: 1.5;
-            overflow-x: hidden;
-        }
-        
-        main {
-            flex-grow: 1;
-            width: 100%;
-        }
-
-        /* Standardized Premium Components */
-        .glass-header {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        }
-        .dark .glass-header {
-            background: rgba(15, 23, 42, 0.7);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .premium-card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            box-shadow: var(--current-shadow);
-            border-radius: 1rem;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .premium-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .premium-button {
-            background-color: var(--primary);
-            color: white !important;
-            padding: 0.75rem 1.5rem;
-            border-radius: 9999px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            cursor: pointer;
-        }
-        .premium-button:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-        }
-        .premium-button:active {
-            transform: translateY(0);
-        }
-
-        .premium-input {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 0.75rem;
-            color: var(--text-main);
-            transition: all 0.2s ease;
-        }
-        .premium-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px var(--ring-color);
-        }
-
-        /* Legacy Compatibility Classes */
-        .themed-bg { background-color: var(--current-bg); transition: background-color 0.3s ease; }
-        .themed-text { color: var(--current-text); transition: color 0.3s ease; }
-        .themed-text-secondary { color: var(--current-text-secondary); transition: color 0.3s ease; }
-        .themed-card {
-            background-color: var(--current-card-bg);
-            border: 1px solid var(--current-border);
-            box-shadow: var(--current-shadow);
-            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        .themed-input {
-            background-color: var(--bg-card) !important;
-            border-color: var(--border-color) !important;
-            color: var(--text-main) !important;
-            transition: all 0.3s ease;
-        }
-        .themed-input:focus {
-            border-color: var(--primary) !important;
-            box-shadow: 0 0 0 4px var(--ring-color) !important;
-        }
-
-        /* Modal Styles */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            display: flex; justify-content: center; align-items: center;
-            z-index: 1000; opacity: 0; visibility: hidden;
-            transition: all 0.3s ease;
-        }
-        .modal-overlay.open { opacity: 1; visibility: visible; }
-        .modal-content {
-            background-color: var(--bg-card);
-            border-radius: 1.5rem;
-            width: 100%;
-            max-width: 42rem;
-            max-height: 90vh;
-            overflow-y: auto;
-            transform: scale(0.95);
-            transition: transform 0.3s ease;
-            position: relative;
-        }
-        .modal-overlay.open .modal-content { transform: scale(1); }
-    </style>
 </head>
-<body class="font-inter themed-bg">
+<body class="font-sans min-h-screen flex flex-col">
+
+    <!-- Accessibility -->
+    <a href="#main-content" class="skip-link">Skip to content</a>
 
     {% include '_header.html' %}
 
-    {% include '_flashes.html' %}
-
-    <main>
+    <main id="main-content" class="flex-1">
+        <!-- Toast container for flashes -->
+        <div id="toast-container"></div>
+        
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="w-full py-8 text-center themed-bg themed-text-secondary border-t border-current-border mt-auto">
-        <p class="text-base opacity-80">&copy; 2025 EduWise. All rights reserved.</p>
+    <footer class="border-t py-10 px-6 mt-auto" style="border-color: var(--border); background: var(--surface-card);">
+        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-md flex items-center justify-center text-sm" style="background: var(--accent-surface); color: var(--accent);">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <span class="font-semibold text-sm" style="color: var(--text-primary);">EduWise</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">&copy; 2025 EduWise &middot; Built with intention.</p>
+            <div class="flex gap-5 text-xs">
+                <a href="#" class="hover:underline" style="color: var(--text-muted);">Privacy</a>
+                <a href="#" class="hover:underline" style="color: var(--text-muted);">Terms</a>
+            </div>
+        </div>
     </footer>
 
-    <script>
-        // --- Dark Mode Toggle Logic ---
-        const themeToggle = document.getElementById('themeToggle');
-        const htmlElement = document.documentElement; // The <html> tag
-
-        function applyTheme(theme) {
-            if (theme === 'dark') {
-                htmlElement.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                htmlElement.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme) {
-                applyTheme(savedTheme);
-            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                applyTheme('dark');
-            } else {
-                applyTheme('light');
-            }
-        });
-
-        themeToggle.addEventListener('click', () => {
-            if (htmlElement.classList.contains('dark')) {
-                applyTheme('light');
-            } else {
-                applyTheme('dark');
-            }
-        });
-
-        // --- Modal Logic (from your index.html) ---
-        function showFormModal(formId) {
-            const modal = document.getElementById('formModal');
-            const modalFormContent = document.getElementById('modalFormContent');
-            const formTemplate = document.getElementById(formId + 'Template');
-
-            if (formTemplate) {
-                modalFormContent.innerHTML = '';
-                modalFormContent.appendChild(formTemplate.cloneNode(true));
-                const clonedFormDiv = modalFormContent.querySelector('.form-template');
-                if (clonedFormDiv) {
-                    clonedFormDiv.classList.remove('form-template');
-                }
-                modal.classList.add('open');
-                document.body.style.overflow = 'hidden';
-            }
-        }
-
-        function closeFormModal() {
-            const modal = document.getElementById('formModal');
-            modal.classList.remove('open');
-            document.body.style.overflow = '';
-            setTimeout(() => {
-                document.getElementById('modalFormContent').innerHTML = '';
-            }, 300);
-        }
-        
-        // Ensure modal exists before adding listener (it only exists on dashboard)
-        const formModal = document.getElementById('formModal');
-        if (formModal) {
-            formModal.addEventListener('click', (event) => {
-                if (event.target === formModal) {
-                    closeFormModal();
-                }
-            });
-        }
+    <script id="flash-data" type="application/json">
+        {{ get_flashed_messages(with_categories=true) | tojson }}
     </script>
+    <script>
+        // Theme logic
+        const htmlElement = document.documentElement;
+        function applyTheme(theme) {
+            if (theme === 'dark') { htmlElement.classList.add('dark'); localStorage.setItem('theme', 'dark'); }
+            else { htmlElement.classList.remove('dark'); localStorage.setItem('theme', 'light'); }
+        }
+        const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        applyTheme(savedTheme);
 
+        // Flash to Toast conversion
+        const flashText = document.getElementById('flash-data').textContent;
+        const rawFlashes = flashText.trim() ? JSON.parse(flashText) : [];
+        const flashData = rawFlashes.map(f => ({ category: f[0], message: f[1] }));
+
+        const toastContainer = document.getElementById('toast-container');
+        flashData.forEach(f => {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            let icon = '<i class="fas fa-info-circle" style="color:var(--accent)"></i>';
+            if (f.category === 'success') icon = '<i class="fas fa-check-circle" style="color:var(--sage)"></i>';
+            if (f.category === 'error' || f.category === 'danger') icon = '<i class="fas fa-exclamation-circle" style="color:var(--coral)"></i>';
+            
+            toast.innerHTML = `${icon} <span>${f.message}</span>`;
+            toastContainer.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 5000);
+        });
+    </script>
+    
     {% block scripts %}{% endblock %}
-
 </body>
 </html>

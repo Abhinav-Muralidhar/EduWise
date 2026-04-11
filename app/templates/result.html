@@ -1,57 +1,83 @@
 {% extends 'layout.html' %}
-{% block title %}Quiz Results{% endblock %}
+{% block title %}Quiz Results — EduWise{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-16">
-    <div class="max-w-3xl mx-auto themed-card p-8 md:p-12 rounded-xl animate-fade-in-up">
+<div class="min-h-screen pt-24 pb-20" style="background: var(--surface-page);">
+    <div class="max-w-3xl mx-auto px-6">
         
-        <h1 class="text-3xl md:text-4xl font-bold text-primary-blue mb-4 text-center">
-            Quiz Results
-        </h1>
-        
-        <h2 class="text-5xl font-bold text-accent-green text-center mb-8">
-            {{ score }} / {{ questions|length }}
-        </h2>
+        <!-- Score Card -->
+        <div class="studio-card p-12 text-center mb-12 animate-enter">
+            <p class="label-caps mb-4">Results</p>
+            <div class="text-[72px] font-semibold leading-none mb-4" style="color: var(--accent);">
+                {{ (score / questions|length * 100) | round | int }}%
+            </div>
+            <p class="text-[15px]" style="color: var(--text-secondary);">
+                You scored {{ score }} out of {{ questions|length }} correct answers.
+            </p>
+        </div>
 
-        <div class="space-y-8">
+        <!-- Review -->
+        <p class="label-caps text-center mb-8 animate-enter" style="animation-delay: 60ms;">Review</p>
+        
+        <div class="space-y-5">
             {% for q in questions %}
-            <div class="themed-text border-b border-current-border pb-6">
-                <p class="text-xl font-semibold mb-4">{{ q.question }}</p>
+            {% set border_color = 'rgba(43,138,62,0.25)' if user_answers[q.id] == q.correct_index else 'rgba(224,49,49,0.25)' %}
+            <div class="studio-card p-7 animate-enter" {{ ('style="animation-delay: ' ~ ((loop.index0 + 2) * 60) ~ 'ms; border-color: ' ~ border_color ~ ';"')|safe }}>
+                <div class="flex items-center gap-3 mb-5">
+                    {% set icon_bg = 'var(--sage)' if user_answers[q.id] == q.correct_index else 'var(--coral)' %}
+                    <div class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] text-white"
+                         {{ ('style="background: ' ~ icon_bg ~ ';"')|safe }}>
+                        {% if user_answers[q.id] == q.correct_index %}<i class="fas fa-check"></i>{% else %}<i class="fas fa-times"></i>{% endif %}
+                    </div>
+                    <h3 class="text-[15px] font-semibold" style="color: var(--text-primary);">{{ q.question }}</h3>
+                </div>
                 
-                <div class="space-y-3">
-                    
+                <div class="space-y-2">
                     {% set user_ans_idx = user_answers[q.id] %}
                     {% set correct_ans_idx = q.correct_index %}
                     
                     {% for option in q.options %}
                         {% set current_idx = loop.index0 %}
-                        
                         {% set is_correct = (current_idx == correct_ans_idx) %}
                         {% set is_user_ans = (current_idx == user_ans_idx) %}
                         
-                        <div class="p-3 rounded-lg border
-                            {% if is_correct %} border-green-500 bg-green-100/50 dark:bg-green-900/30
-                            {% elif is_user_ans and not is_correct %} border-red-500 bg-red-100/50 dark:bg-red-900/30
-                            {% else %} border-current-border {% endif %}">
+                        {% set opt_bg = 'var(--surface-raised)' %}
+                        {% set opt_color = 'var(--text-muted)' %}
+                        {% set opt_border = '1px solid var(--border)' %}
+                        {% if is_correct %}
+                            {% set opt_bg = 'var(--sage-surface)' %}
+                            {% set opt_color = 'var(--sage)' %}
+                            {% set opt_border = '1px solid rgba(43,138,62,0.2)' %}
+                        {% elif is_user_ans %}
+                            {% set opt_bg = 'var(--coral-surface)' %}
+                            {% set opt_color = 'var(--coral)' %}
+                            {% set opt_border = '1px solid rgba(224,49,49,0.2)' %}
+                        {% endif %}
+                        <div class="px-4 py-3 rounded-lg text-[13px] flex justify-between items-center"
+                             {{ ('style="background: ' ~ opt_bg ~ '; color: ' ~ opt_color ~ '; border: ' ~ opt_border ~ ';"')|safe }}>
                             
-                            <span class="text-lg">{{ option }}</span>
+                            <span>{{ option }}</span>
                             
                             {% if is_correct %}
-                                <span class="ml-3 font-bold text-green-600 dark:text-green-400">(Correct Answer)</span>
-                            {% elif is_user_ans and not is_correct %}
-                                <span class="ml-3 font-bold text-red-600 dark:text-red-400">(Your Answer)</span>
+                                <span class="text-[10px] font-bold uppercase tracking-widest">Correct</span>
+                            {% elif is_user_ans %}
+                                <span class="text-[10px] font-bold uppercase tracking-widest">Your choice</span>
                             {% endif %}
                         </div>
                     {% endfor %}
-                    </div>
+                </div>
             </div>
             {% endfor %}
         </div>
 
-        <div class="text-center mt-8">
-            <a href="{{ url_for('dashboard.index') }}" class="px-8 py-3 bg-primary-blue text-white font-semibold rounded-full shadow-lg hover:bg-primary-dark-blue transform hover:scale-105 transition-all duration-300">
-                Back to Dashboard
+        <!-- Actions -->
+        <div class="mt-12 flex flex-col sm:flex-row gap-3 justify-center animate-enter">
+            <a href="{{ url_for('dashboard.index') }}" class="btn-primary py-3 px-10 text-center">
+                Return to Dashboard
             </a>
+            <button onclick="window.print()" class="btn-ghost py-3 px-10" style="border: 1px solid var(--border);">
+                Print Results
+            </button>
         </div>
     </div>
 </div>

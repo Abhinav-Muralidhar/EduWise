@@ -1,21 +1,29 @@
 {% extends 'layout.html' %}
-{% block title %}Summary{% endblock %}
+{% block title %}Summary — EduWise{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-16">
-    <div class="max-w-4xl mx-auto">
-        <a href="{{ url_for('dashboard.index') }}" class="themed-text-secondary hover:text-primary-blue font-medium transition-colors mb-6 inline-block">
-            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
-        </a>
+<div class="min-h-screen pt-24 pb-20" style="background: var(--surface-page);">
+    <div class="max-w-[68ch] mx-auto px-6">
         
-        <div class="themed-card p-8 md:p-12 rounded-xl animate-fade-in-up">
-            <h1 class="text-3xl md:text-4xl font-bold text-indigo-500 mb-6">
-                Your Summary
-            </h1>
-            
-            <div class="themed-text text-lg md:text-xl leading-relaxed whitespace-pre-wrap space-y-4">
+        <!-- Header -->
+        <div class="mb-10 animate-enter">
+            <a href="{{ url_for('dashboard.index') }}" class="text-[13px] font-medium flex items-center gap-2 mb-4 transition-colors" style="color: var(--text-muted);">
+                <i class="fas fa-arrow-left text-[9px]"></i> Back
+            </a>
+            <h1 class="text-[28px] font-semibold tracking-tight" style="color: var(--text-primary);">Summary</h1>
+        </div>
+
+        <!-- Content -->
+        <div class="studio-card p-10 animate-enter" style="animation-delay: 80ms;">
+            <div class="text-[15px] leading-[1.8] whitespace-pre-wrap" style="color: var(--text-secondary);">
                 {{ summary_text }}
             </div>
+        </div>
+        
+        <div class="mt-8 flex justify-center animate-enter" style="animation-delay: 160ms;">
+             <button onclick="window.print()" class="btn-ghost text-[13px] flex items-center gap-2" style="color: var(--text-muted);">
+                <i class="fas fa-print text-[11px]"></i> Save as PDF
+            </button>
         </div>
     </div>
 </div>

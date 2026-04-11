@@ -1,43 +1,111 @@
 {% extends 'layout.html' %}
-{% block title %}Flashcards{% endblock %}
+{% block title %}Flashcards — EduWise{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-16">
-    <div class="max-w-4xl mx-auto">
-        <a href="{{ url_for('dashboard.index') }}" class="themed-text-secondary hover:text-primary-blue font-medium transition-colors mb-6 inline-block">
-            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
-        </a>
+<div class="min-h-screen pt-24 pb-20" style="background: var(--surface-page);">
+    <div class="max-w-2xl mx-auto px-6">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-10 animate-enter">
+            <a href="{{ url_for('dashboard.index') }}" class="text-[13px] font-medium flex items-center gap-2 transition-colors" style="color: var(--text-muted);">
+                <i class="fas fa-arrow-left text-[9px]"></i> Back
+            </a>
+            <span class="label-caps" id="cardCounter">Card 1 of {{ flashcards|length }}</span>
+        </div>
 
-        <h1 class="text-3xl md:text-4xl font-bold text-purple-500 mb-8 text-center">
-            Your Flashcards
-        </h1>
-        <p class="themed-text-secondary text-center text-lg mb-8">Click on any card to flip it.</p>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Flashcard Viewport -->
+        <div class="relative h-[400px] animate-enter" style="animation-delay: 80ms;">
             {% for card in flashcards %}
-            <div class="flashcard-container h-64 [perspective:1000px]" onclick="this.classList.toggle('is-flipped')">
-                <div class="flashcard-inner w-full h-full relative transition-transform duration-700 [transform-style:preserve-3d]">
-                    <div class="flashcard-front absolute w-full h-full themed-card rounded-xl p-6 flex flex-col justify-center items-center text-center [backface-visibility:hidden]">
-                        <span class="text-sm themed-text-secondary mb-2">Question</span>
-                        <p class="text-lg font-semibold themed-text">{{ card.question }}</p>
+            <div id="card-{{ loop.index0 }}" class="flashcard-stack absolute inset-0 transition-all duration-300 {{ 'opacity-0 pointer-events-none translate-x-8' if not loop.first else 'opacity-100' }}">
+                <div class="w-full h-full studio-card cursor-pointer p-8 flex flex-col items-center justify-center text-center relative overflow-hidden" 
+                     data-index="{{ loop.index0 }}" onclick="toggleFlip(this.dataset.index)">
+                    
+                    <div id="front-{{ loop.index0 }}" class="transition-opacity duration-200">
+                        <span class="text-[10px] font-bold uppercase tracking-[0.2em] mb-4 block" style="color: var(--plum);">Question</span>
+                        <h2 class="text-[20px] font-semibold leading-relaxed px-4" style="color: var(--text-primary);">
+                            {{ card.question }}
+                        </h2>
+                        <p class="absolute bottom-8 left-0 w-full text-[12px]" style="color: var(--text-ghost);">Tap to reveal answer</p>
                     </div>
-                    <div class="flashcard-back absolute w-full h-full themed-card rounded-xl p-6 flex flex-col justify-center items-center text-center [transform:rotateY(180deg)] [backface-visibility:hidden]">
-                        <span class="text-sm themed-text-secondary mb-2">Answer</span>
-                        <p class="text-lg font-medium themed-text">{{ card.answer }}</p>
+
+                    <div id="back-{{ loop.index0 }}" class="absolute inset-0 p-8 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200" style="background: var(--plum-surface);">
+                        <span class="text-[10px] font-bold uppercase tracking-[0.2em] mb-4 block" style="color: var(--plum);">Answer</span>
+                        <p class="text-[18px] font-medium leading-relaxed px-4" style="color: var(--text-primary);">
+                            {{ card.answer }}
+                        </p>
+                        <p class="absolute bottom-8 left-0 w-full text-[12px]" style="color: var(--text-ghost);">Tap to see question</p>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
+
+        <!-- Controls -->
+        <div class="mt-10 flex justify-center items-center gap-5 animate-enter" style="animation-delay: 160ms;">
+            <button onclick="prevCard()" class="w-11 h-11 rounded-full flex items-center justify-center transition-colors"
+                    style="border: 1px solid var(--border); color: var(--text-muted);">
+                <i class="fas fa-chevron-left text-sm"></i>
+            </button>
+            <button onclick="nextCard()" class="btn-primary w-11 h-11 rounded-full !p-0" style="background: var(--plum);">
+                <i class="fas fa-chevron-right text-sm"></i>
+            </button>
+        </div>
+
+        <p class="text-center mt-4 text-[11px]" style="color: var(--text-ghost);">
+            Use <kbd class="kbd-hint" style="position:static; opacity:1; display:inline-flex;">←</kbd> <kbd class="kbd-hint" style="position:static; opacity:1; display:inline-flex;">→</kbd> keys or <kbd class="kbd-hint" style="position:static; opacity:1; display:inline-flex;">Space</kbd> to flip
+        </p>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<style>
-    /* Add this style for the flip animation */
-    .flashcard-container.is-flipped .flashcard-inner {
-        transform: rotateY(180deg);
+<script>
+    let currentIndex = 0;
+    const totalCards = parseInt("{{ flashcards|length }}", 10);
+    const counter = document.getElementById('cardCounter');
+
+    function toggleFlip(index) {
+        const front = document.getElementById(`front-${index}`);
+        const back = document.getElementById(`back-${index}`);
+        if (front.classList.contains('opacity-0')) {
+            front.classList.remove('opacity-0', 'pointer-events-none');
+            back.classList.add('opacity-0', 'pointer-events-none');
+        } else {
+            front.classList.add('opacity-0', 'pointer-events-none');
+            back.classList.remove('opacity-0', 'pointer-events-none');
+        }
     }
-</style>
+
+    function updateCardVisibility() {
+        document.querySelectorAll('.flashcard-stack').forEach((el, index) => {
+            el.classList.add('opacity-0', 'pointer-events-none', 'translate-x-8');
+            el.classList.remove('opacity-100', 'translate-x-0');
+            if (index === currentIndex) {
+                el.classList.remove('opacity-0', 'pointer-events-none', 'translate-x-8');
+                el.classList.add('opacity-100', 'translate-x-0');
+            }
+        });
+        counter.textContent = `Card ${currentIndex + 1} of ${totalCards}`;
+    }
+
+    function nextCard() {
+        if (currentIndex < totalCards - 1) {
+            currentIndex++;
+            updateCardVisibility();
+        }
+    }
+
+    function prevCard() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updateCardVisibility();
+        }
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') nextCard();
+        if (e.key === 'ArrowLeft') prevCard();
+        if (e.key === ' ') { e.preventDefault(); toggleFlip(currentIndex); }
+    });
+</script>
 {% endblock %}

@@ -2,45 +2,52 @@
 {% block title %}Explanation: {{ topic }}{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-16">
-    <div class="max-w-4xl mx-auto themed-card p-8 md:p-12 rounded-xl animate-fade-in-up">
+<div class="min-h-screen pt-24 pb-32" style="background: var(--surface-page);">
+    <div class="max-w-[68ch] mx-auto px-6">
         
-        <h1 class="text-3xl md:text-4xl font-bold text-primary-blue mb-6 text-center">
-            <i class="fas fa-chalkboard-teacher mr-3"></i>
-            Explaining: {{ topic }}
-        </h1>
-        
-        <div id="slides-container" class="themed-input w-full h-[60vh] max-h-[500px] overflow-y-auto p-6 rounded-lg border border-current-input-border text-lg leading-relaxed">
-            <p class="themed-text-secondary">Loading explanation...</p>
-        </div>
-
-        <div class="flex flex-col md:flex-row items-center justify-between gap-6 mt-8">
-            
-            <a href="{{ url_for('dashboard.index') }}" id="backButton" class="px-6 py-3 bg-gray-500 text-white font-semibold rounded-full hover:bg-gray-600 shadow-md transition-all duration-300 w-full md:w-auto text-center">
-                <i class="fas fa-arrow-left"></i>
+        <!-- Header -->
+        <div class="mb-10 animate-enter">
+            <a href="{{ url_for('dashboard.index') }}" class="text-[13px] font-medium flex items-center gap-2 mb-4 transition-colors" style="color: var(--text-muted);">
+                <i class="fas fa-arrow-left text-[9px]"></i> Back to dashboard
             </a>
-
-            <div class="flex items-center justify-center gap-4">
-                <button id="playPauseBtn" class="w-16 h-16 bg-primary-blue text-white rounded-full shadow-lg flex items-center justify-center text-2xl hover:bg-primary-dark-blue transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-blue">
-                    <i id="playIcon" class="fas fa-play ml-1"></i>
-                    <i id="pauseIcon" class="fas fa-pause hidden"></i>
-                </button>
-                <button id="stopBtn" class="w-16 h-16 bg-red-500 text-white rounded-full shadow-lg flex items-center justify-center text-2xl hover:bg-red-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-500">
-                    <i class="fas fa-stop"></i>
-                </button>
-            </div>
-
-            <div class="flex items-center gap-2 w-full md:w-auto">
-                <label for="rateSelect" class="themed-text-secondary font-medium"><i class="fas fa-tachometer-alt"></i></label>
-                <select id="rateSelect" class="themed-input p-3 border rounded-lg focus:ring focus:ring-primary-blue focus:ring-opacity-50">
-                    <option value="0.75">0.75x</option>
-                    <option value="1" selected>1x Speed</option>
-                    <option value="1.5">1.5x</option>
-                    <option value="2">2x</option>
-                </select>
-            </div>
+            <h1 class="text-[28px] font-semibold tracking-tight leading-tight" style="color: var(--text-primary);">
+                {{ topic }}
+            </h1>
         </div>
 
+        <!-- Content -->
+        <div class="studio-card p-10 min-h-[500px] animate-enter" style="animation-delay: 80ms;">
+            <div id="slides-container" class="space-y-4 text-[15px] leading-[1.8]" style="color: var(--text-secondary);">
+                <div class="flex items-center justify-center py-20">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Player Bar -->
+<div class="fixed bottom-0 left-0 w-full py-4 px-6 z-40" style="background: var(--surface-card); border-top: 1px solid var(--border);">
+    <div class="max-w-[68ch] mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <button id="playPauseBtn" class="btn-primary w-10 h-10 rounded-lg !p-0">
+                <i id="playIcon" class="fas fa-play text-xs"></i>
+                <i id="pauseIcon" class="fas fa-pause text-xs hidden"></i>
+            </button>
+            <button id="stopBtn" class="w-10 h-10 rounded-lg flex items-center justify-center transition-colors" style="border: 1px solid var(--border); color: var(--text-muted);">
+                <i class="fas fa-stop text-xs"></i>
+            </button>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <span class="label-caps">Speed</span>
+            <select id="rateSelect" class="studio-select !w-auto !py-1.5 !px-3 text-[13px]">
+                <option value="0.75">0.7x</option>
+                <option value="1" selected>1.0x</option>
+                <option value="1.25">1.2x</option>
+                <option value="1.5">1.5x</option>
+            </select>
+        </div>
     </div>
 </div>
 
@@ -49,94 +56,59 @@
 </script>
 {% endblock %}
 
-
 {% block scripts %}
 <style>
   .line {
-    margin-bottom: 12px;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    padding: 4px 8px;
-    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
   }
   .active-line {
-    background-color: var(--primary-blue);
-    color: white; /* Make text white on blue background */
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
-  }
-  .dark .active-line {
-    color: var(--text-dark); /* Ensure text is light in dark mode */
+    background: var(--accent-surface);
+    color: var(--accent);
+    font-weight: 500;
   }
 </style>
 
 <script>
-  // --- 1. Get DOM Elements ---
   const container = document.getElementById('slides-container');
   const explanationRaw = JSON.parse(document.getElementById('explanation-data').textContent);
-  
   const playPauseBtn = document.getElementById('playPauseBtn');
   const playIcon = document.getElementById('playIcon');
   const pauseIcon = document.getElementById('pauseIcon');
   const stopBtn = document.getElementById('stopBtn');
   const rateSelect = document.getElementById('rateSelect');
   
-  // --- 2. Setup Text Lines ---
   const lines = explanationRaw.split('\n').filter(line => line.trim() !== '');
-  container.innerHTML = ''; // Clear "Loading..."
+  container.innerHTML = ''; 
   lines.forEach((line, index) => {
     const div = document.createElement('div');
-    div.classList.add('line', 'themed-text');
+    div.classList.add('line');
     div.textContent = line;
     div.id = `line-${index}`;
     container.appendChild(div);
   });
 
-  // --- 3. Setup Speech Synthesis & Voice Selection ---
   const synth = window.speechSynthesis;
   let utterance = null;
   let voices = [];
   let selectedVoice = null;
   
-  /**
-   * Loads and selects the best available English voice.
-   * Prefers "Google" or "Neural" voices as they are more natural.
-   */
   function setupVoices() {
       voices = synth.getVoices();
-      // Try to find a high-quality US English voice
       selectedVoice = voices.find(voice => /en-US/.test(voice.lang) && /Google|Neural/.test(voice.name));
-      
-      // If no "Google" or "Neural" voice, find any US English voice
-      if (!selectedVoice) {
-          selectedVoice = voices.find(voice => /en-US/.test(voice.lang));
-      }
-      
-      // As a last resort, take the first available English voice
-      if (!selectedVoice) {
-          selectedVoice = voices.find(voice => /en/.test(voice.lang));
-      }
-      
-      // console.log("Selected Voice:", selectedVoice ? selectedVoice.name : "None");
+      if (!selectedVoice) selectedVoice = voices.find(voice => /en-US/.test(voice.lang));
   }
 
-  // Voices load asynchronously, so we must wait for the 'onvoiceschanged' event
   synth.onvoiceschanged = setupVoices;
-  setupVoices(); // Call once in case they're already loaded
+  setupVoices();
 
-  // --- 4. Player State Machine ---
   let currentIndex = 0;
-  let speechState = 'idle'; // 'idle', 'playing', 'paused'
+  let speechState = 'idle';
 
-  // --- 5. Core Player Functions ---
-
-  /**
-   * Highlights the active line and scrolls it into view.
-   * @param {number} index - The line index to highlight.
-   */
   function highlightLine(index) {
     document.querySelectorAll('.line').forEach(el => el.classList.remove('active-line'));
-    if (index < 0) return; // Used to clear all highlights
-    
+    if (index < 0) return;
     const active = document.getElementById(`line-${index}`);
     if (active) {
       active.classList.add('active-line');
@@ -144,103 +116,50 @@
     }
   }
 
-  /**
-   * Main function to handle Play/Pause button clicks
-   */
   function playPause() {
-    if (speechState === 'idle') {
-      // Start from the beginning
-      startSpeaking();
-    } else if (speechState === 'playing') {
-      // Pause the speech
+    if (speechState === 'idle') startSpeaking();
+    else if (speechState === 'playing') {
       synth.pause();
       speechState = 'paused';
-      updateButtonUI(false); // Show play icon
+      updateButtonUI(false);
     } else if (speechState === 'paused') {
-      // Resume the speech
       synth.resume();
       speechState = 'playing';
-      updateButtonUI(true); // Show pause icon
-      highlightLine(currentIndex); // Re-highlight in case of resume
+      updateButtonUI(true);
     }
   }
 
-  /**
-   * Starts speaking from the current index.
-   */
   function startSpeaking() {
-      if (synth.speaking) synth.cancel(); // Clear any old speech
+      if (synth.speaking) synth.cancel();
       speechState = 'playing';
-      updateButtonUI(true); // Show pause icon
+      updateButtonUI(true);
       speakLine(currentIndex);
   }
 
-  /**
-   * Stops and resets the entire speech playback.
-   */
   function stopSpeaking() {
-    synth.cancel(); // Stop speech immediately
+    synth.cancel();
     speechState = 'idle';
     currentIndex = 0;
-    updateButtonUI(false); // Show play icon
-    highlightLine(-1); // Clear all highlights
+    updateButtonUI(false);
+    highlightLine(-1);
   }
   
-  /**
-   * Stops speech without resetting (used for 'Back' button).
-   */
-  function cancelSpeaking() {
-      if (synth.speaking) synth.cancel();
-  }
-
-  /**
-   * Creates and speaks a single line of text.
-   * @param {number} index - The line index to speak.
-   */
   function speakLine(index) {
     if (index >= lines.length) {
-      // We are done!
       stopSpeaking();
       return;
     }
-
     utterance = new SpeechSynthesisUtterance(lines[index]);
-    
-    // Apply selected voice and rate
-    if (selectedVoice) {
-      utterance.voice = selectedVoice;
-    }
+    if (selectedVoice) utterance.voice = selectedVoice;
     utterance.rate = parseFloat(rateSelect.value) || 1;
-    utterance.pitch = 1.0;
-    utterance.lang = 'en-US';
-
-    // Highlight on start
-    utterance.onstart = () => {
-        highlightLine(index);
-    };
-    
-    // Move to the next line on end
+    utterance.onstart = () => highlightLine(index);
     utterance.onend = () => {
       currentIndex++;
-      // Only proceed if we are still in the 'playing' state
-      if (speechState === 'playing') {
-          speakLine(currentIndex);
-      }
+      if (speechState === 'playing') speakLine(currentIndex);
     };
-    
-    // Handle errors
-    utterance.onerror = (event) => {
-        console.error("SpeechSynthesisUtterance.onerror", event);
-        stopSpeaking(); // Stop on error
-    };
-
     synth.speak(utterance);
   }
 
-  /**
-   * Toggles the Play/Pause button icon.
-   * @param {boolean} isPlaying - True to show Pause, False to show Play.
-   */
   function updateButtonUI(isPlaying) {
       if (isPlaying) {
           playIcon.classList.add('hidden');
@@ -251,20 +170,11 @@
       }
   }
 
-  // --- 6. Event Listeners ---
   playPauseBtn.addEventListener('click', playPause);
   stopBtn.addEventListener('click', stopSpeaking);
-  
-  // If the speed is changed mid-speech, stop and restart from the current line
   rateSelect.addEventListener('change', () => {
-      if (speechState === 'playing' || speechState === 'paused') {
-          startSpeaking(); // Restart speech from current index with new rate
-      }
+      if (speechState === 'playing' || speechState === 'paused') startSpeaking();
   });
-
-  // Stop speech if the user clicks 'Back' or leaves the page
-  document.getElementById('backButton').addEventListener('click', cancelSpeaking);
-  window.addEventListener('beforeunload', cancelSpeaking);
-
+  window.addEventListener('beforeunload', () => synth.cancel());
 </script>
 {% endblock %}
