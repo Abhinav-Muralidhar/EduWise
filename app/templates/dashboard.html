@@ -616,7 +616,10 @@
         event.stopPropagation();
         fetch(`/toggle_favorite/${resourceId}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
         })
         .then(response => response.json())
         .then(data => {
