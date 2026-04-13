@@ -606,15 +606,82 @@
         if (isDownload) {
             let attempts = 0;
             const interval = setInterval(function() {
-                const cookieValue = document.cookie.split('; ').find(row => row.startsWith('fileDownload='));
+                const downloadCookieStr = document.cookie.split('; ').find(row => row.startsWith('fileDownload='));
+                const resourceCookieStr = document.cookie.split('; ').find(row => row.startsWith('resourceUpdate='));
+                
                 attempts++;
-                if (cookieValue || attempts > 25) {
+                if (downloadCookieStr || resourceCookieStr || attempts > 25) {
                     clearInterval(interval);
                     hideLoading();
-                    document.cookie = "fileDownload=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    
+                    if (downloadCookieStr) {
+                        document.cookie = "fileDownload=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    }
+                    if (resourceCookieStr) {
+                        try {
+                            const rawJson = decodeURIComponent(resourceCookieStr.split('=')[1]);
+                            const data = JSON.parse(rawJson);
+                            
+                            if (window.showToast) window.showToast(data.message || 'Generated successfully!', 'success');
+                            addResourceToHistory(data);
+                            document.cookie = "resourceUpdate=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                        } catch (e) {
+                            console.error('Failed to parse resourceUpdate cookie', e);
+                        }
+                    }
                 }
             }, 1000);
         }
+    }
+
+    function addResourceToHistory(data) {
+        const emptyState = document.getElementById('emptyState');
+        if (emptyState) emptyState.style.display = 'none';
+
+        const historyContainer = document.querySelector('.space-y-2');
+        if (!historyContainer) return;
+
+        let iconClass = 'r-icon-default';
+        let faIcon = 'fa-brain';
+        if (data.type === 'pptx') { iconClass = 'r-icon-pptx'; faIcon = 'fa-file-powerpoint'; }
+        else if (data.type === 'pdf') { iconClass = 'r-icon-pdf'; faIcon = 'fa-file-pdf'; }
+
+        const row = document.createElement('div');
+        row.className = 'resource-row group';
+        row.setAttribute('data-topic', (data.topic || '').toLowerCase());
+        row.setAttribute('data-isfav', 'false');
+        
+        row.innerHTML = `
+            <div class="resource-icon ${iconClass}">
+                <i class="fas ${faIcon}"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <h3 class="text-[14px] font-semibold truncate" style="color: var(--text-primary);">${data.topic}</h3>
+                <p class="text-[11px]" style="color: var(--text-muted);">
+                    ${data.type.toUpperCase()} &middot; ${data.date}
+                </p>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity">
+                <button onclick="toggleFavorite(event, ${data.id})" data-id="${data.id}"
+                        class="w-7 h-7 rounded-md flex items-center justify-center transition-colors btn-fav inactive">
+                    <i id="fav-icon-${data.id}" class="far fa-star text-[11px]"></i>
+                </button>
+                ${['pptx', 'pdf'].includes(data.type) ? `
+                    <a href="/download/${data.id}" class="btn-soft text-[12px] py-1.5 px-3">
+                        <i class="fas fa-download text-[10px] mr-1"></i> Download
+                    </a>
+                ` : ''}
+            </div>
+        `;
+
+        const rows = historyContainer.querySelectorAll('.resource-row');
+        if (rows.length > 0) {
+            historyContainer.insertBefore(row, rows[0]);
+        } else {
+            historyContainer.appendChild(row);
+        }
+        
+        if (typeof filterResources === 'function') filterResources();
     }
 
     function toggleFavorite(event, resourceId) {

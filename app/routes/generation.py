@@ -51,10 +51,8 @@ def generate_pptx():
         return redirect(url_for('dashboard.index'))
     
     file_bytes = pptx_builder.create_pptx_file(slides_data, theme_data, customization)
-    save_resource_to_db(topic, 'pptx', file_bytes.getvalue())
+    resource = save_resource_to_db(topic, 'pptx', file_bytes.getvalue())
     file_bytes.seek(0)
-    
-    flash("PPTX generated and saved to your dashboard!", "success")
     
     filename = f"{secure_filename(topic)}.pptx"
     response = make_response(send_file(
@@ -64,6 +62,16 @@ def generate_pptx():
         mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation'
     ))
     response.set_cookie('fileDownload', 'true', max_age=20, samesite='Lax')
+    if resource:
+        import urllib.parse, json
+        resource_data = {
+            'id': resource.id,
+            'topic': resource.topic,
+            'type': resource.resource_type,
+            'date': resource.created_at.strftime('%b %d, %Y'),
+            'message': "PPTX generated and saved to your dashboard!"
+        }
+        response.set_cookie('resourceUpdate', urllib.parse.quote(json.dumps(resource_data)), max_age=20, samesite='Lax')
     return response
 
 @generation_bp.route('/generate_pdf', methods=['POST'])
@@ -102,10 +110,8 @@ def generate_pdf():
         return redirect(url_for('dashboard.index'))
         
     file_bytes = pdf_builder.create_pdf_reportlab(topic, content, theme_data, customization)
-    save_resource_to_db(topic, 'pdf', file_bytes.getvalue())
+    resource = save_resource_to_db(topic, 'pdf', file_bytes.getvalue())
     file_bytes.seek(0)
-    
-    flash("PDF generated and saved to your dashboard!", "success")
     
     filename = f"{secure_filename(topic)}.pdf"
     response = make_response(send_file(
@@ -115,6 +121,16 @@ def generate_pdf():
         mimetype='application/pdf'
     ))
     response.set_cookie('fileDownload', 'true', max_age=20, samesite='Lax')
+    if resource:
+        import urllib.parse, json
+        resource_data = {
+            'id': resource.id,
+            'topic': resource.topic,
+            'type': resource.resource_type,
+            'date': resource.created_at.strftime('%b %d, %Y'),
+            'message': "PDF generated and saved to your dashboard!"
+        }
+        response.set_cookie('resourceUpdate', urllib.parse.quote(json.dumps(resource_data)), max_age=20, samesite='Lax')
     return response
 
 @generation_bp.route('/present', methods=['POST'])
@@ -124,6 +140,7 @@ def present():
     topic = request.form['topic']
     explanation = gemini.generate_explanation(topic)
     save_resource_to_db(topic, 'explanation', file_data=None)
+    flash("Explanation generated successfully!", "success")
     return render_template('explain.html', explanation=explanation, topic=topic)
 
 @generation_bp.route('/generate_quiz', methods=['POST'])
@@ -164,6 +181,7 @@ def generate_quiz():
     quiz_topic = f"Quiz: {secure_filename(source_filename)}"
     save_resource_to_db(quiz_topic, 'quiz', file_data=None)
     
+    flash("Quiz generated successfully!", "success")
     return render_template('quiz.html', questions=questions)
 
 @generation_bp.route('/submit_quiz', methods=['POST'])
@@ -209,6 +227,7 @@ def generate_flashcards():
         
     topic = f"Flashcards on: {topic_or_text[:50]}..."
     save_resource_to_db(topic, 'flashcard', file_data=None)
+    flash("Flashcards generated successfully!", "success")
     return render_template('flashcards.html', flashcards=flashcards_data)
 
 @generation_bp.route('/summarize_text', methods=['POST'])
@@ -224,4 +243,5 @@ def summarize_text():
         
     topic = f"Summary of: {text_to_summarize[:50]}..."
     save_resource_to_db(topic, 'summary', file_data=None)
+    flash("Summary generated successfully!", "success")
     return render_template('summary.html', summary_text=summary)

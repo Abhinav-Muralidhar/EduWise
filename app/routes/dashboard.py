@@ -3,6 +3,8 @@ from app.models.resource import Resource
 from app.utils.decorators import login_required
 from app.extensions import db
 import os
+import requests as req
+from flask import Response
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
@@ -44,9 +46,35 @@ def download(resource_id):
     resource = Resource.query.get_or_404(resource_id)
     if resource.user_id != session['user_id']:
         return "Unauthorized", 403
-    if resource.filename:
+    
+    if not resource.filename:
+        return redirect(url_for('dashboard.index'))
+    
+    # Determine extension and mimetype
+    ext = 'pptx' if resource.resource_type == 'pptx' else 'pdf'
+    mimetype = (
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+        if ext == 'pptx' else 'application/pdf'
+    )
+    
+    # Clean filename from topic
+    import re
+    safe_name = re.sub(r'[^a-zA-Z0-9_-]', '_', resource.topic)[:50]
+    download_name = f"{safe_name}.{ext}"
+    
+    # Proxy the file through our server
+    try:
+        response = req.get(resource.filename, timeout=30)
+        return Response(
+            response.content,
+            mimetype=mimetype,
+            headers={
+                'Content-Disposition': f'attachment; filename="{download_name}"'
+            }
+        )
+    except Exception as e:
+        print(f"Download failed: {e}")
         return redirect(resource.filename)
-    return redirect(url_for('dashboard.index'))
 
 @dashboard_bp.route('/keep-alive', methods=['GET'])
 def keep_alive():
