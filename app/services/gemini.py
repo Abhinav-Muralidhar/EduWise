@@ -177,7 +177,7 @@ def generate_detailed_content(topic, customization, theme_data):
 
 def generate_quiz_content(topic_text, total_questions=10):
     prompt = f"Generate a comprehensive quiz based on this text: '{topic_text[:4000]}'.\n"
-    prompt += "The quiz should have exactly {total_questions} multiple-choice questions.\n"
+    prompt += f"The quiz should have exactly {total_questions} multiple-choice questions.\n"
     prompt += "Return ONLY a JSON array of objects. Each object must have: 'question', 'options' (array of 4 strings), and 'answer_index' (0-3).\n"
     prompt += "Do not include markdown backticks or any other text."
 

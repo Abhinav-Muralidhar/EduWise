@@ -7,6 +7,30 @@ from app.services import gemini, pptx_builder, pdf_builder
 from app.extensions import limiter
 
 generation_bp = Blueprint('generation', __name__)
+ALLOWED_UPLOAD_EXTENSIONS = {'.pdf', '.docx', '.txt'}
+
+
+def _validate_non_empty_text(value, field_name):
+    cleaned = (value or '').strip()
+    if not cleaned:
+        flash(f"{field_name} is required.", "danger")
+        return None
+    return cleaned
+
+
+def _validate_upload(uploaded_file):
+    if not uploaded_file or uploaded_file.filename == '':
+        return None
+
+    filename = secure_filename(uploaded_file.filename)
+    ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+    ext = f'.{ext}' if ext else ''
+
+    if ext not in ALLOWED_UPLOAD_EXTENSIONS:
+        flash("Unsupported file type. Please upload a PDF, DOCX, or TXT file.", "danger")
+        return False
+
+    return filename
 
 @generation_bp.route('/generate', methods=['POST'])
 @limiter.limit("10 per hour")
@@ -35,7 +59,10 @@ def generate_pptx():
         'slide_count': str(slide_count),
         'visual_instructions': request.form.get('visual_instructions', '')
     }
-    topic = customization['topic']
+    topic = _validate_non_empty_text(customization['topic'], "Topic")
+    if topic is None:
+        return redirect(url_for('dashboard.index'))
+    customization['topic'] = topic
 
     theme_data = gemini.get_dynamic_theme(topic, customization)
     if not theme_data:
@@ -93,7 +120,10 @@ def generate_pdf():
         'accent_color': request.form.get('accent_color', '#007BFF'),
         'extra_instructions': request.form.get('extra_instructions', '')
     }
-    topic = customization['topic']
+    topic = _validate_non_empty_text(customization['topic'], "Topic")
+    if topic is None:
+        return redirect(url_for('dashboard.index'))
+    customization['topic'] = topic
 
     theme_data = gemini.get_dynamic_theme(topic, customization)
     if not theme_data:
@@ -137,7 +167,9 @@ def generate_pdf():
 @limiter.limit("20 per hour")
 @login_required 
 def present():
-    topic = request.form['topic']
+    topic = _validate_non_empty_text(request.form.get('topic'), "Topic")
+    if topic is None:
+        return redirect(url_for('dashboard.index'))
     explanation = gemini.generate_explanation(topic)
     save_resource_to_db(topic, 'explanation', file_data=None)
     flash("Explanation generated successfully!", "success")
@@ -153,9 +185,13 @@ def generate_quiz():
     content_source = ""
     source_filename = "Unknown Source"
 
-    if uploaded_file and uploaded_file.filename != '':
+    validated_filename = _validate_upload(uploaded_file)
+    if validated_filename is False:
+        return redirect(url_for('dashboard.index'))
+
+    if validated_filename:
         content_source = extract_text(uploaded_file)
-        source_filename = uploaded_file.filename
+        source_filename = validated_filename
         if not content_source:
             flash("Could not extract text from the uploaded file.", "danger")
             return redirect(url_for('dashboard.index'))
@@ -182,7 +218,7 @@ def generate_quiz():
     save_resource_to_db(quiz_topic, 'quiz', file_data=None)
     
     flash("Quiz generated successfully!", "success")
-    return render_template('quiz.html', questions=questions)
+    return render_template('quiz.html', questions=questions, topic=quiz_topic)
 
 @generation_bp.route('/submit_quiz', methods=['POST'])
 @login_required 
@@ -218,7 +254,12 @@ def submit_quiz():
 @limiter.limit("20 per hour")
 @login_required 
 def generate_flashcards():
-    topic_or_text = request.form.get('topic_or_text', request.form.get('topic', ''))
+    topic_or_text = _validate_non_empty_text(
+        request.form.get('topic_or_text', request.form.get('topic', '')),
+        "Topic or text"
+    )
+    if topic_or_text is None:
+        return redirect(url_for('dashboard.index'))
     flashcards_data = gemini.generate_flashcards(topic_or_text)
     
     if not flashcards_data:
@@ -234,7 +275,9 @@ def generate_flashcards():
 @limiter.limit("20 per hour")
 @login_required 
 def summarize_text():
-    text_to_summarize = request.form.get('text', '')
+    text_to_summarize = _validate_non_empty_text(request.form.get('text', ''), "Text")
+    if text_to_summarize is None:
+        return redirect(url_for('dashboard.index'))
     summary = gemini.generate_summary(text_to_summarize)
     
     if not summary:

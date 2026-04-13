@@ -59,10 +59,13 @@
                     style="background: var(--accent-surface); color: var(--accent);">
                     {{ session.username[0].upper() }}
                 </div>
-                <a href="{{ url_for('auth.logout') }}" class="text-xs font-medium transition-colors"
-                    style="color: var(--text-muted);">
-                    Log out
-                </a>
+                <form method="post" action="{{ url_for('auth.logout') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="text-xs font-medium transition-colors"
+                        style="color: var(--text-muted);">
+                        Log out
+                    </button>
+                </form>
             </div>
             {% else %}
             <a href="{{ url_for('auth.signup') }}" class="btn-primary text-xs py-2 px-4 rounded-lg">

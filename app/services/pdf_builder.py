@@ -192,6 +192,19 @@ def create_pdf_reportlab(topic, content, theme_data, customization):
         else:
             story.append(Paragraph(parse_inline_markdown(line), normal_style))
 
+    if is_parsing_code and code_buffer:
+        full_code_text = "<br/>".join(saxutils.escape(code_line) for code_line in code_buffer)
+        story.append(Paragraph(full_code_text, code_style))
+
+    if is_parsing_table and table_data:
+        table_styles.append(('ROWBACKGROUNDS', (0, 1), (-1, -1), row_colors))
+        table_styles.append(('GRID', (0, 0), (-1, -1), 1, table_grid_color))
+        table_styles.append(('VALIGN', (0, 0), (-1, -1), 'TOP'))
+        table = Table(table_data, colWidths=[doc.width/len(table_data[0])] * len(table_data[0]))
+        table.setStyle(TableStyle(table_styles))
+        story.append(table)
+        story.append(Spacer(1, 0.2 * inch))
+
     doc.build(story)
     buffer.seek(0)
     return buffer

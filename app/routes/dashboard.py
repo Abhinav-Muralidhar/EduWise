@@ -66,6 +66,7 @@ def download(resource_id):
     
     try:
         response = req.get(resource.filename, timeout=30)
+        response.raise_for_status()
         return Response(
             response.content,
             mimetype=mimetype,
@@ -75,7 +76,8 @@ def download(resource_id):
         )
     except Exception as e:
         print(f"Download failed: {e}")
-        return redirect(resource.filename)
+        flash("Download failed. Please try again in a moment.", "danger")
+        return redirect(url_for('dashboard.index'))
 
 @dashboard_bp.route('/keep-alive', methods=['GET'])
 def keep_alive():

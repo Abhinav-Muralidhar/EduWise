@@ -9,9 +9,13 @@ auth_bp = Blueprint('auth', __name__)
 @limiter.limit("20 per minute")
 def signup():
     if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
+        username = (request.form.get('username') or '').strip()
+        email = (request.form.get('email') or '').strip()
+        password = request.form.get('password') or ''
+
+        if not username or not email or not password:
+            flash("Username, email, and password are required.", "danger")
+            return redirect(url_for('auth.signup'))
         
         user_exists = User.query.filter((User.username == username) | (User.email == email)).first()
         if user_exists:
@@ -32,8 +36,12 @@ def signup():
 @limiter.limit("20 per minute")
 def login():
     if request.method == 'POST':
-        identifier = request.form.get('username_or_email')
-        password = request.form.get('password')
+        identifier = (request.form.get('username_or_email') or '').strip()
+        password = request.form.get('password') or ''
+
+        if not identifier or not password:
+            flash("Username/email and password are required.", "danger")
+            return render_template('login.html')
         
         user = User.query.filter((User.username == identifier) | (User.email == identifier)).first()
         if user and check_password_hash(user.password, password):
@@ -45,7 +53,7 @@ def login():
     
     return render_template('login.html')
 
-@auth_bp.route('/logout')
+@auth_bp.route('/logout', methods=['POST'])
 def logout():
     session.clear()
     flash("You have been logged out.", "info")
