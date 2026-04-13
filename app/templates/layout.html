@@ -1,21 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}EduWise{% endblock %}</title>
-    
+
     <!-- Typography — Inter (400, 500, 600, 700) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Design System -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
-    
+
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW08X3P4KT"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-ZW08X3P4KT');
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -23,14 +35,14 @@
             theme: {
                 extend: {
                     colors: {
-                        ink:     { DEFAULT: '#1B1F3B', soft: '#2D3256', faint: '#4A4E6E' },
-                        paper:   { DEFAULT: '#FAF9F7', warm: '#F5F3F0', deep: '#ECEAE6' },
-                        accent:  { DEFAULT: '#4361EE', hover: '#3651D4', glow: 'rgba(67,97,238,0.12)', surface: '#EEF1FE' },
-                        sage:    { DEFAULT: '#2B8A3E', surface: '#EDFCF0' },
-                        coral:   { DEFAULT: '#E03131', surface: '#FFF0F0' },
-                        plum:    { DEFAULT: '#7048E8', surface: '#F3F0FF' },
-                        amber:   { DEFAULT: '#E67700', surface: '#FFF9EB' },
-                        sky:     { DEFAULT: '#1C7ED6', surface: '#E7F5FF' },
+                        ink: { DEFAULT: '#1B1F3B', soft: '#2D3256', faint: '#4A4E6E' },
+                        paper: { DEFAULT: '#FAF9F7', warm: '#F5F3F0', deep: '#ECEAE6' },
+                        accent: { DEFAULT: '#4361EE', hover: '#3651D4', glow: 'rgba(67,97,238,0.12)', surface: '#EEF1FE' },
+                        sage: { DEFAULT: '#2B8A3E', surface: '#EDFCF0' },
+                        coral: { DEFAULT: '#E03131', surface: '#FFF0F0' },
+                        plum: { DEFAULT: '#7048E8', surface: '#F3F0FF' },
+                        amber: { DEFAULT: '#E67700', surface: '#FFF9EB' },
+                        sky: { DEFAULT: '#1C7ED6', surface: '#E7F5FF' },
                     },
                     fontFamily: {
                         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -43,6 +55,7 @@
         }
     </script>
 </head>
+
 <body class="font-sans min-h-screen flex flex-col">
 
     <!-- Accessibility -->
@@ -53,14 +66,15 @@
     <main id="main-content" class="flex-1">
         <!-- Toast container for flashes -->
         <div id="toast-container"></div>
-        
+
         {% block content %}{% endblock %}
     </main>
 
     <footer class="border-t py-10 px-6 mt-auto" style="border-color: var(--border); background: var(--surface-card);">
         <div class="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-2.5">
-                <div class="w-7 h-7 rounded-md flex items-center justify-center text-sm" style="background: var(--accent-surface); color: var(--accent);">
+                <div class="w-7 h-7 rounded-md flex items-center justify-center text-sm"
+                    style="background: var(--accent-surface); color: var(--accent);">
                     <i class="fas fa-graduation-cap"></i>
                 </div>
                 <span class="font-semibold text-sm" style="color: var(--text-primary);">EduWise</span>
@@ -98,7 +112,7 @@
             let icon = '<i class="fas fa-info-circle" style="color:var(--accent)"></i>';
             if (f.category === 'success') icon = '<i class="fas fa-check-circle" style="color:var(--sage)"></i>';
             if (f.category === 'error' || f.category === 'danger') icon = '<i class="fas fa-exclamation-circle" style="color:var(--coral)"></i>';
-            
+
             toast.innerHTML = `${icon} <span>${f.message}</span>`;
             toastContainer.appendChild(toast);
             setTimeout(() => toast.classList.add('show'), 100);
@@ -108,7 +122,8 @@
             }, 5000);
         });
     </script>
-    
+
     {% block scripts %}{% endblock %}
 </body>
+
 </html>
