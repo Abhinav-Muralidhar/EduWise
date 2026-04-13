@@ -17,18 +17,11 @@ def home():
 def index():
     user_id = session['user_id']
     
-    search_query = request.args.get('q', '').strip()
-    showing_favorites = request.args.get('favorites') == 'true'
+    search_query = ''
+    showing_favorites = False
     
-    query = Resource.query.filter_by(user_id=user_id)
-    
-    if search_query:
-        query = query.filter(Resource.topic.ilike(f'%{search_query}%'))
-        
-    if showing_favorites:
-        query = query.filter_by(is_favorite=True)
-        
-    resources = query.order_by(Resource.created_at.desc()).all()
+    # Client-side JS handles filtering, fetch all entries
+    resources = Resource.query.filter_by(user_id=user_id).order_by(Resource.created_at.desc()).all()
     
     # Filter by resource type for tabs
     pptx_files = [r for r in resources if r.resource_type == 'pptx']
@@ -59,6 +52,11 @@ def download(resource_id):
 def keep_alive():
     """Endpoint for cron jobs (e.g. cron-job.org) to ping every 5-10 minutes
     to keep the server awake."""
+    try:
+        db.session.execute(db.text('SELECT 1'))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
     return jsonify({"status": "alive"}), 200
 
 @dashboard_bp.route('/toggle_favorite/<int:resource_id>', methods=['POST'])

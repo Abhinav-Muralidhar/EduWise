@@ -115,27 +115,25 @@
                     {% endif %}
                 </div>
 
-                <form method="GET" action="{{ url_for('dashboard.index') }}" class="flex items-center gap-3">
+                <div class="flex items-center gap-3">
                     <div class="relative">
                         <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[11px]" style="color: var(--text-ghost);"></i>
-                        <input type="text" name="q" placeholder="Search topics…" value="{{ search_query or '' }}" 
-                               class="search-input">
+                        <input type="text" id="searchInput" placeholder="Search topics…" 
+                               class="search-input" oninput="filterResources()">
                     </div>
                     <label class="flex items-center gap-1.5 cursor-pointer select-none">
-                        <input type="checkbox" name="favorites" value="true" 
-                               {% if showing_favorites %}checked{% endif %} 
-                               onchange="this.form.submit()" 
+                        <input type="checkbox" id="favFilter" onchange="filterResources()" 
                                class="w-3.5 h-3.5 rounded cursor-pointer accent-amber-500">
                         <span class="text-[11px] font-semibold uppercase tracking-wider" style="color: var(--text-muted);">Favs</span>
                     </label>
-                </form>
+                </div>
             </div>
 
             <!-- Resource list -->
             <div class="space-y-2">
                 {% if resources %}
                     {% for resource in resources %}
-                        <div class="resource-row group">
+                        <div class="resource-row group" data-topic="{{ resource.topic|lower|escape }}" data-isfav="{{ 'true' if resource.is_favorite else 'false' }}">
                             {% set icon_class = 'r-icon-' ~ resource.resource_type if resource.resource_type in ['pptx', 'pdf', 'quiz', 'flashcard'] else 'r-icon-default' %}
                             <div class="resource-icon {{ icon_class }}">
                                 {% if resource.resource_type == 'pptx' %}<i class="fas fa-file-powerpoint"></i>
@@ -171,7 +169,7 @@
                     {% endfor %}
                 {% else %}
                     <!-- Empty state -->
-                    <div class="text-center py-16 rounded-2xl" style="border: 2px dashed var(--border); background: var(--surface-card);">
+                    <div id="emptyState" class="text-center py-16 rounded-2xl" style="border: 2px dashed var(--border); background: var(--surface-card);">
                         <div class="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center" style="background: var(--surface-raised);">
                             <i class="fas fa-inbox text-lg" style="color: var(--text-ghost);"></i>
                         </div>
@@ -179,6 +177,14 @@
                         <p class="text-[12px]" style="color: var(--text-muted);">Choose a tool above to create your first resource.</p>
                     </div>
                 {% endif %}
+                <!-- Dynamic Empty State for filtering -->
+                <div id="noMatchState" class="hidden text-center py-16 rounded-2xl" style="border: 2px dashed var(--border); background: var(--surface-card);">
+                    <div class="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center" style="background: var(--surface-raised);">
+                        <i class="fas fa-search text-lg" style="color: var(--text-ghost);"></i>
+                    </div>
+                    <p class="text-[14px] font-medium mb-1" style="color: var(--text-secondary);">No matches found</p>
+                    <p class="text-[12px]" style="color: var(--text-muted);">Try a different search term or relaxing your filters.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -626,12 +632,22 @@
             if (data.success) {
                 const icon = document.getElementById(`fav-icon-${resourceId}`);
                 const btn = icon.parentElement;
+                const row = btn.closest('.resource-row');
+                
                 if (data.is_favorite) {
                     icon.classList.replace('far', 'fas');
                     btn.style.color = 'var(--amber)';
+                    if (row) row.setAttribute('data-isfav', 'true');
                 } else {
                     icon.classList.replace('fas', 'far');
                     btn.style.color = 'var(--text-ghost)';
+                    if (row) row.setAttribute('data-isfav', 'false');
+                }
+                
+                // If we are currently filtering by favorites, re-run filter
+                const favFilter = document.getElementById('favFilter');
+                if (favFilter && favFilter.checked && !data.is_favorite) {
+                    filterResources();
                 }
             }
         });
@@ -660,5 +676,36 @@
 
     // Ensure loading overlay is hidden on normal page loads
     document.addEventListener('DOMContentLoaded', hideLoading);
+
+    function filterResources() {
+        const query = (document.getElementById('searchInput').value || '').toLowerCase();
+        const favOnly = document.getElementById('favFilter').checked;
+        let visibleCount = 0;
+        
+        document.querySelectorAll('.resource-row').forEach(row => {
+            const topic = row.getAttribute('data-topic') || '';
+            const isFav = row.getAttribute('data-isfav') === 'true';
+            
+            const matchSearch = topic.includes(query);
+            const matchFav = !favOnly || isFav;
+            
+            if (matchSearch && matchFav) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        const noMatchState = document.getElementById('noMatchState');
+        if (noMatchState) {
+            const totalResources = document.querySelectorAll('.resource-row').length;
+            if (totalResources > 0 && visibleCount === 0) {
+                noMatchState.classList.remove('hidden');
+            } else {
+                noMatchState.classList.add('hidden');
+            }
+        }
+    }
 </script>
 {% endblock %}
