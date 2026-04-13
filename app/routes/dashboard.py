@@ -16,7 +16,20 @@ def home():
 @login_required
 def index():
     user_id = session['user_id']
-    resources = Resource.query.filter_by(user_id=user_id).order_by(Resource.created_at.desc()).all()
+    
+    search_query = request.args.get('q', '').strip()
+    showing_favorites = request.args.get('favorites') == 'true'
+    
+    query = Resource.query.filter_by(user_id=user_id)
+    
+    if search_query:
+        query = query.filter(Resource.topic.ilike(f'%{search_query}%'))
+        
+    if showing_favorites:
+        query = query.filter_by(is_favorite=True)
+        
+    resources = query.order_by(Resource.created_at.desc()).all()
+    
     # Filter by resource type for tabs
     pptx_files = [r for r in resources if r.resource_type == 'pptx']
     pdf_files = [r for r in resources if r.resource_type == 'pdf']
@@ -28,7 +41,9 @@ def index():
                          pptx_files=pptx_files,
                          pdf_files=pdf_files,
                          quizzes=quizzes,
-                         flashcards=flashcards)
+                         flashcards=flashcards,
+                         search_query=search_query,
+                         showing_favorites=showing_favorites)
 
 @dashboard_bp.route('/download/<int:resource_id>')
 @login_required
