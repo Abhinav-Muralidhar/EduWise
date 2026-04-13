@@ -20,7 +20,7 @@ def save_resource_to_db(topic, resource_type, file_data=None):
     try:
         user_id = session.get('user_id')
         if not user_id:
-            return False
+            return None
             
         file_url = None
         if file_data:
@@ -47,5 +47,5 @@ def save_resource_to_db(topic, resource_type, file_data=None):
         return resource
     except Exception as e:
         db.session.rollback()
-        print(f"Error saving resource to DB: {e}")
+        current_app.logger.exception("Error saving resource to DB: %s", e)
         return None

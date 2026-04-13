@@ -1,5 +1,5 @@
 {% extends 'layout.html' %}
-{% block title %}Dashboard — EduWise{% endblock %}
+{% block title %}Dashboard - EduWise{% endblock %}
 
 {% block content %}
 <style>
@@ -17,14 +17,14 @@
 <!-- Loading Overlay -->
 <div id="loadingOverlay" class="loading-overlay hidden">
     <div class="loading-spinner"></div>
-    <p class="text-sm font-medium" style="color: var(--text-primary);">Generating your materials…</p>
+    <p class="text-sm font-medium" style="color: var(--text-primary);">Generating your materials...</p>
     <p class="text-xs mt-1" style="color: var(--text-muted);">This may take a moment.</p>
 </div>
 
 <div style="background: var(--surface-page); min-height: calc(100vh - var(--header-height));">
     <div class="max-w-5xl mx-auto px-6 pt-10 pb-20">
 
-        <!-- ─── Greeting ─── -->
+        <!-- Greeting -->
         <div class="mb-10 animate-enter">
             <p class="text-xs font-medium uppercase tracking-widest mb-2" style="color: var(--text-muted);">
                 <i class="fas fa-circle text-[6px] mr-1" style="color: var(--sage);"></i> Dashboard
@@ -37,7 +37,7 @@
             </p>
         </div>
 
-        <!-- ─── Tool Grid ─── -->
+        <!-- Tool Grid -->
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-16">
 
             <!-- PPT -->
@@ -101,7 +101,7 @@
             </button>
         </div>
 
-        <!-- ─── History Section ─── -->
+        <!-- History Section -->
         <div class="animate-enter" style="animation-delay: 400ms;">
             <!-- Section header -->
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
@@ -118,7 +118,7 @@
                 <div class="flex items-center gap-3">
                     <div class="relative">
                         <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[11px]" style="color: var(--text-ghost);"></i>
-                        <input type="text" id="searchInput" placeholder="Search topics…" 
+                        <input type="text" id="searchInput" placeholder="Search topics..." 
                                class="search-input" oninput="filterResources()">
                     </div>
                     <label class="flex items-center gap-1.5 cursor-pointer select-none">
@@ -190,7 +190,7 @@
     </div>
 </div>
 
-<!-- ─── Modal Container ─── -->
+<!-- Modal Container -->
 <div id="formModal" class="modal-overlay">
     <div class="modal-content">
         <div class="p-7 sm:p-8">
@@ -199,10 +199,10 @@
     </div>
 </div>
 
-<!-- ─── Form Templates (hidden) ─── -->
+<!-- Form Templates (hidden) -->
 <div id="hiddenFormTemplates" class="hidden">
 
-    <!-- ━━━ PPT Template ━━━ -->
+    <!-- PPT Template -->
     <div id="pptFormTemplate">
         <div class="flex items-center gap-3 mb-6">
             <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: var(--accent-surface); color: var(--accent);">
@@ -213,7 +213,7 @@
                 <p class="text-[12px]" style="color: var(--text-muted);">AI-designed slides on any topic</p>
             </div>
         </div>
-        <form method="post" action="{{ url_for('generation.generate_pptx') }}" onsubmit="showLoading(true)" class="space-y-4">
+        <form method="post" action="{{ url_for('generation.generate_pptx') }}" onsubmit="return handleFileGeneration(event, this)" class="space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             
             <div>
@@ -340,7 +340,7 @@
                 <p class="text-[12px]" style="color: var(--text-muted);">Well-structured PDF documents</p>
             </div>
         </div>
-        <form method="post" action="{{ url_for('generation.generate_pdf') }}" onsubmit="showLoading(true)" class="space-y-4">
+        <form method="post" action="{{ url_for('generation.generate_pdf') }}" onsubmit="return handleFileGeneration(event, this)" class="space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             
             <div>
@@ -674,40 +674,98 @@
         loadingOverlay.classList.remove('visible');
     }
 
-    function showLoading(isDownload = false) {
+    function showLoading() {
         closeFormModal();
         loadingOverlay.classList.remove('hidden');
         requestAnimationFrame(() => loadingOverlay.classList.add('visible'));
-        
-        if (isDownload) {
-            let attempts = 0;
-            const interval = setInterval(function() {
-                const downloadCookieStr = document.cookie.split('; ').find(row => row.startsWith('fileDownload='));
-                const resourceCookieStr = document.cookie.split('; ').find(row => row.startsWith('resourceUpdate='));
-                
-                attempts++;
-                if (downloadCookieStr || resourceCookieStr || attempts > 25) {
-                    clearInterval(interval);
-                    hideLoading();
-                    
-                    if (downloadCookieStr) {
-                        document.cookie = "fileDownload=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                    }
-                    if (resourceCookieStr) {
-                        try {
-                            const rawJson = decodeURIComponent(resourceCookieStr.split('=')[1]);
-                            const data = JSON.parse(rawJson);
-                            
-                            if (window.showToast) window.showToast(data.message || 'Generated successfully!', 'success');
-                            addResourceToHistory(data);
-                            document.cookie = "resourceUpdate=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                        } catch (e) {
-                            console.error('Failed to parse resourceUpdate cookie', e);
-                        }
-                    }
-                }
-            }, 1000);
+    }
+
+    function getDownloadFilename(response, fallbackName = 'download') {
+        const disposition = response.headers.get('Content-Disposition') || '';
+        const match = disposition.match(/filename="?([^"]+)"?/i);
+        return match ? match[1] : fallbackName;
+    }
+
+    async function triggerBrowserDownload(response, fallbackName) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = getDownloadFilename(response, fallbackName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+    }
+
+    function buildResourceDataFromHeaders(response) {
+        const id = response.headers.get('X-Resource-Id');
+        const topic = response.headers.get('X-Resource-Topic');
+        const type = response.headers.get('X-Resource-Type');
+        const date = response.headers.get('X-Resource-Date');
+        const message = response.headers.get('X-Resource-Message');
+
+        if (!id || !topic || !type || !date) return null;
+
+        return {
+            id: Number(id),
+            topic: decodeURIComponent(topic),
+            type,
+            date: decodeURIComponent(date),
+            message: message ? decodeURIComponent(message) : 'Generated successfully!'
+        };
+    }
+
+    async function parseGenerationError(response) {
+        try {
+            const data = await response.json();
+            return data.message || 'Something went wrong. Please try again.';
+        } catch {
+            return 'Something went wrong. Please try again.';
         }
+    }
+
+    async function handleFileGeneration(event, form) {
+        event.preventDefault();
+        showLoading();
+
+        try {
+            const formData = new FormData(form);
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            });
+
+            if (!response.ok) {
+                const message = await parseGenerationError(response);
+                if (window.showToast) window.showToast(message, 'danger');
+                hideLoading();
+                return false;
+            }
+
+            const topic = formData.get('topic') || 'download';
+            const resourceType = form.action.includes('generate_pdf') ? 'pdf' : 'pptx';
+            await triggerBrowserDownload(response, `${topic}.${resourceType}`);
+
+            const resourceData = buildResourceDataFromHeaders(response);
+            if (resourceData) {
+                addResourceToHistory(resourceData);
+                if (window.showToast) window.showToast(resourceData.message, 'success');
+            } else if (window.showToast) {
+                window.showToast('Generated successfully!', 'success');
+            }
+        } catch (error) {
+            console.error('Generation request failed', error);
+            if (window.showToast) window.showToast('Something went wrong. Please try again.', 'danger');
+        } finally {
+            hideLoading();
+        }
+
+        return false;
     }
 
     function addResourceToHistory(data) {
@@ -716,6 +774,7 @@
 
         const historyContainer = document.querySelector('.space-y-2');
         if (!historyContainer) return;
+        if (document.querySelector(`.resource-row button[data-id="${data.id}"]`)) return;
 
         let iconClass = 'r-icon-default';
         let faIcon = 'fa-brain';
@@ -852,3 +911,4 @@
     }
 </script>
 {% endblock %}
+

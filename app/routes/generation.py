@@ -10,6 +10,17 @@ generation_bp = Blueprint('generation', __name__)
 ALLOWED_UPLOAD_EXTENSIONS = {'.pdf', '.docx', '.txt'}
 
 
+def _is_fetch_request():
+    return request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+
+def _generation_error(message, status_code=503):
+    if _is_fetch_request():
+        return jsonify({"success": False, "message": message}), status_code
+    flash(message, "danger")
+    return redirect(url_for('dashboard.index'))
+
+
 def _validate_non_empty_text(value, field_name):
     cleaned = (value or '').strip()
     if not cleaned:
@@ -64,42 +75,51 @@ def generate_pptx():
         return redirect(url_for('dashboard.index'))
     customization['topic'] = topic
 
-    theme_data = gemini.get_dynamic_theme(topic, customization)
-    if not theme_data:
-        theme_data = {
-            'font-title': 'Roboto', 'font-body': 'Roboto',
-            'font-color-title': '#000000', 'font-color-body': '#333333',
-            'bg-color': '#FFFFFF', 'accent-color': '#007BFF'
-        }
+    try:
+        theme_data = gemini.get_dynamic_theme(topic, customization)
+        if not theme_data:
+            theme_data = {
+                'font-title': 'Roboto', 'font-body': 'Roboto',
+                'font-color-title': '#000000', 'font-color-body': '#333333',
+                'bg-color': '#FFFFFF', 'accent-color': '#007BFF'
+            }
 
-    slides_data = gemini.generate_slide_content(topic, customization, theme_data)
-    if not slides_data:
-        flash("Error: AI failed to generate slide content.", "danger")
-        return redirect(url_for('dashboard.index'))
-    
-    file_bytes = pptx_builder.create_pptx_file(slides_data, theme_data, customization)
-    resource = save_resource_to_db(topic, 'pptx', file_bytes.getvalue())
-    file_bytes.seek(0)
-    
-    filename = f"{secure_filename(topic)}.pptx"
-    response = make_response(send_file(
-        file_bytes, 
-        as_attachment=True, 
-        download_name=filename, 
-        mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation'
-    ))
-    response.set_cookie('fileDownload', 'true', max_age=20, samesite='Lax')
-    if resource:
-        import urllib.parse, json
-        resource_data = {
-            'id': resource.id,
-            'topic': resource.topic,
-            'type': resource.resource_type,
-            'date': resource.created_at.strftime('%b %d, %Y'),
-            'message': "PPTX generated and saved to your dashboard!"
-        }
-        response.set_cookie('resourceUpdate', urllib.parse.quote(json.dumps(resource_data)), max_age=20, samesite='Lax')
-    return response
+        slides_data = gemini.generate_slide_content(topic, customization, theme_data)
+        if not slides_data:
+            return _generation_error("We couldn't generate slides right now. Please try again in a moment.")
+        
+        file_bytes = pptx_builder.create_pptx_file(slides_data, theme_data, customization)
+        resource = save_resource_to_db(topic, 'pptx', file_bytes.getvalue())
+        file_bytes.seek(0)
+        
+        filename = f"{secure_filename(topic)}.pptx"
+        response = make_response(send_file(
+            file_bytes, 
+            as_attachment=True, 
+            download_name=filename, 
+            mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation'
+        ))
+        response.set_cookie('fileDownload', 'true', max_age=20, samesite='Lax')
+        if resource:
+            import urllib.parse, json
+            resource_data = {
+                'id': resource.id,
+                'topic': resource.topic,
+                'type': resource.resource_type,
+                'date': resource.created_at.strftime('%b %d, %Y'),
+                'message': "PPTX generated and saved to your dashboard!"
+            }
+            response.set_cookie('resourceUpdate', urllib.parse.quote(json.dumps(resource_data)), max_age=20, samesite='Lax')
+            if _is_fetch_request():
+                response.headers['X-Resource-Id'] = str(resource.id)
+                response.headers['X-Resource-Topic'] = urllib.parse.quote(resource.topic)
+                response.headers['X-Resource-Type'] = resource.resource_type
+                response.headers['X-Resource-Date'] = urllib.parse.quote(resource.created_at.strftime('%b %d, %Y'))
+                response.headers['X-Resource-Message'] = urllib.parse.quote(resource_data['message'])
+        return response
+    except Exception:
+        generation_bp.logger.exception("PPTX generation failed for topic '%s'.", topic)
+        return _generation_error("We couldn't generate slides right now. Please try again in a moment.")
 
 @generation_bp.route('/generate_pdf', methods=['POST'])
 @limiter.limit("10 per hour")
@@ -125,43 +145,52 @@ def generate_pdf():
         return redirect(url_for('dashboard.index'))
     customization['topic'] = topic
 
-    theme_data = gemini.get_dynamic_theme(topic, customization)
-    if not theme_data:
-        theme_data = {
-            'font-title': 'Roboto', 'font-body': 'Roboto',
-            'font-color-title': customization['accent_color'], 
-            'font-color-body': customization['font_color'],
-            'bg-color': '#FFFFFF', 'accent-color': customization['accent_color']
-        }
+    try:
+        theme_data = gemini.get_dynamic_theme(topic, customization)
+        if not theme_data:
+            theme_data = {
+                'font-title': 'Roboto', 'font-body': 'Roboto',
+                'font-color-title': customization['accent_color'], 
+                'font-color-body': customization['font_color'],
+                'bg-color': '#FFFFFF', 'accent-color': customization['accent_color']
+            }
 
-    content = gemini.generate_detailed_content(topic, customization, theme_data)
-    if not content:
-        flash("We couldn't generate notes right now. Please try again in a moment.", "danger")
-        return redirect(url_for('dashboard.index'))
+        content = gemini.generate_detailed_content(topic, customization, theme_data)
+        if not content:
+            return _generation_error("We couldn't generate notes right now. Please try again in a moment.")
+            
+        file_bytes = pdf_builder.create_pdf_reportlab(topic, content, theme_data, customization)
+        resource = save_resource_to_db(topic, 'pdf', file_bytes.getvalue())
+        file_bytes.seek(0)
         
-    file_bytes = pdf_builder.create_pdf_reportlab(topic, content, theme_data, customization)
-    resource = save_resource_to_db(topic, 'pdf', file_bytes.getvalue())
-    file_bytes.seek(0)
-    
-    filename = f"{secure_filename(topic)}.pdf"
-    response = make_response(send_file(
-        file_bytes, 
-        as_attachment=True, 
-        download_name=filename, 
-        mimetype='application/pdf'
-    ))
-    response.set_cookie('fileDownload', 'true', max_age=20, samesite='Lax')
-    if resource:
-        import urllib.parse, json
-        resource_data = {
-            'id': resource.id,
-            'topic': resource.topic,
-            'type': resource.resource_type,
-            'date': resource.created_at.strftime('%b %d, %Y'),
-            'message': "PDF generated and saved to your dashboard!"
-        }
-        response.set_cookie('resourceUpdate', urllib.parse.quote(json.dumps(resource_data)), max_age=20, samesite='Lax')
-    return response
+        filename = f"{secure_filename(topic)}.pdf"
+        response = make_response(send_file(
+            file_bytes, 
+            as_attachment=True, 
+            download_name=filename, 
+            mimetype='application/pdf'
+        ))
+        response.set_cookie('fileDownload', 'true', max_age=20, samesite='Lax')
+        if resource:
+            import urllib.parse, json
+            resource_data = {
+                'id': resource.id,
+                'topic': resource.topic,
+                'type': resource.resource_type,
+                'date': resource.created_at.strftime('%b %d, %Y'),
+                'message': "PDF generated and saved to your dashboard!"
+            }
+            response.set_cookie('resourceUpdate', urllib.parse.quote(json.dumps(resource_data)), max_age=20, samesite='Lax')
+            if _is_fetch_request():
+                response.headers['X-Resource-Id'] = str(resource.id)
+                response.headers['X-Resource-Topic'] = urllib.parse.quote(resource.topic)
+                response.headers['X-Resource-Type'] = resource.resource_type
+                response.headers['X-Resource-Date'] = urllib.parse.quote(resource.created_at.strftime('%b %d, %Y'))
+                response.headers['X-Resource-Message'] = urllib.parse.quote(resource_data['message'])
+        return response
+    except Exception:
+        generation_bp.logger.exception("PDF generation failed for topic '%s'.", topic)
+        return _generation_error("We couldn't generate notes right now. Please try again in a moment.")
 
 @generation_bp.route('/present', methods=['POST'])
 @limiter.limit("20 per hour")
@@ -174,6 +203,7 @@ def present():
     if not explanation:
         flash("We couldn't generate an explanation right now. Please try again in a moment.", "danger")
         return redirect(url_for('dashboard.index'))
+    explanation = gemini.clean_generated_text(explanation)
     save_resource_to_db(topic, 'explanation', file_data=None)
     flash("Explanation generated successfully!", "success")
     return render_template('explain.html', explanation=explanation, topic=topic)
@@ -209,7 +239,7 @@ def generate_quiz():
     questions = gemini.generate_quiz_content(content_source)
     
     if not questions:
-        flash("AI failed to generate questions.", "warning")
+        flash("We couldn't generate a quiz right now. Please try again in a moment.", "warning")
         return redirect(url_for('dashboard.index'))
         
     # Add ID for form handling
@@ -267,7 +297,7 @@ def generate_flashcards():
     flashcards_data = gemini.generate_flashcards(topic_or_text)
     
     if not flashcards_data:
-        flash("Error generating flashcards.", "danger")
+        flash("We couldn't generate flashcards right now. Please try again in a moment.", "danger")
         return redirect(url_for('dashboard.index'))
         
     topic = f"Flashcards on: {topic_or_text[:50]}..."
@@ -285,8 +315,9 @@ def summarize_text():
     summary = gemini.generate_summary(text_to_summarize)
     
     if not summary:
-        flash("Error summarizing text.", "danger")
+        flash("We couldn't generate a summary right now. Please try again in a moment.", "danger")
         return redirect(url_for('dashboard.index'))
+    summary = gemini.clean_generated_text(summary)
         
     topic = f"Summary of: {text_to_summarize[:50]}..."
     save_resource_to_db(topic, 'summary', file_data=None)

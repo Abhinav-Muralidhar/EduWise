@@ -1,5 +1,6 @@
 import requests
 import json
+import re
 from flask import current_app
 
 def _call_gemini(prompt, is_json=False):
@@ -229,5 +230,27 @@ def generate_explanation(topic):
     return _call_gemini(prompt)
 
 def generate_summary(text):
-    prompt = f"Summarize the following text in a concise, structured manner with bullet points: '{text[:5000]}'"
+    prompt = (
+        f"Summarize the following text in concise, natural plain English: '{text[:5000]}'\n"
+        "Do not use markdown, bullets, headings, tables, asterisks, hashtags, or code formatting.\n"
+        "Write short readable paragraphs only.\n"
+        "Avoid special formatting symbols."
+    )
     return _call_gemini(prompt)
+
+
+def clean_generated_text(text):
+    cleaned = str(text or '')
+    cleaned = re.sub(r'```[\s\S]*?```', ' ', cleaned)
+    cleaned = re.sub(r'`([^`]+)`', r'\1', cleaned)
+    cleaned = re.sub(r'^\s*#{1,6}\s*', '', cleaned, flags=re.MULTILINE)
+    cleaned = re.sub(r'^\s*[-*+]\s+', '', cleaned, flags=re.MULTILINE)
+    cleaned = re.sub(r'^\s*\d+\.\s+', '', cleaned, flags=re.MULTILINE)
+    cleaned = re.sub(r'\*\*([^*]+)\*\*', r'\1', cleaned)
+    cleaned = re.sub(r'\*([^*]+)\*', r'\1', cleaned)
+    cleaned = re.sub(r'_([^_]+)_', r'\1', cleaned)
+    cleaned = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'\1', cleaned)
+    cleaned = cleaned.replace('|', ' ')
+    cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
+    cleaned = re.sub(r'[ \t]{2,}', ' ', cleaned)
+    return cleaned.strip()
