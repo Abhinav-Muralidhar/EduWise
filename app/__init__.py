@@ -11,10 +11,12 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
 
     # Initialize extensions
-    from app.extensions import db, csrf, limiter
+    from app.extensions import db, csrf, limiter, scheduler
     db.init_app(app)
     csrf.init_app(app)
     limiter.init_app(app)
+    scheduler.init_app(app)
+    scheduler.start()
 
     # Register fonts
     _register_fonts(app)

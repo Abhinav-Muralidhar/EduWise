@@ -17,6 +17,9 @@ class Config:
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
     CUSTOM_SEARCH_API_KEY = os.getenv("CUSTOM_SEARCH_API_KEY")
     CUSTOM_SEARCH_CX_ID = os.getenv("CUSTOM_SEARCH_CX_ID")
+    CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
+    CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
+    CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
     
     # Fonts
     FONT_DIR = os.path.join(project_root, 'fonts')
@@ -26,3 +29,14 @@ class Config:
         'Montserrat': ('Montserrat-Regular.ttf', 'Montserrat-Bold.ttf', 'Montserrat-Italic.ttf', 'Montserrat-BoldItalic.ttf'),
         'Merriweather': ('Merriweather-Regular.ttf', 'Merriweather-Bold.ttf', 'Merriweather-Italic.ttf', 'Merriweather-BoldItalic.ttf')
     }
+
+    # Scheduler configs
+    SCHEDULER_API_ENABLED = True
+    JOBS = [
+        {
+            'id': 'job1',
+            'func': 'app.utils.jobs:my_scheduled_task',
+            'trigger': 'interval',
+            'minutes': 5
+        }
+    ]

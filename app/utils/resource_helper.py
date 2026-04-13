@@ -1,8 +1,17 @@
 import os
 import uuid
+import io
+import cloudinary
+import cloudinary.uploader
 from flask import session, current_app
 from app.models.resource import Resource
 from app.extensions import db
+
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET")
+)
 
 def save_resource_to_db(topic, resource_type, file_data=None):
     try:
@@ -10,19 +19,21 @@ def save_resource_to_db(topic, resource_type, file_data=None):
         if not user_id:
             return False
             
-        filename = None
+        file_url = None
         if file_data:
-            ext = 'pptx' if resource_type == 'pptx' else 'pdf'
-            filename = f"{uuid.uuid4()}.{ext}"
-            file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-            with open(file_path, 'wb') as f:
-                f.write(file_data)
+            result = cloudinary.uploader.upload(
+                io.BytesIO(file_data),
+                resource_type="raw",
+                folder="eduwise",
+                public_id=f"{uuid.uuid4()}"
+            )
+            file_url = result['secure_url']
                 
         resource = Resource(
             user_id=user_id,
             resource_type=resource_type,
             topic=topic,
-            filename=filename
+            filename=file_url
         )
         db.session.add(resource)
         db.session.commit()
