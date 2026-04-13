@@ -492,8 +492,14 @@
             <div>
                 <label class="label-caps block mb-1.5">Upload Material</label>
                 <input type="file" name="file" accept=".pdf,.docx,.txt" 
+                       data-supported-types=".pdf,.docx,.txt"
+                       data-max-size="{{ config.MAX_CONTENT_LENGTH }}"
                        class="studio-input text-[13px] file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-[12px] file:font-semibold file:cursor-pointer"
                        style="padding: 8px 12px;">
+                <p class="mt-2 text-[11px]" style="color: var(--text-muted);">
+                    Supported files: PDF, DOCX, TXT. Max size: {{ (config.MAX_CONTENT_LENGTH / (1024 * 1024)) | round(0, 'common') | int }} MB.
+                </p>
+                <p data-upload-feedback class="hidden mt-2 text-[11px] font-medium"></p>
             </div>
             
             <div class="pt-2 space-y-2">
@@ -580,6 +586,7 @@
         modalContent.innerHTML = template.innerHTML;
         modal.classList.add('open');
         document.body.style.overflow = 'hidden';
+        initializeModalValidation();
         
         // Auto-focus first input
         requestAnimationFrame(() => {
@@ -591,6 +598,75 @@
     function closeFormModal() {
         modal.classList.remove('open');
         document.body.style.overflow = '';
+    }
+
+    function setUploadFeedback(input, message = '', isError = false) {
+        const wrapper = input.closest('div');
+        const feedback = wrapper ? wrapper.querySelector('[data-upload-feedback]') : null;
+        if (!feedback) return;
+
+        if (!message) {
+            feedback.textContent = '';
+            feedback.classList.add('hidden');
+            return;
+        }
+
+        feedback.textContent = message;
+        feedback.style.color = isError ? 'var(--coral)' : 'var(--sage)';
+        feedback.classList.remove('hidden');
+    }
+
+    function validateQuizUpload(input) {
+        const file = input.files && input.files[0];
+        if (!file) {
+            setUploadFeedback(input);
+            input.setCustomValidity('');
+            return true;
+        }
+
+        const supportedTypes = (input.dataset.supportedTypes || '')
+            .split(',')
+            .map(item => item.trim().toLowerCase())
+            .filter(Boolean);
+        const fileName = file.name.toLowerCase();
+        const hasValidExtension = supportedTypes.some(ext => fileName.endsWith(ext));
+        const maxSize = Number(input.dataset.maxSize || 0);
+
+        if (!hasValidExtension) {
+            input.value = '';
+            input.setCustomValidity('Unsupported file type.');
+            setUploadFeedback(input, 'Unsupported file. Please upload a PDF, DOCX, or TXT file.', true);
+            input.reportValidity();
+            return false;
+        }
+
+        if (maxSize > 0 && file.size > maxSize) {
+            input.value = '';
+            input.setCustomValidity('File is too large.');
+            setUploadFeedback(input, `File is too large. Maximum allowed size is ${Math.round(maxSize / (1024 * 1024))} MB.`, true);
+            input.reportValidity();
+            return false;
+        }
+
+        input.setCustomValidity('');
+        setUploadFeedback(input, `Selected: ${file.name}`, false);
+        return true;
+    }
+
+    function initializeModalValidation() {
+        const quizFileInput = modalContent.querySelector('input[type="file"][name="file"]');
+        if (!quizFileInput) return;
+
+        quizFileInput.addEventListener('change', () => validateQuizUpload(quizFileInput));
+
+        const quizForm = quizFileInput.closest('form');
+        if (quizForm) {
+            quizForm.addEventListener('submit', (event) => {
+                if (!validateQuizUpload(quizFileInput)) {
+                    event.preventDefault();
+                }
+            });
+        }
     }
 
     function hideLoading() {

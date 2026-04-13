@@ -135,8 +135,8 @@ def generate_pdf():
         }
 
     content = gemini.generate_detailed_content(topic, customization, theme_data)
-    if "Error generating content" in content:
-        flash(content, "danger")
+    if not content:
+        flash("We couldn't generate notes right now. Please try again in a moment.", "danger")
         return redirect(url_for('dashboard.index'))
         
     file_bytes = pdf_builder.create_pdf_reportlab(topic, content, theme_data, customization)
@@ -171,6 +171,9 @@ def present():
     if topic is None:
         return redirect(url_for('dashboard.index'))
     explanation = gemini.generate_explanation(topic)
+    if not explanation:
+        flash("We couldn't generate an explanation right now. Please try again in a moment.", "danger")
+        return redirect(url_for('dashboard.index'))
     save_resource_to_db(topic, 'explanation', file_data=None)
     flash("Explanation generated successfully!", "success")
     return render_template('explain.html', explanation=explanation, topic=topic)
@@ -212,6 +215,7 @@ def generate_quiz():
     # Add ID for form handling
     for i, q in enumerate(questions):
         q['id'] = i
+        q['correct_index'] = q.get('correct_index', q.get('answer_index'))
         
     session['questions'] = questions
     quiz_topic = f"Quiz: {secure_filename(source_filename)}"

@@ -21,21 +21,21 @@
         
         <div class="space-y-5">
             {% for q in questions %}
-            {% set border_color = 'rgba(43,138,62,0.25)' if user_answers[q.id] == q.correct_index else 'rgba(224,49,49,0.25)' %}
+            {% set user_ans_idx = user_answers[q.id] %}
+            {% set correct_ans_idx = q.correct_index %}
+            {% set is_question_correct = (user_ans_idx == correct_ans_idx) %}
+            {% set border_color = 'rgba(43,138,62,0.25)' if is_question_correct else 'rgba(224,49,49,0.25)' %}
             <div class="studio-card p-7 animate-enter" {{ ('style="animation-delay: ' ~ ((loop.index0 + 2) * 60) ~ 'ms; border-color: ' ~ border_color ~ ';"')|safe }}>
                 <div class="flex items-center gap-3 mb-5">
-                    {% set icon_bg = 'var(--sage)' if user_answers[q.id] == q.correct_index else 'var(--coral)' %}
+                    {% set icon_bg = 'var(--sage)' if is_question_correct else 'var(--coral)' %}
                     <div class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] text-white"
                          {{ ('style="background: ' ~ icon_bg ~ ';"')|safe }}>
-                        {% if user_answers[q.id] == q.correct_index %}<i class="fas fa-check"></i>{% else %}<i class="fas fa-times"></i>{% endif %}
+                        {% if is_question_correct %}<i class="fas fa-check"></i>{% else %}<i class="fas fa-times"></i>{% endif %}
                     </div>
                     <h3 class="text-[15px] font-semibold" style="color: var(--text-primary);">{{ q.question }}</h3>
                 </div>
                 
                 <div class="space-y-2">
-                    {% set user_ans_idx = user_answers[q.id] %}
-                    {% set correct_ans_idx = q.correct_index %}
-                    
                     {% for option in q.options %}
                         {% set current_idx = loop.index0 %}
                         {% set is_correct = (current_idx == correct_ans_idx) %}

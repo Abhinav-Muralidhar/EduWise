@@ -4,6 +4,10 @@ from flask import current_app
 
 def _call_gemini(prompt, is_json=False):
     api_key = current_app.config['GEMINI_API_KEY']
+    if not api_key:
+        current_app.logger.warning("Gemini API key is not configured.")
+        return None
+
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}"
     
     body = {
@@ -14,12 +18,24 @@ def _call_gemini(prompt, is_json=False):
         body["generationConfig"] = {"responseMimeType": "application/json"}
     
     try:
-        response = requests.post(url, json=body, headers={'Content-Type': 'application/json'})
+        response = requests.post(url, json=body, headers={'Content-Type': 'application/json'}, timeout=30)
         response.raise_for_status()
         result = response.json()
-        return result['candidates'][0]['content']['parts'][0]['text']
+        candidates = result.get('candidates') or []
+        if not candidates:
+            current_app.logger.warning("Gemini response contained no candidates.")
+            return None
+
+        content = candidates[0].get('content') or {}
+        parts = content.get('parts') or []
+        text_parts = [part.get('text', '') for part in parts if part.get('text')]
+        if not text_parts:
+            current_app.logger.warning("Gemini response contained no text parts.")
+            return None
+
+        return "\n".join(text_parts).strip()
     except Exception as e:
-        print(f"Error calling Gemini API: {e}")
+        current_app.logger.exception("Error calling Gemini API: %s", e)
         return None
 
 def get_dynamic_theme(topic, customization):
@@ -172,8 +188,7 @@ def generate_detailed_content(topic, customization, theme_data):
     prompt += "--- END INSTRUCTIONS ---\n"
     prompt += "Now, begin the report:"
     
-    text = _call_gemini(prompt)
-    return text if text else "Error generating content. Please try again."
+    return _call_gemini(prompt)
 
 def generate_quiz_content(topic_text, total_questions=10):
     prompt = f"Generate a comprehensive quiz based on this text: '{topic_text[:4000]}'.\n"
@@ -202,7 +217,15 @@ def generate_flashcards(topic_text):
         return []
 
 def generate_explanation(topic):
-    prompt = f"Explain the topic '{topic}' in a clear, friendly, 'teacher-like' manner. Use simple analogies. Limit to 300-400 words."
+    prompt = (
+        f"Explain the topic '{topic}' in a warm, natural, teacher-like voice.\n"
+        "Write in plain English with short paragraphs and smooth transitions.\n"
+        "Use simple analogies where they help.\n"
+        "Do not use markdown, bullets, headings, tables, asterisks, hashtags, or code formatting.\n"
+        "Avoid sounding robotic or textbook-heavy.\n"
+        "Make it feel like a person is calmly explaining the idea out loud.\n"
+        "Keep it to about 300-400 words."
+    )
     return _call_gemini(prompt)
 
 def generate_summary(text):

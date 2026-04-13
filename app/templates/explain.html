@@ -72,22 +72,70 @@
 
 <script>
   const container = document.getElementById('slides-container');
-  const explanationRaw = JSON.parse(document.getElementById('explanation-data').textContent);
   const playPauseBtn = document.getElementById('playPauseBtn');
   const playIcon = document.getElementById('playIcon');
   const pauseIcon = document.getElementById('pauseIcon');
   const stopBtn = document.getElementById('stopBtn');
   const rateSelect = document.getElementById('rateSelect');
-  
-  const lines = explanationRaw.split('\n').filter(line => line.trim() !== '');
-  container.innerHTML = ''; 
-  lines.forEach((line, index) => {
-    const div = document.createElement('div');
-    div.classList.add('line');
-    div.textContent = line;
-    div.id = `line-${index}`;
-    container.appendChild(div);
-  });
+
+  function parseExplanationText() {
+    try {
+      return JSON.parse(document.getElementById('explanation-data').textContent) || '';
+    } catch (error) {
+      console.error('Failed to parse explanation payload.', error);
+      return '';
+    }
+  }
+
+  function normalizeExplanationText(text) {
+    return String(text || '')
+      .replace(/```[\s\S]*?```/g, ' ')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/^#{1,6}\s*/gm, '')
+      .replace(/^\s*[-*+]\s+/gm, '')
+      .replace(/^\s*\d+\.\s+/gm, '')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/_([^_]+)_/g, '$1')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1')
+      .replace(/\|/g, ' ')
+      .replace(/\s{2,}/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  }
+
+  function buildSegments(text) {
+    return text
+      .split(/\n{2,}/)
+      .map(segment => segment.trim())
+      .filter(Boolean);
+  }
+
+  const explanationRaw = parseExplanationText();
+  const cleanedExplanation = normalizeExplanationText(explanationRaw);
+  const segments = buildSegments(cleanedExplanation);
+
+  container.innerHTML = '';
+  if (segments.length === 0) {
+    const fallback = document.createElement('div');
+    fallback.className = 'line';
+    fallback.textContent = "We couldn't load the explanation right now. Please go back and try again.";
+    container.appendChild(fallback);
+    playPauseBtn.disabled = true;
+    stopBtn.disabled = true;
+    rateSelect.disabled = true;
+    playPauseBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    stopBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    rateSelect.classList.add('opacity-50', 'cursor-not-allowed');
+  } else {
+    segments.forEach((segment, index) => {
+      const div = document.createElement('div');
+      div.classList.add('line');
+      div.textContent = segment;
+      div.id = `line-${index}`;
+      container.appendChild(div);
+    });
+  }
 
   const synth = window.speechSynthesis;
   let utterance = null;
@@ -96,8 +144,9 @@
   
   function setupVoices() {
       voices = synth.getVoices();
-      selectedVoice = voices.find(voice => /en-US/.test(voice.lang) && /Google|Neural/.test(voice.name));
-      if (!selectedVoice) selectedVoice = voices.find(voice => /en-US/.test(voice.lang));
+      selectedVoice = voices.find(voice => /en-(IN|US|GB)/i.test(voice.lang) && /Natural|Neural|Google|Microsoft|Samantha/i.test(voice.name));
+      if (!selectedVoice) selectedVoice = voices.find(voice => /en-(IN|US|GB)/i.test(voice.lang));
+      if (!selectedVoice) selectedVoice = voices[0] || null;
   }
 
   synth.onvoiceschanged = setupVoices;
@@ -145,11 +194,11 @@
   }
   
   function speakLine(index) {
-    if (index >= lines.length) {
+    if (index >= segments.length) {
       stopSpeaking();
       return;
     }
-    utterance = new SpeechSynthesisUtterance(lines[index]);
+    utterance = new SpeechSynthesisUtterance(segments[index]);
     if (selectedVoice) utterance.voice = selectedVoice;
     utterance.rate = parseFloat(rateSelect.value) || 1;
     utterance.onstart = () => highlightLine(index);
