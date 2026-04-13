@@ -4,7 +4,8 @@ from app.utils.decorators import login_required
 from app.extensions import db
 import os
 import requests as req
-from flask import Response
+from flask import Response,flash
+import re
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
@@ -47,22 +48,22 @@ def download(resource_id):
     if resource.user_id != session['user_id']:
         return "Unauthorized", 403
     
-    if not resource.filename:
+    # No file for quiz/flashcard/explanation/summary
+    ext_map = {
+        'pptx': ('pptx', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'),
+        'pdf': ('pdf', 'application/pdf'),
+    }
+    
+    if resource.resource_type not in ext_map or not resource.filename:
+        flash("This resource has no downloadable file.", "info")
         return redirect(url_for('dashboard.index'))
     
-    # Determine extension and mimetype
-    ext = 'pptx' if resource.resource_type == 'pptx' else 'pdf'
-    mimetype = (
-        'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-        if ext == 'pptx' else 'application/pdf'
-    )
+    ext, mimetype = ext_map[resource.resource_type]
     
-    # Clean filename from topic
-    import re
+    # Always use topic as filename
     safe_name = re.sub(r'[^a-zA-Z0-9_-]', '_', resource.topic)[:50]
     download_name = f"{safe_name}.{ext}"
     
-    # Proxy the file through our server
     try:
         response = req.get(resource.filename, timeout=30)
         return Response(
