@@ -83,11 +83,6 @@ def download(resource_id):
 def keep_alive():
     """Endpoint for cron jobs (e.g. cron-job.org) to ping every 5-10 minutes
     to keep the server awake."""
-    try:
-        db.session.execute(db.text('SELECT 1'))
-        db.session.commit()
-    except Exception:
-        db.session.rollback()
     return jsonify({"status": "alive"}), 200
 
 @dashboard_bp.route('/toggle_favorite/<int:resource_id>', methods=['POST'])

@@ -9,7 +9,7 @@ def _call_gemini(prompt, is_json=False):
         current_app.logger.warning("Gemini API key is not configured.")
         return None
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key={api_key}"
     
     body = {
         "contents": [{"parts": [{"text": prompt}]}]
@@ -173,10 +173,13 @@ def generate_detailed_content(topic, customization, theme_data):
     prompt += " - Use '### Sub-section Title' for sub-headings. \n"
     prompt += " - Use '* Bullet point' for lists. \n"
     prompt += " - Use '  * Nested bullet point' for nested lists (indent with 2 spaces). \n"
-    prompt += " - Use '| Header 1 | Header 2 |' and '| --- | --- |' for tables. \n" 
+    prompt += " - Use '| Header 1 | Header 2 |' and '| --- | --- |' for tables ONLY when tabular comparison genuinely improves clarity. \n"
+    prompt += " - Avoid decorative or filler tables, and avoid wrapping normal prose into 2-column layouts. \n"
+    prompt += " - Keep tables compact, with meaningful headers only. Do not add blank edge columns. \n"
     prompt += " - Use '**bold**' for inline bold text and '*italic*' for inline italic text. \n"
     prompt += " - Use '`inline code`' for code snippets. \n"
     prompt += " - Use '```python\ncode block\n```' for multi-line code blocks. \n"
+    prompt += " - Write in clean study-note style with short paragraphs, strong sectioning, and visually scannable structure. \n"
     
     if image_strategy == 'all_slides' or image_strategy == 'cover_only':
         prompt += ("When a concept would benefit from a visual aid, insert a tag on its own line: "
