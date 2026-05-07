@@ -21,7 +21,7 @@ def _call_gemini(prompt, is_json=False):
         response = requests.post(url, json=body, headers={
             'Content-Type': 'application/json',
             'x-goog-api-key': api_key
-        }, timeout=60)
+        }, timeout=180)
         response.raise_for_status()
         result = response.json()
         candidates = result.get('candidates') or []
