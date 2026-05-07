@@ -125,6 +125,12 @@ def generate_pptx():
 @limiter.limit("10 per hour")
 @login_required
 def generate_pdf():
+    try:
+        raw_pages = int(request.form.get('page_count', 5))
+        page_count = max(2, min(raw_pages, 15))
+    except ValueError:
+        page_count = 5
+
     customization = {
         'resource_type': 'pdf',
         'topic': request.form.get('topic', 'Untitled'),
@@ -138,7 +144,8 @@ def generate_pdf():
         'bg_color': '#FFFFFF',
         'font_color': request.form.get('font_color', '#333333'),
         'accent_color': request.form.get('accent_color', '#007BFF'),
-        'extra_instructions': request.form.get('extra_instructions', '')
+        'extra_instructions': request.form.get('extra_instructions', ''),
+        'page_count': str(page_count)
     }
     topic = _validate_non_empty_text(customization['topic'], "Topic")
     if topic is None:

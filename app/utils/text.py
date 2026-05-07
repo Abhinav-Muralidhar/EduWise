@@ -1,5 +1,6 @@
 import fitz  # PyMuPDF
 import docx
+from flask import current_app
 
 def extract_text(file_storage):
     filename = file_storage.filename.lower()
@@ -15,5 +16,5 @@ def extract_text(file_storage):
         elif filename.endswith(".txt"):
             return file_storage.read().decode("utf-8")
     except Exception as e:
-        print(f"Error extracting text: {e}")
+        current_app.logger.exception("Error extracting text: %s", e)
     return ""

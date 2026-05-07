@@ -11,7 +11,7 @@ def get_image_urls_for_topic_google(query):
     cx_id = current_app.config['CUSTOM_SEARCH_CX_ID']
     
     if not api_key or not cx_id:
-        print("Google Custom Search API Key or CX ID not set. Skipping image search.")
+        current_app.logger.warning("Google Custom Search API Key or CX ID not set. Skipping image search.")
         return []
     
     excluded_sites = ["researchgate.net", "mdpi.com", "ieee.org", "sciencedirect.com"]
@@ -44,7 +44,7 @@ def get_image_urls_for_topic_google(query):
             return image_urls
                 
     except Exception as e:
-        print(f"Error fetching image from Google Custom Search: {e}")
+        current_app.logger.exception("Error fetching image from Google Custom Search: %s", e)
     return []
 
 def download_image_to_tempfile(image_url):
@@ -60,7 +60,7 @@ def download_image_to_tempfile(image_url):
         
         content_type = response.headers.get('content-type')
         if not content_type or not content_type.startswith('image/'):
-            print(f"Skipping download, non-image content type: {content_type} from {image_url}")
+            current_app.logger.debug("Skipping download, non-image content type: %s from %s", content_type, image_url)
             return None
 
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.jpg')
@@ -69,5 +69,5 @@ def download_image_to_tempfile(image_url):
         temp_file.close()
         return temp_file.name
     except Exception as e:
-        print(f"Error downloading image from {image_url}: {e}")
+        current_app.logger.exception("Error downloading image: %s", e)
     return None

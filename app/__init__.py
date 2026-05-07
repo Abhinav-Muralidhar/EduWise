@@ -11,8 +11,9 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
 
     # Initialize extensions
-    from app.extensions import db, csrf, limiter, scheduler
+    from app.extensions import db, csrf, limiter, scheduler, migrate
     db.init_app(app)
+    migrate.init_app(app, db)
     csrf.init_app(app)
     limiter.init_app(app)
     scheduler.init_app(app)
@@ -34,6 +35,16 @@ def create_app(config_class=Config):
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(generation_bp)
 
+    # Register error handlers
+    from flask import render_template
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template('404.html'), 404
+
+    @app.errorhandler(500)
+    def internal_server_error(e):
+        return render_template('500.html'), 500
+
     return app
 
 def _register_fonts(app):
@@ -51,6 +62,6 @@ def _register_fonts(app):
             addMapping(font_name, 1, 0, f"{font_name}-Bold")
             addMapping(font_name, 0, 1, f"{font_name}-Italic")
             addMapping(font_name, 1, 1, f"{font_name}-BoldItalic")
-            print(f"Registered font: {font_name}")
+            app.logger.debug("Registered font: %s", font_name)
         except Exception as e:
-            print(f"Warning: Could not register font {font_name}: {e}")
+            app.logger.warning("Could not register font %s: %s", font_name, e)

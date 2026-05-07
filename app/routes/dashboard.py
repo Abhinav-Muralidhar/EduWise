@@ -54,7 +54,7 @@ def download(resource_id):
         'pdf': ('pdf', 'application/pdf'),
     }
     
-    if resource.resource_type not in ext_map or not resource.filename:
+    if resource.resource_type not in ext_map or not resource.file_url:
         flash("This resource has no downloadable file.", "info")
         return redirect(url_for('dashboard.index'))
     
@@ -65,7 +65,7 @@ def download(resource_id):
     download_name = f"{safe_name}.{ext}"
     
     try:
-        response = req.get(resource.filename, timeout=30)
+        response = req.get(resource.file_url, timeout=30)
         response.raise_for_status()
         return Response(
             response.content,
@@ -75,7 +75,7 @@ def download(resource_id):
             }
         )
     except Exception as e:
-        print(f"Download failed: {e}")
+        current_app.logger.exception("Download failed for resource: %s", e)
         flash("Download failed. Please try again in a moment.", "danger")
         return redirect(url_for('dashboard.index'))
 
@@ -95,3 +95,16 @@ def toggle_favorite(resource_id):
     resource.is_favorite = not resource.is_favorite
     db.session.commit()
     return jsonify({"success": True, "is_favorite": resource.is_favorite})
+
+
+@dashboard_bp.route('/delete_resource/<int:resource_id>', methods=['POST'])
+@login_required
+def delete_resource(resource_id):
+    resource = Resource.query.get_or_404(resource_id)
+    if resource.user_id != session['user_id']:
+        return jsonify({"success": False, "error": "Unauthorized"}), 403
+
+    db.session.delete(resource)
+    db.session.commit()
+    return jsonify({"success": True})
+

@@ -18,6 +18,11 @@ class Config:
     }
     UPLOAD_FOLDER = os.path.join(project_root, 'uploads')
     
+    # Session security
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    PERMANENT_SESSION_LIFETIME = 3600  # 1 hour
+    
     # API Keys
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
     CUSTOM_SEARCH_API_KEY = os.getenv("CUSTOM_SEARCH_API_KEY")
@@ -25,6 +30,10 @@ class Config:
     CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
     CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
     CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
+    
+    # Email (Gmail SMTP)
+    MAIL_USERNAME = os.getenv("MAIL_USERNAME")
+    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
     
     # Fonts
     FONT_DIR = os.path.join(project_root, 'fonts')

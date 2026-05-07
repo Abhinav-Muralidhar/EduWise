@@ -20,7 +20,10 @@
                 </div>
 
                 <div>
-                    <label class="label-caps block mb-2">Password</label>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="label-caps mb-0">Password</label>
+                        <a href="{{ url_for('auth.forgot_password') }}" class="text-[12px] font-medium hover:underline transition-colors" style="color: var(--accent);">Forgot password?</a>
+                    </div>
                     <input type="password" name="password" required maxlength="100" class="studio-input" placeholder="********">
                 </div>
 

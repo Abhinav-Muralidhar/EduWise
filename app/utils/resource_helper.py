@@ -14,8 +14,6 @@ cloudinary.config(
     api_secret=os.getenv("CLOUDINARY_API_SECRET")
 )
 
-import re
-
 def save_resource_to_db(topic, resource_type, file_data=None):
     try:
         user_id = session.get('user_id')
@@ -40,7 +38,7 @@ def save_resource_to_db(topic, resource_type, file_data=None):
             user_id=user_id,
             resource_type=resource_type,
             topic=topic,
-            filename=file_url
+            file_url=file_url
         )
         db.session.add(resource)
         db.session.commit()

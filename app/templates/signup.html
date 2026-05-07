@@ -26,7 +26,20 @@
 
                 <div>
                     <label class="label-caps block mb-2">Password</label>
-                    <input type="password" name="password" required maxlength="100" class="studio-input" placeholder="********">
+                    <input type="password" name="password" id="signup-password" required minlength="8" maxlength="100" class="studio-input" placeholder="Min 8 characters">
+                    <div id="password-strength" class="mt-2 flex gap-1">
+                        <div class="h-1 flex-1 rounded-full transition-colors" style="background: var(--border);"></div>
+                        <div class="h-1 flex-1 rounded-full transition-colors" style="background: var(--border);"></div>
+                        <div class="h-1 flex-1 rounded-full transition-colors" style="background: var(--border);"></div>
+                        <div class="h-1 flex-1 rounded-full transition-colors" style="background: var(--border);"></div>
+                    </div>
+                    <p id="password-label" class="text-[11px] mt-1" style="color: var(--text-muted);">At least 8 characters required</p>
+                </div>
+
+                <div>
+                    <label class="label-caps block mb-2">Confirm Password</label>
+                    <input type="password" name="confirm_password" id="signup-confirm" required maxlength="100" class="studio-input" placeholder="Re-enter your password">
+                    <p id="match-label" class="text-[11px] mt-1 hidden"></p>
                 </div>
 
                 <div class="flex items-center gap-3">
@@ -46,4 +59,60 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    const pw = document.getElementById('signup-password');
+    const confirm = document.getElementById('signup-confirm');
+    const bars = document.querySelectorAll('#password-strength div');
+    const label = document.getElementById('password-label');
+    const matchLabel = document.getElementById('match-label');
+
+    function getStrength(val) {
+        let score = 0;
+        if (val.length >= 8) score++;
+        if (val.length >= 12) score++;
+        if (/[A-Z]/.test(val) && /[a-z]/.test(val)) score++;
+        if (/\d/.test(val) && /[^a-zA-Z0-9]/.test(val)) score++;
+        return score;
+    }
+
+    const colors = ['#E03131', '#E67700', '#2B8A3E', '#2B8A3E'];
+    const labels = ['Weak', 'Fair', 'Good', 'Strong'];
+
+    pw.addEventListener('input', function() {
+        const s = getStrength(this.value);
+        bars.forEach((b, i) => {
+            b.style.background = i < s ? colors[s - 1] : 'var(--border)';
+        });
+        if (this.value.length > 0) {
+            label.textContent = s > 0 ? labels[s - 1] : 'Too short';
+            label.style.color = s > 0 ? colors[s - 1] : '#E03131';
+        } else {
+            label.textContent = 'At least 8 characters required';
+            label.style.color = 'var(--text-muted)';
+        }
+        checkMatch();
+    });
+
+    function checkMatch() {
+        if (confirm.value.length === 0) {
+            matchLabel.classList.add('hidden');
+            return;
+        }
+        matchLabel.classList.remove('hidden');
+        if (pw.value === confirm.value) {
+            matchLabel.textContent = 'Passwords match ✓';
+            matchLabel.style.color = '#2B8A3E';
+        } else {
+            matchLabel.textContent = 'Passwords do not match';
+            matchLabel.style.color = '#E03131';
+        }
+    }
+
+    confirm.addEventListener('input', checkMatch);
+})();
+</script>
 {% endblock %}

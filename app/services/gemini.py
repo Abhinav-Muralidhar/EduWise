@@ -9,8 +9,7 @@ def _call_gemini(prompt, is_json=False):
         current_app.logger.warning("Gemini API key is not configured.")
         return None
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key={api_key}"
-    
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent"
     body = {
         "contents": [{"parts": [{"text": prompt}]}]
     }
@@ -19,7 +18,10 @@ def _call_gemini(prompt, is_json=False):
         body["generationConfig"] = {"responseMimeType": "application/json"}
     
     try:
-        response = requests.post(url, json=body, headers={'Content-Type': 'application/json'}, timeout=30)
+        response = requests.post(url, json=body, headers={
+            'Content-Type': 'application/json',
+            'x-goog-api-key': api_key
+        }, timeout=60)
         response.raise_for_status()
         result = response.json()
         candidates = result.get('candidates') or []
@@ -34,7 +36,13 @@ def _call_gemini(prompt, is_json=False):
             current_app.logger.warning("Gemini response contained no text parts.")
             return None
 
-        return "\n".join(text_parts).strip()
+        full_text = "\n".join(text_parts).strip()
+        
+        # Manually extract JSON if the model wrapped it in markdown code blocks
+        if is_json:
+            full_text = re.sub(r'```(?:json)?\s*?([\s\S]*?)\s*?```', r'\1', full_text).strip()
+            
+        return full_text
     except Exception as e:
         current_app.logger.exception("Error calling Gemini API: %s", e)
         return None
@@ -135,7 +143,7 @@ def generate_slide_content(topic, customization, theme_data):
         prompt += "Do NOT suggest any images. \n"
         
     prompt += "--- END INSTRUCTIONS ---\n"
-    prompt += "You MUST return a JSON array of slide objects.\n"
+    prompt += "You MUST return ONLY a JSON array of slide objects. Do not include any chat or preamble.\n"
     prompt += "Each object MUST have 'slide_type', 'title', 'points' (an array of strings), and 'image_query' ('none' if no image). \n"
     
     if customization.get('intro_slide') == 'true':
@@ -143,6 +151,8 @@ def generate_slide_content(topic, customization, theme_data):
     prompt += "Follow with the requested number of 'slide_type': 'content' slides. \n"
     if customization.get('thanks_slide') == 'true':
         prompt += "End with a 'slide_type': 'thanks' slide. \n"
+    
+    prompt += "Example Output Format: [{\"slide_type\": \"intro\", \"title\": \"Topic Name\", \"points\": [], \"image_query\": \"none\"}, ...]"
         
     text = _call_gemini(prompt, is_json=True)
     if not text:
@@ -151,46 +161,49 @@ def generate_slide_content(topic, customization, theme_data):
     try:
         return json.loads(text)
     except Exception as e:
-        print(f"Error parsing Gemini slide JSON: {e}")
+        current_app.logger.warning("Error parsing Gemini slide JSON: %s", e)
         return []
 
 def generate_detailed_content(topic, customization, theme_data):
     image_strategy = customization.get('image_strategy', 'all_slides')
+    page_count = customization.get('page_count', '5')
     
-    prompt = f"Write a long, detailed, multi-page notes on the topic: '{topic}'.\n"
+    prompt = f"Write a comprehensive set of study notes on the topic: '{topic}'.\n"
     prompt += "--- USER INSTRUCTIONS ---\n"
     
     if customization.get('context'):
         prompt += f"Context: {customization['context']}\n"
     if customization.get('subtopics'):
-        prompt += f"Must cover subtopics as major sections: {customization['subtopics']}\n"
+        prompt += f"Major sections to cover: {customization['subtopics']}\n"
     if customization.get('extra_instructions'):
         prompt += f"Other instructions: {customization['extra_instructions']}\n"
         
-    prompt += f"The design theme is: {theme_data.get('mood', 'professional')}\n"
-    prompt += "Format the text using markdown: \n"
-    prompt += " - Use '## Section Title' for main headings. \n"
-    prompt += " - Use '### Sub-section Title' for sub-headings. \n"
-    prompt += " - Use '* Bullet point' for lists. \n"
-    prompt += " - Use '  * Nested bullet point' for nested lists (indent with 2 spaces). \n"
-    prompt += " - Use '| Header 1 | Header 2 |' and '| --- | --- |' for tables ONLY when tabular comparison genuinely improves clarity. \n"
-    prompt += " - Avoid decorative or filler tables, and avoid wrapping normal prose into 2-column layouts. \n"
-    prompt += " - Keep tables compact, with meaningful headers only. Do not add blank edge columns. \n"
-    prompt += " - Use '**bold**' for inline bold text and '*italic*' for inline italic text. \n"
-    prompt += " - Use '`inline code`' for code snippets. \n"
-    prompt += " - Use '```python\ncode block\n```' for multi-line code blocks. \n"
-    prompt += " - Write in clean study-note style with short paragraphs, strong sectioning, and visually scannable structure. \n"
+    prompt += f"Target Length: The user expects approximately {page_count} pages of content. "
+    prompt += "Use sufficient depth and examples to reach this volume.\n"
+
+    prompt += "--- FORMATTING RULES (STRICT) ---\n"
+    prompt += "1. Use exactly these markdown structures only:\n"
+    prompt += "   - '## Title' for main headings\n"
+    prompt += "   - '### Title' for sub-headings\n"
+    prompt += "   - '* ' for bullet points\n"
+    prompt += "   - '**bold**' and '*italic*' for emphasis\n"
+    prompt += "   - '```' blocks for code\n"
+    prompt += "2. DO NOT use '#' (single hash) for headings. Use '##' instead.\n"
+    prompt += "3. DO NOT use '####' or more hashes. Stick to ## and ###.\n"
+    prompt += "4. DO NOT use horizontal rules (---).\n"
+    prompt += "5. DO NOT leave trailing hashes at the end of lines.\n"
+    prompt += "6. Write in a clean, professional, and educational tone.\n"
     
     if image_strategy == 'all_slides' or image_strategy == 'cover_only':
-        prompt += ("When a concept would benefit from a visual aid, insert a tag on its own line: "
-                   "[IMAGE: descriptive search query for Google Images]\n")
+        prompt += ("7. Insert visual aid tags on their own lines like this: "
+                   "[IMAGE: descriptive search query]\n")
         if image_strategy == 'cover_only':
-             prompt += "Do this ONLY ONCE, near the beginning. \n"
+             prompt += "Do this ONLY ONCE at the very beginning.\n"
     else: 
-        prompt += "Do NOT include any [IMAGE: ...] tags. \n"
+        prompt += "7. DO NOT include any image tags.\n"
         
     prompt += "--- END INSTRUCTIONS ---\n"
-    prompt += "Now, begin the report:"
+    prompt += "Begin the notes now:"
     
     return _call_gemini(prompt)
 
@@ -205,7 +218,7 @@ def generate_quiz_content(topic_text, total_questions=10):
         return []
     try:
         return json.loads(text)
-    except:
+    except (json.JSONDecodeError, ValueError):
         return []
 
 def generate_flashcards(topic_text):
@@ -217,7 +230,7 @@ def generate_flashcards(topic_text):
         return []
     try:
         return json.loads(text)
-    except:
+    except (json.JSONDecodeError, ValueError):
         return []
 
 def generate_explanation(topic):

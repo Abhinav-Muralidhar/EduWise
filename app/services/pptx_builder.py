@@ -94,13 +94,13 @@ def create_pptx_file(slides_data, theme_data, customization):
                     left, top, width, height = placeholder.left, placeholder.top, placeholder.width, placeholder.height
                     pic = slide.shapes.add_picture(image_path, left, top, width=width, height=height)
                 except Exception as e:
-                    print(f"Error adding picture to PPT placeholder: {e}")
+                    current_app.logger.warning("Error adding picture to PPT placeholder: %s", e)
                     if image_path in temp_files_to_delete:
                         temp_files_to_delete.remove(image_path)
                     try:
                         os.remove(image_path)
                     except Exception as e_rm:
-                        print(f"Error cleaning up failed image: {e_rm}")
+                        current_app.logger.warning("Error cleaning up failed image: %s", e_rm)
             
             else:
                 slide = prs.slides.add_slide(content_layout_text_only)

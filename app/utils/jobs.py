@@ -3,6 +3,8 @@ import requests
 import os
 from datetime import datetime
 
+logger = logging.getLogger(__name__)
+
 def my_scheduled_task():
     """
     Pings the server's own endpoint to keep it awake.
@@ -15,6 +17,6 @@ def my_scheduled_task():
     
     try:
         response = requests.get(ping_url, timeout=10)
-        print(f"[{datetime.now()}] Cron job pinged {ping_url} | Status: {response.status_code}")
+        logger.info("Cron job pinged %s | Status: %s", ping_url, response.status_code)
     except Exception as e:
-        print(f"[{datetime.now()}] Cron job failed to ping {ping_url} | Error: {e}")
+        logger.error("Cron job failed to ping %s | Error: %s", ping_url, e)

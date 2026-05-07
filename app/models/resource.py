@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from app.extensions import db
 
 class Resource(db.Model):
@@ -6,6 +6,6 @@ class Resource(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False) 
     resource_type = db.Column(db.String(50))
     topic = db.Column(db.String(250))
-    filename = db.Column(db.String(250), nullable=True) 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    file_url = db.Column(db.String(250), nullable=True) 
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     is_favorite = db.Column(db.Boolean, default=False, nullable=False)

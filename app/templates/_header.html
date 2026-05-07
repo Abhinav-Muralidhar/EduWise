@@ -55,10 +55,10 @@
             <!-- User -->
             {% if session.user_id %}
             <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
+                <a href="{{ url_for('auth.profile') }}" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-transform hover:scale-105"
                     style="background: var(--accent-surface); color: var(--accent);">
                     {{ session.username[0].upper() }}
-                </div>
+                </a>
                 <form method="post" action="{{ url_for('auth.logout') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="text-xs font-medium transition-colors"
