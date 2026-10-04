@@ -1,10 +1,11 @@
 from flask import Blueprint, render_template, session, redirect, url_for, send_from_directory, current_app, request, jsonify
 from app.models.resource import Resource
+from app.models.knowledge_source import KnowledgeSource
 from app.utils.decorators import login_required
 from app.extensions import db
 import os
 import requests as req
-from flask import Response,flash
+from flask import Response, flash
 import re
 
 dashboard_bp = Blueprint('dashboard', __name__)
@@ -25,6 +26,7 @@ def index():
     
     # Client-side JS handles filtering, fetch all entries
     resources = Resource.query.filter_by(user_id=user_id).order_by(Resource.created_at.desc()).all()
+    knowledge_sources = KnowledgeSource.query.filter_by(user_id=user_id).order_by(KnowledgeSource.created_at.desc()).all()
     
     # Filter by resource type for tabs
     pptx_files = [r for r in resources if r.resource_type == 'pptx']
@@ -34,6 +36,7 @@ def index():
     
     return render_template('dashboard.html', 
                          resources=resources,
+                         knowledge_sources=knowledge_sources,
                          pptx_files=pptx_files,
                          pdf_files=pdf_files,
                          quizzes=quizzes,

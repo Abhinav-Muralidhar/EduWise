@@ -10,7 +10,12 @@
             <a href="{{ url_for('dashboard.index') }}" class="text-[13px] font-medium flex items-center gap-2 mb-4 transition-colors" style="color: var(--text-muted);">
                 <i class="fas fa-arrow-left text-[9px]"></i> Back
             </a>
-            <h1 class="text-[28px] font-semibold tracking-tight" style="color: var(--text-primary);">Summary</h1>
+            <h1 class="text-[28px] font-semibold tracking-tight mb-2" style="color: var(--text-primary);">Summary</h1>
+            {% if sources %}
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[12px] font-medium mt-1" style="background: var(--surface-card); border-color: var(--border); color: var(--accent);">
+                <i class="fas fa-book-bookmark text-[11px]"></i> Grounded in: {{ sources | join(', ') }}
+            </div>
+            {% endif %}
         </div>
 
         <!-- Content -->

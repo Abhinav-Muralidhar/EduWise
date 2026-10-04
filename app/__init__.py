@@ -15,9 +15,12 @@ def create_app(config_class=Config):
     db.init_app(app)
     migrate.init_app(app, db)
     csrf.init_app(app)
-    limiter.init_app(app)
-    scheduler.init_app(app)
-    scheduler.start()
+    if not app.config.get('TESTING') and not scheduler.running:
+        try:
+            scheduler.init_app(app)
+            scheduler.start()
+        except Exception as e:
+            app.logger.warning("Scheduler start warning: %s", e)
 
     # Register fonts
     _register_fonts(app)
@@ -30,10 +33,12 @@ def create_app(config_class=Config):
     from app.routes.auth import auth_bp
     from app.routes.dashboard import dashboard_bp
     from app.routes.generation import generation_bp
+    from app.routes.knowledge import knowledge_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(generation_bp)
+    app.register_blueprint(knowledge_bp)
 
     # Register error handlers
     from flask import render_template

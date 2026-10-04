@@ -101,6 +101,65 @@
             </button>
         </div>
 
+        <!-- Knowledge Base (RAG) Section -->
+        <div class="mb-14 p-6 rounded-2xl border animate-enter" style="background: var(--surface-card); border-color: var(--border); animation-delay: 300ms;">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-5">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full" style="background: var(--accent);"></span>
+                        <h2 class="text-[17px] font-semibold" style="color: var(--text-primary);">My Knowledge Base (RAG)</h2>
+                        <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                              style="background: var(--accent-surface); color: var(--accent);">
+                            AI Grounding
+                        </span>
+                    </div>
+                    <p class="text-[13px] mt-1" style="color: var(--text-muted);">
+                        Upload course notes, textbook chapters, or PDFs. Your generated quizzes, notes, and flashcards will be grounded directly in these documents.
+                    </p>
+                </div>
+                <button onclick="showFormModal('knowledgeUploadForm')" class="btn-primary flex items-center gap-2 text-[13px] !py-2 !px-4 whitespace-nowrap">
+                    <i class="fas fa-plus text-[11px]"></i> Upload Material
+                </button>
+            </div>
+
+            {% if knowledge_sources %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {% for source in knowledge_sources %}
+                        <div class="p-3.5 rounded-xl border flex items-center justify-between group transition-all"
+                             style="background: var(--surface-page); border-color: var(--border);">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                                     style="background: var(--accent-surface); color: var(--accent);">
+                                    {% if source.source_type == 'pdf' %}<i class="fas fa-file-pdf text-xs"></i>
+                                    {% elif source.source_type == 'docx' %}<i class="fas fa-file-word text-xs"></i>
+                                    {% else %}<i class="fas fa-file-lines text-xs"></i>{% endif %}
+                                </div>
+                                <div class="min-w-0">
+                                    <h4 class="text-[13px] font-semibold truncate" style="color: var(--text-primary);" title="{{ source.title }}">
+                                        {{ source.title }}
+                                    </h4>
+                                    <p class="text-[11px]" style="color: var(--text-muted);">
+                                        {{ source.chunk_count }} chunks &middot; {{ source.created_at.strftime('%b %d, %Y') }}
+                                    </p>
+                                </div>
+                            </div>
+                            <form method="POST" action="{{ url_for('knowledge.delete_source', source_id=source.id) }}" onsubmit="return confirm('Remove this knowledge source?');" class="flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="w-7 h-7 rounded-md flex items-center justify-center text-text-ghost hover:text-coral hover:bg-coral/10 transition-colors" title="Delete source">
+                                    <i class="fas fa-trash-alt text-[10px]"></i>
+                                </button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-6 px-4 rounded-xl border border-dashed text-[13px]" style="border-color: var(--border); color: var(--text-muted);">
+                    <i class="fas fa-cloud-arrow-up text-lg mb-2 block" style="color: var(--text-ghost);"></i>
+                    No documents indexed yet. Upload a PDF, DOCX, or TXT file to enable grounded AI study tools!
+                </div>
+            {% endif %}
+        </div>
+
         <!-- History Section -->
         <div class="animate-enter" style="animation-delay: 400ms;">
             <!-- Section header -->
@@ -207,6 +266,41 @@
 <!-- Form Templates (hidden) -->
 <div id="hiddenFormTemplates" class="hidden">
 
+    <!-- ━━━ Knowledge Upload Template ━━━ -->
+    <div id="knowledgeUploadFormTemplate">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: var(--accent-surface); color: var(--accent);">
+                <i class="fas fa-cloud-arrow-up"></i>
+            </div>
+            <div>
+                <h3 class="text-[16px] font-semibold" style="color: var(--text-primary);">Add Study Material</h3>
+                <p class="text-[12px]" style="color: var(--text-muted);">Upload lecture notes, textbooks, or chapters</p>
+            </div>
+        </div>
+        <form method="post" enctype="multipart/form-data" action="{{ url_for('knowledge.upload_source') }}" onsubmit="showLoading()" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div>
+                <label class="label-caps block mb-1.5">Document Title <span style="color: var(--text-ghost);">(optional)</span></label>
+                <input type="text" name="title" maxlength="150" class="studio-input" placeholder="e.g. Chapter 4 - Thermodynamics">
+            </div>
+            <div>
+                <label class="label-caps block mb-1.5">Select File (PDF, DOCX, TXT)</label>
+                <input type="file" name="file" required accept=".pdf,.docx,.txt"
+                       class="studio-input text-[13px] file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-[12px] file:font-semibold file:cursor-pointer"
+                       style="padding: 8px 12px;">
+                <p class="mt-2 text-[11px]" style="color: var(--text-muted);">
+                    EduWise will chunk, index, and generate embeddings for RAG retrieval automatically.
+                </p>
+            </div>
+            <div class="pt-2 space-y-2">
+                <button type="submit" class="btn-primary w-full">
+                    <i class="fas fa-brain text-[11px]"></i> Index Document for RAG
+                </button>
+                <button type="button" onclick="closeFormModal()" class="btn-ghost w-full">Cancel</button>
+            </div>
+        </form>
+    </div>
+
     <!-- PPT Template -->
     <div id="pptFormTemplate">
         <div class="flex items-center gap-3 mb-6">
@@ -225,6 +319,21 @@
                 <label class="label-caps block mb-1.5">Topic</label>
                 <input type="text" name="topic" required maxlength="100" class="studio-input" placeholder="e.g. Quantum Physics 101">
             </div>
+
+            {% if knowledge_sources %}
+            <div>
+                <label class="label-caps block mb-1.5 flex items-center justify-between">
+                    <span>Knowledge Source</span>
+                    <span style="color: var(--accent); font-size: 10px;"><i class="fas fa-sparkles mr-1"></i>RAG Grounded</span>
+                </label>
+                <select name="knowledge_source_id" class="studio-select">
+                    <option value="">None (General AI Knowledge)</option>
+                    {% for ks in knowledge_sources %}
+                        <option value="{{ ks.id }}">{{ ks.title }} ({{ ks.chunk_count }} chunks)</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
 
             <div>
                 <label class="label-caps block mb-1.5">Context <span style="color: var(--text-ghost);">(optional)</span></label>
@@ -353,6 +462,21 @@
                 <input type="text" name="topic" required maxlength="100" class="studio-input" placeholder="e.g. Organic Chemistry Review">
             </div>
 
+            {% if knowledge_sources %}
+            <div>
+                <label class="label-caps block mb-1.5 flex items-center justify-between">
+                    <span>Knowledge Source</span>
+                    <span style="color: var(--coral); font-size: 10px;"><i class="fas fa-sparkles mr-1"></i>RAG Grounded</span>
+                </label>
+                <select name="knowledge_source_id" class="studio-select">
+                    <option value="">None (General AI Knowledge)</option>
+                    {% for ks in knowledge_sources %}
+                        <option value="{{ ks.id }}">{{ ks.title }} ({{ ks.chunk_count }} chunks)</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
             <div>
                 <label class="label-caps block mb-1.5">Subtopics <span style="color: var(--text-ghost);">(optional)</span></label>
                 <input type="text" name="subtopics" class="studio-input" placeholder="e.g. Force, Energy, Torque">
@@ -462,6 +586,22 @@
                 <label class="label-caps block mb-1.5">What should I explain?</label>
                 <input type="text" name="topic" placeholder="e.g. Artificial Neural Networks" required class="studio-input">
             </div>
+
+            {% if knowledge_sources %}
+            <div>
+                <label class="label-caps block mb-1.5 flex items-center justify-between">
+                    <span>Knowledge Source</span>
+                    <span style="color: var(--amber); font-size: 10px;"><i class="fas fa-sparkles mr-1"></i>RAG Grounded</span>
+                </label>
+                <select name="knowledge_source_id" class="studio-select">
+                    <option value="">None (General AI Knowledge)</option>
+                    {% for ks in knowledge_sources %}
+                        <option value="{{ ks.id }}">{{ ks.title }} ({{ ks.chunk_count }} chunks)</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
             <div class="pt-2 space-y-2">
                 <button type="submit" class="btn-primary w-full">
                     <i class="fas fa-lightbulb text-[11px]"></i> Explain
@@ -479,16 +619,32 @@
             </div>
             <div>
                 <h3 class="text-[16px] font-semibold" style="color: var(--text-primary);">Smart Quiz</h3>
-                <p class="text-[12px]" style="color: var(--text-muted);">Topic-based or from your files</p>
+                <p class="text-[12px]" style="color: var(--text-muted);">Topic-based or from your knowledge base</p>
             </div>
         </div>
         <form method="post" enctype="multipart/form-data" action="{{ url_for('generation.generate_quiz') }}" class="space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             
-            <div class="text-center text-[11px] font-semibold uppercase tracking-wider py-2 px-3 rounded-lg"
-                 style="background: var(--surface-raised); color: var(--text-muted);">
-                Enter a topic <span style="color: var(--text-ghost);">or</span> upload a file
+            {% if knowledge_sources %}
+            <div>
+                <label class="label-caps block mb-1.5 flex items-center justify-between">
+                    <span>Ground with Knowledge Base</span>
+                    <span style="color: var(--sage); font-size: 10px;"><i class="fas fa-sparkles mr-1"></i>RAG Ready</span>
+                </label>
+                <select name="knowledge_source_id" class="studio-select">
+                    <option value="">None (Use manual topic or direct upload below)</option>
+                    {% for ks in knowledge_sources %}
+                        <option value="{{ ks.id }}">{{ ks.title }} ({{ ks.chunk_count }} chunks)</option>
+                    {% endfor %}
+                </select>
             </div>
+
+            <div class="flex items-center gap-3">
+                <div class="flex-1 h-px" style="background: var(--border);"></div>
+                <span class="text-[10px] font-bold uppercase" style="color: var(--text-ghost);">or direct topic / file</span>
+                <div class="flex-1 h-px" style="background: var(--border);"></div>
+            </div>
+            {% endif %}
 
             <div>
                 <label class="label-caps block mb-1.5">Topic</label>
@@ -531,14 +687,30 @@
             </div>
             <div>
                 <h3 class="text-[16px] font-semibold" style="color: var(--text-primary);">Generate Flashcards</h3>
-                <p class="text-[12px]" style="color: var(--text-muted);">From topics or pasted content</p>
+                <p class="text-[12px]" style="color: var(--text-muted);">From topics or knowledge base</p>
             </div>
         </div>
         <form method="post" action="{{ url_for('generation.generate_flashcards') }}" class="space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            
+            {% if knowledge_sources %}
+            <div>
+                <label class="label-caps block mb-1.5 flex items-center justify-between">
+                    <span>Knowledge Source</span>
+                    <span style="color: var(--plum); font-size: 10px;"><i class="fas fa-sparkles mr-1"></i>RAG Grounded</span>
+                </label>
+                <select name="knowledge_source_id" class="studio-select">
+                    <option value="">None (General AI Knowledge)</option>
+                    {% for ks in knowledge_sources %}
+                        <option value="{{ ks.id }}">{{ ks.title }} ({{ ks.chunk_count }} chunks)</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
             <div>
                 <label class="label-caps block mb-1.5">Topic or Text</label>
-                <textarea name="topic_or_text" rows="5" placeholder="e.g. Key concepts of photosynthesis…" required class="studio-input" style="resize: vertical;"></textarea>
+                <textarea name="topic_or_text" rows="4" placeholder="e.g. Key concepts of photosynthesis…" required class="studio-input" style="resize: vertical;"></textarea>
             </div>
             <div class="pt-2 space-y-2">
                 <button type="submit" class="btn-primary w-full" style="background: var(--plum);">
@@ -557,14 +729,30 @@
             </div>
             <div>
                 <h3 class="text-[16px] font-semibold" style="color: var(--text-primary);">Summarizer</h3>
-                <p class="text-[12px]" style="color: var(--text-muted);">Distill long text to key points</p>
+                <p class="text-[12px]" style="color: var(--text-muted);">Distill long text or knowledge sources</p>
             </div>
         </div>
         <form method="post" action="{{ url_for('generation.summarize_text') }}" class="space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            
+            {% if knowledge_sources %}
             <div>
-                <label class="label-caps block mb-1.5">Paste your text</label>
-                <textarea name="text" rows="8" placeholder="Paste your article, paper, or document here…" required class="studio-input" style="resize: vertical;"></textarea>
+                <label class="label-caps block mb-1.5 flex items-center justify-between">
+                    <span>Knowledge Source</span>
+                    <span style="color: var(--sky); font-size: 10px;"><i class="fas fa-sparkles mr-1"></i>RAG Grounded</span>
+                </label>
+                <select name="knowledge_source_id" class="studio-select">
+                    <option value="">None (Direct pasted text below)</option>
+                    {% for ks in knowledge_sources %}
+                        <option value="{{ ks.id }}">{{ ks.title }} ({{ ks.chunk_count }} chunks)</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <div>
+                <label class="label-caps block mb-1.5">Paste text <span style="color: var(--text-ghost);">(or focus query if knowledge source selected)</span></label>
+                <textarea name="text" rows="6" placeholder="Paste your article, paper, or focus query here…" required class="studio-input" style="resize: vertical;"></textarea>
             </div>
             <div class="pt-2 space-y-2">
                 <button type="submit" class="btn-primary w-full" style="background: var(--sky);">

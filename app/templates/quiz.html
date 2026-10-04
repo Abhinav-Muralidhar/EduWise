@@ -10,6 +10,11 @@
             <p class="label-caps mb-2"><i class="fas fa-circle text-[5px] mr-1" style="color: var(--sage);"></i> Quiz</p>
             <h1 class="text-[28px] font-semibold tracking-tight mb-1" style="color: var(--text-primary);">{{ topic or 'Generated Challenge' }}</h1>
             <p class="text-[13px]" style="color: var(--text-muted);">{{ questions|length }} questions</p>
+            {% if sources %}
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[12px] font-medium mt-3" style="background: var(--surface-card); border-color: var(--border); color: var(--sage);">
+                <i class="fas fa-book-bookmark text-[11px]"></i> Grounded in: {{ sources | join(', ') }}
+            </div>
+            {% endif %}
         </div>
 
         <form method="POST" action="{{ url_for('generation.submit_quiz') }}" class="space-y-6">

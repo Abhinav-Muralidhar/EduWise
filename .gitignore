@@ -40,6 +40,10 @@ Thumbs.db
 *.log
 logs/
 
-# Migrations (keep the folder, ignore nothing here — Alembic files should be committed)
-
+# Dev utilities & drafts
+kill.py
+app/templates/aaa.html
 docs/
+.pytest_cache/
+.coverage
+htmlcov/

@@ -4,6 +4,7 @@ from app.utils.decorators import login_required
 from app.utils.text import extract_text
 from app.utils.resource_helper import save_resource_to_db
 from app.services import gemini, pptx_builder, pdf_builder
+from app.services.retrieval import get_relevant_chunks
 from app.extensions import limiter
 
 generation_bp = Blueprint('generation', __name__)
@@ -43,6 +44,27 @@ def _validate_upload(uploaded_file):
 
     return filename
 
+
+def _get_rag_context_and_sources(user_id, query_text, knowledge_source_id=None):
+    if not user_id or not knowledge_source_id:
+        return None, []
+    
+    try:
+        source_id = int(knowledge_source_id) if str(knowledge_source_id).isdigit() else None
+    except Exception:
+        source_id = None
+        
+    chunks = get_relevant_chunks(user_id=user_id, query=query_text, source_id=source_id, k=5)
+    if not chunks:
+        return None, []
+        
+    rag_context = "\n\n---\n\n".join(
+        f"[Source Document: {c['source_title']} (Passage {c['chunk_index'] + 1})]\n{c['content']}"
+        for c in chunks
+    )
+    source_titles = list({c['source_title'] for c in chunks})
+    return rag_context, source_titles
+
 @generation_bp.route('/generate', methods=['POST'])
 @limiter.limit("10 per hour")
 @login_required
@@ -76,6 +98,10 @@ def generate_pptx():
     customization['topic'] = topic
 
     try:
+        user_id = session.get('user_id')
+        ks_id = request.form.get('knowledge_source_id')
+        rag_context, _ = _get_rag_context_and_sources(user_id, topic, ks_id)
+
         theme_data = gemini.get_dynamic_theme(topic, customization)
         if not theme_data:
             theme_data = {
@@ -84,7 +110,7 @@ def generate_pptx():
                 'bg-color': '#FFFFFF', 'accent-color': '#007BFF'
             }
 
-        slides_data = gemini.generate_slide_content(topic, customization, theme_data)
+        slides_data = gemini.generate_slide_content(topic, customization, theme_data, rag_context=rag_context)
         if not slides_data:
             return _generation_error("We couldn't generate slides right now. Please try again in a moment.")
         
@@ -153,6 +179,10 @@ def generate_pdf():
     customization['topic'] = topic
 
     try:
+        user_id = session.get('user_id')
+        ks_id = request.form.get('knowledge_source_id')
+        rag_context, _ = _get_rag_context_and_sources(user_id, topic, ks_id)
+
         theme_data = gemini.get_dynamic_theme(topic, customization)
         if not theme_data:
             theme_data = {
@@ -162,7 +192,7 @@ def generate_pdf():
                 'bg-color': '#FFFFFF', 'accent-color': customization['accent_color']
             }
 
-        content = gemini.generate_detailed_content(topic, customization, theme_data)
+        content = gemini.generate_detailed_content(topic, customization, theme_data, rag_context=rag_context)
         if not content:
             return _generation_error("We couldn't generate notes right now. Please try again in a moment.")
             
@@ -206,14 +236,19 @@ def present():
     topic = _validate_non_empty_text(request.form.get('topic'), "Topic")
     if topic is None:
         return redirect(url_for('dashboard.index'))
-    explanation = gemini.generate_explanation(topic)
+    
+    user_id = session.get('user_id')
+    ks_id = request.form.get('knowledge_source_id')
+    rag_context, sources = _get_rag_context_and_sources(user_id, topic, ks_id)
+
+    explanation = gemini.generate_explanation(topic, rag_context=rag_context)
     if not explanation:
         flash("We couldn't generate an explanation right now. Please try again in a moment.", "danger")
         return redirect(url_for('dashboard.index'))
     explanation = gemini.clean_generated_text(explanation)
     save_resource_to_db(topic, 'explanation', file_data=None)
     flash("Explanation generated successfully!", "success")
-    return render_template('explain.html', explanation=explanation, topic=topic)
+    return render_template('explain.html', explanation=explanation, topic=topic, sources=sources)
 
 @generation_bp.route('/generate_quiz', methods=['POST'])
 @limiter.limit("20 per hour")
@@ -221,9 +256,13 @@ def present():
 def generate_quiz():
     topic_manual = request.form.get('topic_manual')
     uploaded_file = request.files.get('file')
+    ks_id = request.form.get('knowledge_source_id')
+    user_id = session.get('user_id')
     
     content_source = ""
-    source_filename = "Unknown Source"
+    source_filename = "Knowledge Source"
+    rag_context = None
+    sources = []
 
     validated_filename = _validate_upload(uploaded_file)
     if validated_filename is False:
@@ -235,15 +274,27 @@ def generate_quiz():
         if not content_source:
             flash("Could not extract text from the uploaded file.", "danger")
             return redirect(url_for('dashboard.index'))
+    elif ks_id:
+        query = topic_manual or "Key concepts and study definitions"
+        rag_context, sources = _get_rag_context_and_sources(user_id, query, ks_id)
+        if rag_context:
+            content_source = rag_context
+            source_filename = sources[0] if sources else "Knowledge Base"
+        elif topic_manual and topic_manual.strip():
+            content_source = f"The topic is: {topic_manual}."
+            source_filename = topic_manual
+        else:
+            flash("Could not retrieve content from the selected knowledge source.", "warning")
+            return redirect(url_for('dashboard.index'))
     elif topic_manual and topic_manual.strip():
         content_source = f"The topic is: {topic_manual}."
         source_filename = topic_manual
     else:
-        flash("Please provide either a Topic or a File.", "warning")
+        flash("Please provide either a Topic, a File, or select a Knowledge Source.", "warning")
         return redirect(url_for('dashboard.index'))
 
     session.pop('questions', None)
-    questions = gemini.generate_quiz_content(content_source)
+    questions = gemini.generate_quiz_content(content_source, rag_context=rag_context)
     
     if not questions:
         flash("We couldn't generate a quiz right now. Please try again in a moment.", "warning")
@@ -259,7 +310,7 @@ def generate_quiz():
     save_resource_to_db(quiz_topic, 'quiz', file_data=None)
     
     flash("Quiz generated successfully!", "success")
-    return render_template('quiz.html', questions=questions, topic=quiz_topic)
+    return render_template('quiz.html', questions=questions, topic=quiz_topic, sources=sources)
 
 @generation_bp.route('/submit_quiz', methods=['POST'])
 @login_required 
@@ -280,7 +331,6 @@ def submit_quiz():
             try:
                 user_answer_idx = int(user_answer_str)
                 user_answers[q['id']] = user_answer_idx
-                # Handle both correct_index and answer_index (Gemini service uses answer_index)
                 correct_idx = q.get('correct_index', q.get('answer_index'))
                 if user_answer_idx == correct_idx:
                     score += 1
@@ -301,7 +351,12 @@ def generate_flashcards():
     )
     if topic_or_text is None:
         return redirect(url_for('dashboard.index'))
-    flashcards_data = gemini.generate_flashcards(topic_or_text)
+        
+    user_id = session.get('user_id')
+    ks_id = request.form.get('knowledge_source_id')
+    rag_context, sources = _get_rag_context_and_sources(user_id, topic_or_text, ks_id)
+
+    flashcards_data = gemini.generate_flashcards(topic_or_text, rag_context=rag_context)
     
     if not flashcards_data:
         flash("We couldn't generate flashcards right now. Please try again in a moment.", "danger")
@@ -310,7 +365,7 @@ def generate_flashcards():
     topic = f"Flashcards on: {topic_or_text[:50]}..."
     save_resource_to_db(topic, 'flashcard', file_data=None)
     flash("Flashcards generated successfully!", "success")
-    return render_template('flashcards.html', flashcards=flashcards_data)
+    return render_template('flashcards.html', flashcards=flashcards_data, sources=sources)
 
 @generation_bp.route('/summarize_text', methods=['POST'])
 @limiter.limit("20 per hour")
@@ -319,7 +374,12 @@ def summarize_text():
     text_to_summarize = _validate_non_empty_text(request.form.get('text', ''), "Text")
     if text_to_summarize is None:
         return redirect(url_for('dashboard.index'))
-    summary = gemini.generate_summary(text_to_summarize)
+        
+    user_id = session.get('user_id')
+    ks_id = request.form.get('knowledge_source_id')
+    rag_context, sources = _get_rag_context_and_sources(user_id, text_to_summarize, ks_id)
+
+    summary = gemini.generate_summary(text_to_summarize, rag_context=rag_context)
     
     if not summary:
         flash("We couldn't generate a summary right now. Please try again in a moment.", "danger")
@@ -329,4 +389,4 @@ def summarize_text():
     topic = f"Summary of: {text_to_summarize[:50]}..."
     save_resource_to_db(topic, 'summary', file_data=None)
     flash("Summary generated successfully!", "success")
-    return render_template('summary.html', summary_text=summary)
+    return render_template('summary.html', summary_text=summary, sources=sources)

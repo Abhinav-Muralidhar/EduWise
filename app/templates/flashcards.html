@@ -6,12 +6,19 @@
     <div class="max-w-2xl mx-auto px-6">
         
         <!-- Header -->
-        <div class="flex items-center justify-between mb-10 animate-enter">
+        <div class="flex items-center justify-between mb-4 animate-enter">
             <a href="{{ url_for('dashboard.index') }}" class="text-[13px] font-medium flex items-center gap-2 transition-colors" style="color: var(--text-muted);">
                 <i class="fas fa-arrow-left text-[9px]"></i> Back
             </a>
             <span class="label-caps" id="cardCounter">Card 1 of {{ flashcards|length }}</span>
         </div>
+        {% if sources %}
+        <div class="mb-8 flex justify-center animate-enter">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[12px] font-medium" style="background: var(--surface-card); border-color: var(--border); color: var(--plum);">
+                <i class="fas fa-book-bookmark text-[11px]"></i> Grounded in: {{ sources | join(', ') }}
+            </div>
+        </div>
+        {% endif %}
 
         <!-- Flashcard Viewport -->
         <div class="relative h-[400px] animate-enter" style="animation-delay: 80ms;">

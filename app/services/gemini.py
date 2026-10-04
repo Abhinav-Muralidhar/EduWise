@@ -111,12 +111,24 @@ def get_dynamic_theme(topic, customization):
             
     return theme_data
 
-def generate_slide_content(topic, customization, theme_data):
+def _format_rag_block(rag_context):
+    if not rag_context:
+        return ""
+    return (
+        "\n--- REFERENCE MATERIAL (from user's uploaded documents) ---\n"
+        f"{rag_context}\n"
+        "--- END REFERENCE MATERIAL ---\n"
+        "IMPORTANT: Base your response primarily on the reference material provided above. "
+        "Ground your facts, terminology, questions, and explanations directly in this material.\n\n"
+    )
+
+def generate_slide_content(topic, customization, theme_data, rag_context=None):
     image_strategy = customization.get('image_strategy', 'all_slides')
     slide_count = customization.get('slide_count', '5')
     visual_instructions = customization.get('visual_instructions', '')
     
-    prompt = f"Create a slide-wise presentation on the topic: '{topic}'.\n"
+    rag_block = _format_rag_block(rag_context)
+    prompt = f"{rag_block}Create a slide-wise presentation on the topic: '{topic}'.\n"
     prompt += "--- USER INSTRUCTIONS ---\n"
     
     if customization.get('context'):
@@ -164,11 +176,12 @@ def generate_slide_content(topic, customization, theme_data):
         current_app.logger.warning("Error parsing Gemini slide JSON: %s", e)
         return []
 
-def generate_detailed_content(topic, customization, theme_data):
+def generate_detailed_content(topic, customization, theme_data, rag_context=None):
     image_strategy = customization.get('image_strategy', 'all_slides')
     page_count = customization.get('page_count', '5')
     
-    prompt = f"Write a comprehensive set of study notes on the topic: '{topic}'.\n"
+    rag_block = _format_rag_block(rag_context)
+    prompt = f"{rag_block}Write a comprehensive set of study notes on the topic: '{topic}'.\n"
     prompt += "--- USER INSTRUCTIONS ---\n"
     
     if customization.get('context'):
@@ -207,8 +220,9 @@ def generate_detailed_content(topic, customization, theme_data):
     
     return _call_gemini(prompt)
 
-def generate_quiz_content(topic_text, total_questions=10):
-    prompt = f"Generate a comprehensive quiz based on this text: '{topic_text[:4000]}'.\n"
+def generate_quiz_content(topic_text, total_questions=10, rag_context=None):
+    rag_block = _format_rag_block(rag_context)
+    prompt = f"{rag_block}Generate a comprehensive quiz based on this content: '{topic_text[:4000]}'.\n"
     prompt += f"The quiz should have exactly {total_questions} multiple-choice questions.\n"
     prompt += "Return ONLY a JSON array of objects. Each object must have: 'question', 'options' (array of 4 strings), and 'answer_index' (0-3).\n"
     prompt += "Do not include markdown backticks or any other text."
@@ -221,8 +235,9 @@ def generate_quiz_content(topic_text, total_questions=10):
     except (json.JSONDecodeError, ValueError):
         return []
 
-def generate_flashcards(topic_text):
-    prompt = f"Create 15 informative flashcards (Q&A style) from this text: '{topic_text[:4000]}'.\n"
+def generate_flashcards(topic_text, rag_context=None):
+    rag_block = _format_rag_block(rag_context)
+    prompt = f"{rag_block}Create 15 informative flashcards (Q&A style) from this content: '{topic_text[:4000]}'.\n"
     prompt += "Return ONLY a JSON array of objects with 'question' and 'answer' fields. No markdown."
     
     text = _call_gemini(prompt, is_json=True)
@@ -233,9 +248,10 @@ def generate_flashcards(topic_text):
     except (json.JSONDecodeError, ValueError):
         return []
 
-def generate_explanation(topic):
+def generate_explanation(topic, rag_context=None):
+    rag_block = _format_rag_block(rag_context)
     prompt = (
-        f"Explain the topic '{topic}' in a warm, natural, teacher-like voice.\n"
+        f"{rag_block}Explain the topic '{topic}' in a warm, natural, teacher-like voice.\n"
         "Write in plain English with short paragraphs and smooth transitions.\n"
         "Use simple analogies where they help.\n"
         "Do not use markdown, bullets, headings, tables, asterisks, hashtags, or code formatting.\n"
@@ -245,9 +261,10 @@ def generate_explanation(topic):
     )
     return _call_gemini(prompt)
 
-def generate_summary(text):
+def generate_summary(text, rag_context=None):
+    rag_block = _format_rag_block(rag_context)
     prompt = (
-        f"Summarize the following text in concise, natural plain English: '{text[:5000]}'\n"
+        f"{rag_block}Summarize the following text in concise, natural plain English: '{text[:5000]}'\n"
         "Do not use markdown, bullets, headings, tables, asterisks, hashtags, or code formatting.\n"
         "Write short readable paragraphs only.\n"
         "Avoid special formatting symbols."

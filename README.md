@@ -1,27 +1,28 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
   <img src="https://img.shields.io/badge/Flask-3.x-000000?style=for-the-badge&logo=flask&logoColor=white" alt="Flask" />
   <img src="https://img.shields.io/badge/Gemini_AI-3.1_Flash_Lite-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Gemini AI" />
-  <img src="https://img.shields.io/badge/Neon-00E599?style=for-the-badge&logo=neon&logoColor=black" alt="Neon" />
-  <img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite" />
+  <img src="https://img.shields.io/badge/RAG-pgvector-00E599?style=for-the-badge&logo=postgresql&logoColor=black" alt="pgvector" />
+  <img src="https://img.shields.io/badge/Neon-Postgres-00E599?style=for-the-badge&logo=neon&logoColor=black" alt="Neon" />
+  <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/PyTest-16_Passed-green?style=for-the-badge&logo=pytest&logoColor=white" alt="PyTest" />
   <img src="https://img.shields.io/badge/Cloudinary-3448C5?style=for-the-badge&logo=cloudinary&logoColor=white" alt="Cloudinary" />
-  <img src="https://img.shields.io/badge/Jinja2-B41717?style=for-the-badge&logo=jinja&logoColor=white" alt="Jinja2" />
-  <img src="https://img.shields.io/badge/ReportLab-PDF-red?style=for-the-badge" alt="ReportLab" />
 </p>
 
 <h1 align="center">🎓 EduWise</h1>
 
 <p align="center">
-  <strong>AI-Powered Study Material Generator</strong><br/>
-  <em>Turn any topic into presentations, study notes, quizzes, flashcards & more — in seconds.</em>
+  <strong>Grounded AI Study Material Generator & Knowledge Hub</strong><br/>
+  <em>Turn course materials, textbooks, and notes into presentations, study notes, quizzes, and flashcards with RAG.</em>
 </p>
 
 <p align="center">
   <a href="#-features">Features</a> •
+  <a href="#-rag-pipeline-architecture">RAG Architecture</a> •
   <a href="#%EF%B8%8F-tech-stack">Tech Stack</a> •
   <a href="#-getting-started">Getting Started</a> •
-  <a href="#-project-structure">Project Structure</a> •
-  <a href="#-api-keys--services">API Keys</a>
+  <a href="#-testing--verification">Testing & CI</a> •
+  <a href="#-project-structure">Project Structure</a>
 </p>
 
 <p align="center">
@@ -32,44 +33,69 @@
 
 ## ✨ Features
 
-EduWise is a full-stack web application that leverages **Google Gemini AI** to instantly generate high-quality educational content from any topic.
+EduWise is a full-stack study platform that leverages **Google Gemini AI** and **RAG (Retrieval-Augmented Generation)** to produce high-quality, grounded educational content.
+
+### 🧠 Grounded Study Materials with RAG (Flagship)
+- **Course Document Ingestion**: Upload lecture notes, PDF textbook chapters, or DOCX documents to your personal Knowledge Base.
+- **Sentence-Aware Chunking**: Intelligently splits documents at natural sentence and paragraph boundaries (~400 tokens with 15% overlap).
+- **Gemini Embeddings**: Vectorized with 768-dimensional embeddings via Google Gemini's Text Embedding API (0 MB memory overhead, optimized for Render free tier).
+- **In-Database Vector Search (`pgvector`)**: Cosine distance similarity search directly inside Neon PostgreSQL.
+- **Strict Multi-Tenant Isolation**: Query-scoped to the authenticated user's ID to prevent cross-user data leakage.
+- **Source Attribution**: Highlights exactly which uploaded document was used to generate each quiz, flashcard deck, explanation, and summary.
 
 ### 📊 AI-Generated Presentations (PPTX)
-- Generate complete slide decks with a single prompt
-- AI-driven dynamic theming — colors, fonts, and layout are automatically matched to your topic
-- Auto-fetched images from Google Custom Search for every slide
-- Full customization: slide count (3–10), intro/thank-you slides, dark/light themes, color overrides, serif/sans-serif fonts, and custom visual instructions
+- Generate complete slide decks with a single prompt or grounded in your uploaded materials.
+- AI-driven dynamic theming — colors, fonts, and layout are automatically matched to your topic.
+- Auto-fetched images from Google Custom Search for every slide.
+- Full customization: slide count (3–10), intro/thank-you slides, dark/light themes, color overrides, serif/sans-serif fonts, and custom visual instructions.
 
 ### 📄 AI-Generated Study Notes (PDF)
-- Comprehensive, multi-page study notes rendered as beautifully formatted PDFs
-- Markdown-to-PDF pipeline with support for headings, bullet points, code blocks, tables, and inline images
-- Custom typography with four bundled font families (Roboto, Lato, Montserrat, Merriweather)
-- Adjustable page count (2–15 pages) with dark mode support
+- Comprehensive, multi-page study notes rendered as formatted PDFs.
+- Markdown-to-PDF pipeline with support for headings, bullet points, code blocks, tables, and visual aid tags.
+- Custom typography with four bundled font families (Roboto, Lato, Montserrat, Merriweather).
+- Adjustable page count (2–15 pages) with dark mode support.
 
-### 🧠 Quizzes
-- Auto-generate multiple-choice quizzes from any topic or uploaded document (PDF, DOCX, TXT)
-- Instant scoring with a detailed results breakdown
-- Session-based quiz state for seamless answer tracking
+### 🧩 Smart Quizzes
+- Auto-generate multiple-choice quizzes from any topic, uploaded document, or indexed Knowledge Base source.
+- Instant scoring with a detailed results breakdown and answer verification.
 
-### 🃏 Flashcards
-- Generate interactive Q&A flashcards from any topic or pasted text
-- Flip-card interface for active recall practice
+### 🃏 Interactive Flashcards
+- Generate Q&A flashcards from topics or uploaded study documents.
+- Flip-card interface with keyboard navigation (`Left`, `Right`, `Space`) for active recall practice.
 
 ### 💡 Explain Like a Teacher
-- Get warm, conversational explanations on any concept
-- No jargon — just clear, human-like teaching with simple analogies
+- Conversational, warm explanations on any concept using analogies and clear plain English.
 
-### 📝 Text Summarizer
-- Paste any block of text and receive a concise, readable summary
-- Great for condensing lecture notes, articles, or research papers
+### 📝 Text & Document Summarizer
+- Distills long text or selected knowledge sources into concise, high-yield summaries.
 
 ### 👤 User Accounts & Dashboard
-- Full authentication system: signup, login, logout, password reset via email
-- User profile with display name, bio, and avatar color
-- Personal dashboard with a history of every resource you've generated
-- Favorite and delete resources; search and filter by type
-- Cloudinary integration for persistent file storage
+- Full authentication system: signup, login, logout, password reset via email.
+- User profile customization: display name, bio, and avatar color.
+- Personal dashboard tracking all generated resources, favorites, and knowledge sources.
 
+---
+
+## 🏗️ RAG Pipeline Architecture
+
+```mermaid
+graph LR
+    subgraph Ingestion Pipeline
+        A[User Uploads PDF/DOCX/TXT] --> B[Text Extraction]
+        B --> C[Sentence-Aware Chunking<br/>~400 tokens, 15% overlap]
+        C --> D[Gemini Embeddings API<br/>768-dim Vector]
+        D --> E[(Neon PostgreSQL<br/>pgvector Table)]
+    end
+
+    subgraph Retrieval & Grounded Generation
+        F[User Query / Topic Prompt] --> G[Query Embedding]
+        G --> H[pgvector Cosine Search<br/>1 - <=> distance]
+        E -. Top-k Chunks .-> H
+        H --> I[Prompt Context Injection]
+        I --> J[Gemini 3.1 Flash Lite]
+        J --> K[Grounded Slides, Notes, Quizzes & Flashcards]
+    end
+```
 
 ---
 
@@ -77,10 +103,13 @@ EduWise is a full-stack web application that leverages **Google Gemini AI** to i
 
 | Layer | Technology |
 |-------|-----------|
-| **Backend** | Python 3.10+, Flask 3.x |
+| **Backend** | Python 3.11+, Flask 3.x |
 | **AI Engine** | Google Gemini 3.1 Flash Lite (REST API) |
-| **Database** | SQLite (local dev) / Neon PostgreSQL (production) |
+| **Embeddings & RAG** | Gemini `text-embedding-004` (768-dim) + `pgvector` |
+| **Database** | SQLite (local dev) / Neon PostgreSQL with pgvector (production) |
 | **ORM & Migrations** | SQLAlchemy + Flask-Migrate (Alembic) |
+| **Testing & CI** | PyTest (16 unit & integration tests) + GitHub Actions CI |
+| **Containerization** | Docker + Docker Compose / Gunicorn |
 | **PDF Generation** | ReportLab |
 | **PPTX Generation** | python-pptx |
 | **Image Search** | Google Custom Search API |
@@ -96,74 +125,84 @@ EduWise is a full-stack web application that leverages **Google Gemini AI** to i
 
 ### Prerequisites
 
-- **Python 3.10+** installed
+- **Python 3.11+** installed
 - A **Google Gemini API key** ([Get one here](https://aistudio.google.com/app/apikey))
-- A **Google Custom Search API key** + **Search Engine ID** ([Set up here](https://programmablesearchengine.google.com/))
-- A **Cloudinary account** (free tier works) for file uploads
-- *(Optional)* A Gmail address with an **App Password** for the password-reset email flow
+- (Optional) **Google Custom Search API Key + CX ID** for automated slide and note images
+- (Optional) **Cloudinary Account** for cloud file persistence
+- (Optional) **Gmail App Password** for sending password reset emails
 
-### 1. Clone the repository
+### Installation
 
-```bash
-git clone https://github.com/Abhinav-Muralidhar/EduWise.git
-cd EduWise
-```
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Abhinav-Muralidhar/EduWise.git
+   cd EduWise
+   ```
 
-### 2. Create & activate a virtual environment
+2. **Create and activate a virtual environment:**
+   ```bash
+   python -m venv venv
+   # On Windows:
+   venv\Scripts\activate
+   # On macOS/Linux:
+   source venv/bin/activate
+   ```
 
-```bash
-# Windows
-python -m venv venv
-venv\Scripts\activate
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-# macOS / Linux
-python3 -m venv venv
-source venv/bin/activate
-```
+4. **Configure environment variables:**
+   Copy `.env.example` to `.env` and fill in your keys:
+   ```env
+   SECRET_KEY=your-super-secret-key-here
+   GEMINI_API_KEY=your-gemini-api-key
+   CUSTOM_SEARCH_API_KEY=your-google-custom-search-api-key
+   CUSTOM_SEARCH_CX_ID=your-google-search-engine-id
+   CLOUDINARY_CLOUD_NAME=your-cloud-name
+   CLOUDINARY_API_KEY=your-cloudinary-api-key
+   CLOUDINARY_API_SECRET=your-cloudinary-api-secret
+   MAIL_USERNAME=your-email@gmail.com
+   MAIL_PASSWORD=your-gmail-app-password
+   ```
 
-### 3. Install dependencies
+5. **Run the application:**
+   ```bash
+   python run.py
+   ```
+   The app will be live at `http://127.0.0.1:5000`.
 
-```bash
-pip install -r requirements.txt
-```
+---
 
-### 4. Configure environment variables
+## 🧪 Testing & Verification
 
-```bash
-cp .env.example .env
-```
-
-Open `.env` and fill in your credentials:
-
-```env
-GEMINI_API_KEY=your-gemini-api-key
-CUSTOM_SEARCH_API_KEY=your-google-search-api-key
-CUSTOM_SEARCH_CX_ID=your-search-engine-id
-SECRET_KEY=generate-a-random-secret-key
-
-CLOUDINARY_CLOUD_NAME=your-cloud-name
-CLOUDINARY_API_KEY=your-cloudinary-key
-CLOUDINARY_API_SECRET=your-cloudinary-secret
-
-APP_BASE_URL=http://127.0.0.1:5000
-
-# Email config (Gmail SMTP with App Password)
-MAIL_USERNAME=your-email@gmail.com
-MAIL_PASSWORD=your-app-password
-```
-
-> **Tip:** Generate a secure `SECRET_KEY` with:
-> ```bash
-> python -c "import secrets; print(secrets.token_hex(32))"
-> ```
-
-### 5. Run the application
+Run the comprehensive pytest test suite locally:
 
 ```bash
-python run.py
+pytest tests/ -v
 ```
 
-The app will start at **http://127.0.0.1:5000** 🎉
+Tests verify:
+- ✅ Document text extraction across PDF, DOCX, and TXT formats
+- ✅ Sentence-aware chunking and overlap consistency
+- ✅ Vector cosine similarity and ranking accuracy
+- ✅ Multi-tenant user isolation (verifying User A cannot retrieve User B's knowledge chunks)
+- ✅ Route access controls, keep-alive monitoring, and document ingestion workflows
+
+---
+
+## 🐳 Docker Containerization
+
+Run EduWise in a container:
+
+```bash
+# Build Docker image
+docker build -t eduwise .
+
+# Run container
+docker run -p 5000:5000 --env-file .env eduwise
+```
 
 ---
 
@@ -171,27 +210,29 @@ The app will start at **http://127.0.0.1:5000** 🎉
 
 ```
 EduWise/
-├── run.py                    # Application entry point
-├── requirements.txt          # Python dependencies
-├── .env.example              # Environment variable template
-├── .gitignore
-│
 ├── app/
-│   ├── __init__.py           # Flask app factory
+│   ├── __init__.py           # Flask app factory & blueprint registration
 │   ├── config.py             # Configuration (env vars, fonts, scheduler)
 │   ├── extensions.py         # Flask extensions (DB, CSRF, Limiter, etc.)
 │   │
 │   ├── models/
 │   │   ├── user.py           # User model (auth, profile, password reset)
-│   │   └── resource.py       # Resource model (generated content tracking)
+│   │   ├── resource.py       # Resource model (generated content tracking)
+│   │   ├── knowledge_source.py # KnowledgeSource model (RAG documents)
+│   │   └── chunk.py          # KnowledgeChunk model with pgvector embedding
 │   │
 │   ├── routes/
 │   │   ├── auth.py           # Signup, Login, Logout, Password Reset, Profile
 │   │   ├── dashboard.py      # Dashboard, Downloads, Favorites, Keep-alive
-│   │   └── generation.py     # PPTX, PDF, Quiz, Flashcard, Explain, Summarize
+│   │   ├── generation.py     # PPTX, PDF, Quiz, Flashcard, Explain, Summarize (RAG wired)
+│   │   └── knowledge.py      # Document upload, listing, and deletion
 │   │
 │   ├── services/
-│   │   ├── gemini.py         # Gemini AI integration (all prompt engineering)
+│   │   ├── gemini.py         # Gemini AI integration (prompting & RAG grounding)
+│   │   ├── embeddings.py     # Gemini Text Embeddings service
+│   │   ├── chunking.py       # Sentence-aware text chunker
+│   │   ├── retrieval.py      # pgvector + SQLite dual vector retrieval
+│   │   ├── ingestion.py      # Document ingestion pipeline orchestrator
 │   │   ├── pptx_builder.py   # PowerPoint file construction
 │   │   ├── pdf_builder.py    # PDF file construction with ReportLab
 │   │   ├── email.py          # Gmail SMTP for password reset emails
@@ -205,43 +246,23 @@ EduWise/
 │   │   └── jobs.py           # Scheduled background tasks
 │   │
 │   ├── templates/            # Jinja2 HTML templates
-│   │   ├── index.html        # Landing page
-│   │   ├── dashboard.html    # Main dashboard
-│   │   ├── login.html        # Login page
-│   │   ├── signup.html       # Signup page
-│   │   ├── profile.html      # User profile
-│   │   ├── quiz.html         # Quiz interface
-│   │   ├── result.html       # Quiz results
-│   │   ├── flashcards.html   # Flashcard viewer
-│   │   ├── explain.html      # Explanation viewer
-│   │   ├── summary.html      # Summary viewer
-│   │   └── ...               # Error pages, layouts, partials
-│   │
-│   └── static/
-│       └── css/              # Stylesheets
+│   └── static/               # CSS and static assets
 │
-├── fonts/                    # Bundled font families (Roboto, Lato, etc.)
-├── migrations/               # Alembic database migrations
-└── uploads/                  # Temporary file uploads (gitignored)
+├── tests/                    # Pytest test suite (16 unit & integration tests)
+├── .github/workflows/        # CI/CD pipelines (GitHub Actions)
+├── Dockerfile                # Production Docker container setup
+├── .dockerignore             # Docker build ignores
+├── requirements.txt          # Python dependencies
+└── run.py                    # Application entry point
 ```
-
----
-
-## 🔑 API Keys & Services
-
-| Service | Required | Purpose | Free Tier |
-|---------|----------|---------|-----------|
-| **Google Gemini** | ✅ Yes | AI content generation (presentations, notes, quizzes, etc.) | ✅ Yes |
-| **Google Custom Search** | ✅ Yes | Fetching relevant images for slides and PDFs | ✅ 100 queries/day |
-| **Cloudinary** | ✅ Yes | Persistent cloud storage for generated files | ✅ 25 GB |
-| **Gmail SMTP** | ⚠️ Optional | Sending password reset emails | ✅ Yes |
 
 ---
 
 ## 🔒 Security
 
-EduWise implements several security best practices:
+EduWise implements industry standard security practices:
 
+- **Multi-tenant RAG isolation**: Strict `user_id` query scoping on all vector retrieval operations
 - **Password hashing** with Werkzeug (PBKDF2 + salt)
 - **CSRF protection** on all forms via Flask-WTF
 - **Rate limiting** on sensitive endpoints (login, signup, generation)
@@ -250,8 +271,6 @@ EduWise implements several security best practices:
 - **Constant-time password reset** responses (no email enumeration)
 - **Token-based password reset** with 1-hour expiration
 
-
----
 ---
 <p align="center">
   <strong>Built by Abhinav M</strong>
