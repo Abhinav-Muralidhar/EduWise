@@ -7,8 +7,8 @@
         
         <!-- Header -->
         <div class="mb-10 animate-enter">
-            <a href="{{ url_for('dashboard.index') }}" class="text-[13px] font-medium flex items-center gap-2 mb-4 transition-colors" style="color: var(--text-muted);">
-                <i class="fas fa-arrow-left text-[9px]"></i> Back to dashboard
+            <a href="{{ url_for('dashboard.index') if session.user_id else url_for('dashboard.home') }}" class="text-[13px] font-medium flex items-center gap-2 mb-4 transition-colors hover:underline" style="color: var(--text-muted);">
+                <i class="fas fa-arrow-left text-[9px]"></i> {{ 'Back to dashboard' if session.user_id else 'Back to home' }}
             </a>
             <h1 class="text-[28px] font-semibold tracking-tight leading-tight mb-3" style="color: var(--text-primary);">
                 {{ topic }}
@@ -19,6 +19,24 @@
             </div>
             {% endif %}
         </div>
+
+        {% if not session.user_id %}
+        <!-- Guest Notice / Soft Nudge -->
+        <div class="mb-6 p-4 rounded-xl border flex items-center justify-between gap-4 animate-enter" style="background: var(--accent-surface); border-color: rgba(13,148,136,0.2);">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: var(--accent); color: white;">
+                    <i class="fas fa-sparkles text-xs"></i>
+                </div>
+                <div>
+                    <p class="text-[13px] font-semibold" style="color: var(--text-primary);">Guest Mode</p>
+                    <p class="text-[11px]" style="color: var(--text-secondary);"><a href="{{ url_for('auth.signup') }}" class="font-bold underline" style="color: var(--accent);">Sign up free</a> to save explanations, upload your course slides, and access your dashboard.</p>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.signup') }}" class="btn-primary !py-1.5 !px-3 text-xs hidden sm:inline-flex whitespace-nowrap">
+                Sign up
+            </a>
+        </div>
+        {% endif %}
 
         <!-- Content -->
         <div class="studio-card p-10 min-h-[500px] animate-enter" style="animation-delay: 80ms;">

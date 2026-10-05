@@ -6,7 +6,7 @@
     <div class="max-w-3xl mx-auto px-6">
         
         <!-- Score Card -->
-        <div class="studio-card p-12 text-center mb-12 animate-enter">
+        <div class="studio-card p-12 text-center mb-8 animate-enter">
             <p class="label-caps mb-4">Results</p>
             <div class="text-[72px] font-semibold leading-none mb-4" style="color: var(--accent);">
                 {{ (score / questions|length * 100) | round | int }}%
@@ -15,6 +15,24 @@
                 You scored {{ score }} out of {{ questions|length }} correct answers.
             </p>
         </div>
+
+        {% if not session.user_id %}
+        <!-- Guest Notice / Soft Nudge -->
+        <div class="mb-10 p-5 rounded-2xl border flex flex-col sm:flex-row items-center justify-between gap-4 animate-enter" style="background: var(--accent-surface); border-color: rgba(67,97,238,0.25);">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: var(--accent); color: white;">
+                    <i class="fas fa-sparkles text-sm"></i>
+                </div>
+                <div>
+                    <h4 class="text-[14px] font-semibold" style="color: var(--text-primary);">Save your progress & generate with your own PDFs</h4>
+                    <p class="text-[12px]" style="color: var(--text-secondary);">Create a free account to track your study streaks and unlock full document uploads.</p>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.signup') }}" class="btn-primary !py-2.5 !px-5 text-xs whitespace-nowrap">
+                Create free account
+            </a>
+        </div>
+        {% endif %}
 
         <!-- Review -->
         <p class="label-caps text-center mb-8 animate-enter" style="animation-delay: 60ms;">Review</p>
@@ -72,8 +90,8 @@
 
         <!-- Actions -->
         <div class="mt-12 flex flex-col sm:flex-row gap-3 justify-center animate-enter">
-            <a href="{{ url_for('dashboard.index') }}" class="btn-primary py-3 px-10 text-center">
-                Return to Dashboard
+            <a href="{{ url_for('dashboard.index') if session.user_id else url_for('dashboard.home') }}" class="btn-primary py-3 px-10 text-center">
+                {{ 'Return to Dashboard' if session.user_id else 'Back to Home' }}
             </a>
             <button onclick="window.print()" class="btn-ghost py-3 px-10" style="border: 1px solid var(--border);">
                 Print Results
@@ -82,4 +100,3 @@
     </div>
 </div>
 {% endblock %}
-

@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response, send_file, session, jsonify, current_app
 from werkzeug.utils import secure_filename
+from flask_limiter.util import get_remote_address
 from app.utils.decorators import login_required
 from app.utils.resource_helper import save_resource_to_db
 from app.services import gemini, pptx_builder, pdf_builder
@@ -7,6 +8,21 @@ from app.services.retrieval import get_relevant_chunks
 from app.extensions import limiter
 
 generation_bp = Blueprint('generation', __name__)
+
+
+def _get_rate_limit_key():
+    """Key logged-in users by user_id, and guests by client IP (reverse-proxy safe)."""
+    user_id = session.get('user_id')
+    if user_id:
+        return f"user:{user_id}"
+    return f"ip:{get_remote_address()}"
+
+
+def _get_generation_limit():
+    """Stricter 5/hour rate limit for guests, 20/hour for authenticated users."""
+    if session.get('user_id'):
+        return "20 per hour"
+    return "5 per hour"
 
 
 def _is_fetch_request():
@@ -17,7 +33,9 @@ def _generation_error(message, status_code=503):
     if _is_fetch_request():
         return jsonify({"success": False, "message": message}), status_code
     flash(message, "danger")
-    return redirect(url_for('dashboard.index'))
+    if session.get('user_id'):
+        return redirect(url_for('dashboard.index'))
+    return redirect(url_for('dashboard.home'))
 
 
 def _validate_non_empty_text(value, field_name):
@@ -213,40 +231,48 @@ def generate_pdf():
         return _generation_error("We couldn't generate notes right now. Please try again in a moment.")
 
 @generation_bp.route('/present', methods=['POST'])
-@limiter.limit("20 per hour")
-@login_required 
+@limiter.limit(_get_generation_limit, key_func=_get_rate_limit_key)
 def present():
-    topic = _validate_non_empty_text(request.form.get('topic'), "Topic")
-    if topic is None:
-        return redirect(url_for('dashboard.index'))
-    
     user_id = session.get('user_id')
     ks_id = request.form.get('knowledge_source_id')
+
+    if not user_id and ks_id:
+        flash("Sign up to use your own documents with AI.", "warning")
+        return redirect(url_for('auth.signup'))
+
+    topic = _validate_non_empty_text(request.form.get('topic'), "Topic")
+    if topic is None:
+        return redirect(url_for('dashboard.index') if user_id else url_for('dashboard.home'))
+    
     rag_context, sources = _get_rag_context_and_sources(user_id, topic, ks_id)
 
     explanation = gemini.generate_explanation(topic, rag_context=rag_context)
     if not explanation:
         flash("We couldn't generate an explanation right now. Please try again in a moment.", "danger")
-        return redirect(url_for('dashboard.index'))
+        return redirect(url_for('dashboard.index') if user_id else url_for('dashboard.home'))
     explanation = gemini.clean_generated_text(explanation)
-    save_resource_to_db(topic, 'explanation', file_data=None)
+    if user_id:
+        save_resource_to_db(topic, 'explanation', file_data=None)
     flash("Explanation generated successfully!", "success")
     return render_template('explain.html', explanation=explanation, topic=topic, sources=sources)
 
 @generation_bp.route('/generate_quiz', methods=['POST'])
-@limiter.limit("20 per hour")
-@login_required 
+@limiter.limit(_get_generation_limit, key_func=_get_rate_limit_key)
 def generate_quiz():
+    user_id = session.get('user_id')
+    ks_id = request.form.get('knowledge_source_id')
+
+    if not user_id and ks_id:
+        flash("Sign up to use your own documents with AI.", "warning")
+        return redirect(url_for('auth.signup'))
+
     topic = _validate_non_empty_text(
         request.form.get('topic') or request.form.get('topic_manual'),
         "Topic"
     )
     if topic is None:
-        return redirect(url_for('dashboard.index'))
+        return redirect(url_for('dashboard.index') if user_id else url_for('dashboard.home'))
         
-    ks_id = request.form.get('knowledge_source_id')
-    user_id = session.get('user_id')
-    
     rag_context = None
     sources = []
 
@@ -260,7 +286,7 @@ def generate_quiz():
     
     if not questions:
         flash("We couldn't generate a quiz right now. Please try again in a moment.", "warning")
-        return redirect(url_for('dashboard.index'))
+        return redirect(url_for('dashboard.index') if user_id else url_for('dashboard.home'))
         
     # Add ID for form handling
     for i, q in enumerate(questions):
@@ -269,18 +295,18 @@ def generate_quiz():
         
     session['questions'] = questions
     quiz_topic = f"Quiz: {topic}"
-    save_resource_to_db(quiz_topic, 'quiz', file_data=None)
+    if user_id:
+        save_resource_to_db(quiz_topic, 'quiz', file_data=None)
     
     flash("Quiz generated successfully!", "success")
     return render_template('quiz.html', questions=questions, topic=quiz_topic, sources=sources)
 
 @generation_bp.route('/submit_quiz', methods=['POST'])
-@login_required 
 def submit_quiz():
     questions = session.get('questions', [])
     if not questions:
         flash("Quiz session expired or not found.", "warning")
-        return redirect(url_for('dashboard.index'))
+        return redirect(url_for('dashboard.index') if session.get('user_id') else url_for('dashboard.home'))
     
     score = 0
     user_answers = {}
@@ -304,51 +330,61 @@ def submit_quiz():
     return render_template('result.html', questions=questions, user_answers=user_answers, score=score)
 
 @generation_bp.route('/generate_flashcards', methods=['POST'])
-@limiter.limit("20 per hour")
-@login_required 
+@limiter.limit(_get_generation_limit, key_func=_get_rate_limit_key)
 def generate_flashcards():
+    user_id = session.get('user_id')
+    ks_id = request.form.get('knowledge_source_id')
+
+    if not user_id and ks_id:
+        flash("Sign up to use your own documents with AI.", "warning")
+        return redirect(url_for('auth.signup'))
+
     topic_or_text = _validate_non_empty_text(
         request.form.get('topic_or_text', request.form.get('topic', '')),
         "Topic or text"
     )
     if topic_or_text is None:
-        return redirect(url_for('dashboard.index'))
+        return redirect(url_for('dashboard.index') if user_id else url_for('dashboard.home'))
         
-    user_id = session.get('user_id')
-    ks_id = request.form.get('knowledge_source_id')
     rag_context, sources = _get_rag_context_and_sources(user_id, topic_or_text, ks_id)
 
     flashcards_data = gemini.generate_flashcards(topic_or_text, rag_context=rag_context)
     
     if not flashcards_data:
         flash("We couldn't generate flashcards right now. Please try again in a moment.", "danger")
-        return redirect(url_for('dashboard.index'))
+        return redirect(url_for('dashboard.index') if user_id else url_for('dashboard.home'))
         
     topic = f"Flashcards on: {topic_or_text[:50]}..."
-    save_resource_to_db(topic, 'flashcard', file_data=None)
+    if user_id:
+        save_resource_to_db(topic, 'flashcard', file_data=None)
     flash("Flashcards generated successfully!", "success")
     return render_template('flashcards.html', flashcards=flashcards_data, sources=sources)
 
 @generation_bp.route('/summarize_text', methods=['POST'])
-@limiter.limit("20 per hour")
-@login_required 
+@limiter.limit(_get_generation_limit, key_func=_get_rate_limit_key)
 def summarize_text():
-    text_to_summarize = _validate_non_empty_text(request.form.get('text', ''), "Text")
-    if text_to_summarize is None:
-        return redirect(url_for('dashboard.index'))
-        
     user_id = session.get('user_id')
     ks_id = request.form.get('knowledge_source_id')
+
+    if not user_id and ks_id:
+        flash("Sign up to use your own documents with AI.", "warning")
+        return redirect(url_for('auth.signup'))
+
+    text_to_summarize = _validate_non_empty_text(request.form.get('text', ''), "Text")
+    if text_to_summarize is None:
+        return redirect(url_for('dashboard.index') if user_id else url_for('dashboard.home'))
+        
     rag_context, sources = _get_rag_context_and_sources(user_id, text_to_summarize, ks_id)
 
     summary = gemini.generate_summary(text_to_summarize, rag_context=rag_context)
     
     if not summary:
         flash("We couldn't generate a summary right now. Please try again in a moment.", "danger")
-        return redirect(url_for('dashboard.index'))
+        return redirect(url_for('dashboard.index') if user_id else url_for('dashboard.home'))
     summary = gemini.clean_generated_text(summary)
         
     topic = f"Summary of: {text_to_summarize[:50]}..."
-    save_resource_to_db(topic, 'summary', file_data=None)
+    if user_id:
+        save_resource_to_db(topic, 'summary', file_data=None)
     flash("Summary generated successfully!", "success")
     return render_template('summary.html', summary_text=summary, sources=sources)

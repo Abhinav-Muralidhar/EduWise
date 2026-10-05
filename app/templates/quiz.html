@@ -6,8 +6,10 @@
     <div class="max-w-3xl mx-auto px-6">
         
         <!-- Header -->
-        <div class="mb-10 animate-enter">
-            <p class="label-caps mb-2"><i class="fas fa-circle text-[5px] mr-1" style="color: var(--sage);"></i> Quiz</p>
+        <div class="mb-8 animate-enter">
+            <a href="{{ url_for('dashboard.index') if session.user_id else url_for('dashboard.home') }}" class="text-[13px] font-medium inline-flex items-center gap-2 mb-3 transition-colors hover:underline" style="color: var(--text-muted);">
+                <i class="fas fa-arrow-left text-[9px]"></i> {{ 'Back to dashboard' if session.user_id else 'Back to home' }}
+            </a>
             <h1 class="text-[28px] font-semibold tracking-tight mb-1" style="color: var(--text-primary);">{{ topic or 'Generated Challenge' }}</h1>
             <p class="text-[13px]" style="color: var(--text-muted);">{{ questions|length }} questions</p>
             {% if sources %}
@@ -16,6 +18,24 @@
             </div>
             {% endif %}
         </div>
+
+        {% if not session.user_id %}
+        <!-- Guest Notice / Soft Nudge -->
+        <div class="mb-8 p-4 rounded-xl border flex items-center justify-between gap-4 animate-enter" style="background: var(--accent-surface); border-color: rgba(67,97,238,0.2);">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: var(--accent); color: white;">
+                    <i class="fas fa-user-clock text-xs"></i>
+                </div>
+                <div>
+                    <p class="text-[13px] font-semibold" style="color: var(--text-primary);">Guest Mode</p>
+                    <p class="text-[11px]" style="color: var(--text-secondary);">Your quiz is active in this session. <a href="{{ url_for('auth.signup') }}" class="font-bold underline" style="color: var(--accent);">Sign up</a> to save quiz history and study analytics.</p>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.signup') }}" class="btn-primary !py-1.5 !px-3 text-xs hidden sm:inline-flex whitespace-nowrap">
+                Sign up free
+            </a>
+        </div>
+        {% endif %}
 
         <form method="POST" action="{{ url_for('generation.submit_quiz') }}" class="space-y-6">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>

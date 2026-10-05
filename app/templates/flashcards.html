@@ -7,8 +7,8 @@
         
         <!-- Header -->
         <div class="flex items-center justify-between mb-4 animate-enter">
-            <a href="{{ url_for('dashboard.index') }}" class="text-[13px] font-medium flex items-center gap-2 transition-colors" style="color: var(--text-muted);">
-                <i class="fas fa-arrow-left text-[9px]"></i> Back
+            <a href="{{ url_for('dashboard.index') if session.user_id else url_for('dashboard.home') }}" class="text-[13px] font-medium flex items-center gap-2 transition-colors hover:underline" style="color: var(--text-muted);">
+                <i class="fas fa-arrow-left text-[9px]"></i> {{ 'Back' if session.user_id else 'Back to home' }}
             </a>
             <span class="label-caps" id="cardCounter">Card 1 of {{ flashcards|length }}</span>
         </div>
@@ -17,6 +17,24 @@
             <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[12px] font-medium" style="background: var(--surface-card); border-color: var(--border); color: var(--plum);">
                 <i class="fas fa-book-bookmark text-[11px]"></i> Grounded in: {{ sources | join(', ') }}
             </div>
+        </div>
+        {% endif %}
+
+        {% if not session.user_id %}
+        <!-- Guest Notice / Soft Nudge -->
+        <div class="mb-6 p-4 rounded-xl border flex items-center justify-between gap-4 animate-enter" style="background: var(--plum-surface); border-color: rgba(112,72,232,0.2);">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: var(--plum); color: white;">
+                    <i class="fas fa-user-clock text-xs"></i>
+                </div>
+                <div>
+                    <p class="text-[13px] font-semibold" style="color: var(--text-primary);">Guest Deck Preview</p>
+                    <p class="text-[11px]" style="color: var(--text-secondary);"><a href="{{ url_for('auth.signup') }}" class="font-bold underline" style="color: var(--plum);">Sign up free</a> to save this deck to your library and study on any device.</p>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.signup') }}" class="btn-primary !py-1.5 !px-3 text-xs hidden sm:inline-flex whitespace-nowrap" style="background: var(--plum);">
+                Sign up
+            </a>
         </div>
         {% endif %}
 

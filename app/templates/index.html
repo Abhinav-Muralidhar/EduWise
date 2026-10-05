@@ -41,6 +41,7 @@
                 <span class="text-[16px] font-semibold tracking-tight" style="color: var(--text-primary);">EduWise</span>
             </a>
             <div class="flex items-center gap-4">
+                <a href="#quick-try" class="text-[13px] font-medium transition-colors hidden sm:block hover:underline" style="color: var(--accent);">Try as Guest</a>
                 {% if session.user_id %}
                     <a href="{{ url_for('dashboard.index') }}" class="btn-soft text-[13px] py-2 px-5">Dashboard</a>
                 {% else %}
@@ -52,72 +53,126 @@
     </nav>
 
     <!-- Hero -->
-    <section class="py-24 px-6">
+    <section class="py-20 sm:py-24 px-6">
         <div class="max-w-5xl mx-auto flex flex-col lg:flex-row items-center gap-16">
             <div class="flex-1 max-w-xl animate-enter">
-                <p class="text-[11px] font-bold uppercase tracking-[0.15em] mb-4" style="color: var(--accent);">
-                    <i class="fas fa-circle text-[5px] mr-1.5"></i> AI-Powered Study Tools
-                </p>
-                <h1 class="text-[32px] font-semibold leading-tight mb-6" style="color: var(--text-primary); letter-spacing: -0.02em;">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase mb-4"
+                     style="background: var(--accent-surface); color: var(--accent);">
+                    <i class="fas fa-sparkles text-[10px]"></i> AI-Powered Study Studio
+                </div>
+                <h1 class="text-[36px] sm:text-[42px] font-semibold leading-tight mb-6" style="color: var(--text-primary); letter-spacing: -0.02em;">
                     Study smarter.<br>Retain more.
                 </h1>
                 <p class="text-[15px] leading-relaxed mb-8" style="color: var(--text-secondary);">
-                    EduWise transforms your lecture notes and topics into comprehensive study materials. Generate decks, summaries, and adaptive quizzes in seconds.
+                    EduWise transforms topics and course materials into interactive study guides. Generate quizzes, flashcards, explanations, and summaries in seconds.
                 </p>
-                <div class="flex flex-wrap gap-3">
+                <div class="flex flex-wrap items-center gap-3">
                     <a href="{{ url_for('auth.signup') }}" class="btn-primary py-3 px-8">
-                        Get started <i class="fas fa-arrow-right text-[10px] ml-1"></i>
+                        Get started free <i class="fas fa-arrow-right text-[10px] ml-1"></i>
                     </a>
-                    <a href="#tools" class="btn-ghost py-3 px-8" style="border: 1px solid var(--border);">
-                        See the tools
+                    <a href="#quick-try" class="btn-ghost py-3 px-8 flex items-center gap-2" style="border: 1px solid var(--border);">
+                        <i class="fas fa-bolt text-accent text-xs"></i> Try without an account
                     </a>
                 </div>
             </div>
             
             <!-- Dashboard Mockup -->
             <div class="flex-1 w-full hidden lg:block animate-enter" style="animation-delay: 200ms;">
-                <div class="studio-card p-6 overflow-hidden">
-                    <div class="flex items-center justify-between mb-8">
-                        <div class="h-4 w-32 rounded" style="background: var(--surface-raised);"></div>
-                        <div class="flex gap-2">
-                            <div class="h-6 w-6 rounded-full" style="background: var(--surface-raised);"></div>
-                            <div class="h-6 w-12 rounded" style="background: var(--surface-raised);"></div>
+                <div class="studio-card p-6 overflow-hidden shadow-lg">
+                    <div class="flex items-center justify-between mb-6 pb-4 border-b" style="border-color: var(--border);">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full" style="background: var(--accent);"></span>
+                            <span class="text-xs font-semibold" style="color: var(--text-primary);">EduWise Study Studio</span>
+                        </div>
+                        <span class="text-[10px] px-2 py-0.5 rounded-md font-semibold" style="background: var(--accent-surface); color: var(--accent);">RAG Ready</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 mb-6">
+                        <div class="p-4 rounded-xl border flex flex-col justify-between h-24" style="background: var(--surface-page); border-color: var(--border);">
+                            <i class="fas fa-puzzle-piece text-sm" style="color: var(--sage);"></i>
+                            <span class="text-xs font-semibold" style="color: var(--text-primary);">Smart Quiz</span>
+                        </div>
+                        <div class="p-4 rounded-xl border flex flex-col justify-between h-24" style="background: var(--surface-page); border-color: var(--border);">
+                            <i class="fas fa-layer-group text-sm" style="color: var(--plum);"></i>
+                            <span class="text-xs font-semibold" style="color: var(--text-primary);">Flashcards</span>
+                        </div>
+                        <div class="p-4 rounded-xl border flex flex-col justify-between h-24" style="background: var(--surface-page); border-color: var(--border);">
+                            <i class="fas fa-brain text-sm" style="color: var(--amber);"></i>
+                            <span class="text-xs font-semibold" style="color: var(--text-primary);">AI Explain</span>
                         </div>
                     </div>
-                    <div class="grid grid-cols-3 gap-4 mb-8">
-                        <div class="h-24 rounded-lg" style="background: var(--accent-surface); border: 1px solid rgba(67,97,238,0.15);"></div>
-                        <div class="h-24 rounded-lg" style="background: var(--surface-raised); border: 1px solid var(--border);"></div>
-                        <div class="h-24 rounded-lg" style="background: var(--surface-raised); border: 1px solid var(--border);"></div>
-                    </div>
-                    <div class="space-y-3">
-                        <div class="h-10 rounded-lg w-full" style="background: var(--surface-raised); border: 1px solid var(--border);"></div>
-                        <div class="h-10 rounded-lg w-full" style="background: var(--surface-raised); border: 1px solid var(--border);"></div>
-                        <div class="h-10 rounded-lg w-3/4" style="background: var(--surface-raised); border: 1px solid var(--border);"></div>
+                    <div class="p-4 rounded-xl" style="background: var(--surface-page); border: 1px solid var(--border);">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="fas fa-check-circle text-xs" style="color: var(--sage);"></i>
+                            <span class="text-[12px] font-semibold" style="color: var(--text-primary);">Interactive Retrieval</span>
+                        </div>
+                        <p class="text-[11px]" style="color: var(--text-muted);">Grounded generation with strict source citations.</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- How it Works -->
-    <section class="py-20" style="background: var(--surface-card);">
-        <div class="max-w-5xl mx-auto px-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
-                <div class="space-y-4 animate-enter">
-                    <span class="text-[11px] font-bold tracking-[0.2em] uppercase" style="color: var(--accent);">01</span>
-                    <h3 class="text-[17px] font-semibold" style="color: var(--text-primary);">Input Source</h3>
-                    <p class="text-[14px] leading-relaxed">Paste your notes or upload a PDF. EduWise understands context instantly.</p>
+    <!-- Quick Try (Guest Mode Studio) -->
+    <section id="quick-try" class="py-20 px-6 border-t border-b" style="background: var(--surface-card); border-color: var(--border);">
+        <div class="max-w-3xl mx-auto">
+            <div class="text-center mb-8 animate-enter">
+                <span class="label-caps mb-2 block" style="color: var(--accent);">Guest Mode</span>
+                <h2 class="text-[26px] font-bold tracking-tight mb-2" style="color: var(--text-primary);">Try EduWise Instantly</h2>
+                <p class="text-[14px]" style="color: var(--text-secondary);">No account or credit card required. Pick a tool and enter any study topic.</p>
+            </div>
+
+            <div class="studio-card p-6 sm:p-8 shadow-md">
+                <!-- Tool Switcher Tabs -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6 p-1 rounded-xl" style="background: var(--surface-page); border: 1px solid var(--border);">
+                    <button type="button" onclick="selectGuestTool('quiz')" id="tab-quiz" class="guest-tab active py-2.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all">
+                        <i class="fas fa-puzzle-piece" style="color: var(--sage);"></i> Quiz
+                    </button>
+                    <button type="button" onclick="selectGuestTool('flashcards')" id="tab-flashcards" class="guest-tab py-2.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all text-text-muted hover:text-text-primary">
+                        <i class="fas fa-layer-group" style="color: var(--plum);"></i> Flashcards
+                    </button>
+                    <button type="button" onclick="selectGuestTool('explain')" id="tab-explain" class="guest-tab py-2.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all text-text-muted hover:text-text-primary">
+                        <i class="fas fa-brain" style="color: var(--amber);"></i> Explain
+                    </button>
+                    <button type="button" onclick="selectGuestTool('summarize')" id="tab-summarize" class="guest-tab py-2.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all text-text-muted hover:text-text-primary">
+                        <i class="fas fa-compress-alt" style="color: var(--sky);"></i> Summary
+                    </button>
                 </div>
-                <div class="space-y-4 animate-enter" style="animation-delay: 100ms;">
-                    <span class="text-[11px] font-bold tracking-[0.2em] uppercase" style="color: var(--accent);">02</span>
-                    <h3 class="text-[17px] font-semibold" style="color: var(--text-primary);">AI Synthesis</h3>
-                    <p class="text-[14px] leading-relaxed">Our models extract key concepts and structure them for optimal retention.</p>
-                </div>
-                <div class="space-y-4 animate-enter" style="animation-delay: 200ms;">
-                    <span class="text-[11px] font-bold tracking-[0.2em] uppercase" style="color: var(--accent);">03</span>
-                    <h3 class="text-[17px] font-semibold" style="color: var(--text-primary);">Active Review</h3>
-                    <p class="text-[14px] leading-relaxed">Master the material through flashcards, quizzes, and high-fidelity notes.</p>
-                </div>
+
+                <!-- Guest Form -->
+                <form id="guest-generate-form" method="POST" action="{{ url_for('generation.generate_quiz') }}" class="space-y-4">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    
+                    <div>
+                        <label id="guest-input-label" for="guest-input" class="label-caps block mb-2">What should this quiz focus on?</label>
+                        <div id="single-input-wrapper">
+                            <input type="text" 
+                                   id="guest-input"
+                                   name="topic" 
+                                   required 
+                                   maxlength="200" 
+                                   class="studio-input py-3" 
+                                   placeholder="e.g. Photosynthesis, Machine Learning, French Revolution...">
+                        </div>
+                        <div id="textarea-input-wrapper" class="hidden">
+                            <textarea id="guest-textarea"
+                                      name="text" 
+                                      rows="4" 
+                                      class="studio-input py-3 resize-none" 
+                                      placeholder="Paste any article, excerpt, or notes to summarize..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+                        <div class="flex items-center gap-2 text-[12px]" style="color: var(--text-muted);">
+                            <i class="fas fa-info-circle text-xs" style="color: var(--accent);"></i>
+                            <span>Results are previewed instantly in this session.</span>
+                        </div>
+                        <button type="submit" id="guest-submit-btn" class="btn-primary w-full sm:w-auto py-2.5 px-7 flex items-center justify-center gap-2">
+                            <span id="guest-btn-text">Generate Quiz</span>
+                            <i class="fas fa-arrow-right text-xs"></i>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </section>
@@ -127,28 +182,42 @@
         <div class="max-w-5xl mx-auto">
             <div class="flex items-center justify-center gap-4 mb-14">
                 <div class="h-px w-8" style="background: var(--border-strong);"></div>
-                <span class="label-caps">The Toolkit</span>
+                <span class="label-caps">The Complete Toolkit</span>
                 <div class="h-px w-8" style="background: var(--border-strong);"></div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {% set tools = [
-                    ('fa-file-powerpoint', 'Presentations', 'Generate structured slide decks with key takeaways and visual spacing.', '--accent-surface', '--accent'),
-                    ('fa-file-pdf', 'Study Notes', 'Create comprehensive, formatted PDFs optimized for reading.', '--coral-surface', '--coral'),
-                    ('fa-puzzle-piece', 'Adaptive Quizzes', 'Test yourself with questions tailored to your specific input.', '--sage-surface', '--sage'),
-                    ('fa-layer-group', 'Smart Flashcards', 'Digital cards for active recall and spaced repetition study.', '--plum-surface', '--plum'),
-                    ('fa-brain', 'Concept Explainer', 'Simplify dense topics into clear, easy-to-follow explanations.', '--amber-surface', '--amber'),
-                    ('fa-compress-alt', 'Summarizer', 'Condense long articles or chapters into high-value summaries.', '--sky-surface', '--sky'),
+                    ('fa-puzzle-piece', 'Smart Quizzes', 'Generate multiple-choice challenges tailored to any topic.', '--sage-surface', '--sage', 'quiz', True),
+                    ('fa-layer-group', 'Interactive Flashcards', 'Digital flashcard decks for active recall & spaced repetition.', '--plum-surface', '--plum', 'flashcards', True),
+                    ('fa-brain', 'Concept Explainer', 'Clear, conversational explanations with spoken audio playback.', '--amber-surface', '--amber', 'explain', True),
+                    ('fa-compress-alt', 'Smart Summarizer', 'Condense long articles or chapters into high-value key takeaways.', '--sky-surface', '--sky', 'summarize', True),
+                    ('fa-file-powerpoint', 'Presentations (PPTX)', 'Generate beautifully designed PowerPoint decks ready for class.', '--accent-surface', '--accent', 'pptx', False),
+                    ('fa-file-pdf', 'Study Notes (PDF)', 'Comprehensive study guides and PDFs with custom typography.', '--coral-surface', '--coral', 'pdf', False),
                 ] %}
-                {% for icon, title, desc, bg, fg in tools %}
+                {% for icon, title, desc, bg, fg, tool_id, is_guest in tools %}
                 <div class="studio-card studio-card-lift p-7 flex flex-col animate-enter" {{ ('style="animation-delay: ' ~ (loop.index0 * 60) ~ 'ms;"')|safe }}>
-                    <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-5" {{ ('style="background: var(' ~ bg ~ '); color: var(' ~ fg ~ ');"')|safe }}>
-                        <i class="fas {{ icon }}"></i>
+                    <div class="flex items-center justify-between mb-5">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center" {{ ('style="background: var(' ~ bg ~ '); color: var(' ~ fg ~ ');"')|safe }}>
+                            <i class="fas {{ icon }}"></i>
+                        </div>
+                        {% if is_guest %}
+                        <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style="background: var(--accent-surface); color: var(--accent);">Guest Free</span>
+                        {% else %}
+                        <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style="background: var(--surface-raised); color: var(--text-muted);">Account Req.</span>
+                        {% endif %}
                     </div>
                     <h4 class="text-[16px] font-semibold mb-2" style="color: var(--text-primary);">{{ title }}</h4>
                     <p class="text-[13px] leading-relaxed mb-6 flex-grow">{{ desc }}</p>
+                    
+                    {% if is_guest %}
+                    <button type="button" onclick="selectGuestTool('{{ tool_id }}'); document.getElementById('quick-try').scrollIntoView({behavior: 'smooth'});" class="text-[13px] font-semibold flex items-center gap-1.5 hover:gap-2.5 transition-all text-left" {{ ('style="color: var(' ~ fg ~ ');"')|safe }}>
+                        Try now <i class="fas fa-arrow-right text-[9px]"></i>
+                    </button>
+                    {% else %}
                     <a href="{{ url_for('auth.signup') }}" class="text-[13px] font-semibold flex items-center gap-1.5 hover:gap-2.5 transition-all" {{ ('style="color: var(' ~ fg ~ ');"')|safe }}>
-                        Try it <i class="fas fa-arrow-right text-[9px]"></i>
+                        Create account to use <i class="fas fa-arrow-right text-[9px]"></i>
                     </a>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
@@ -164,7 +233,7 @@
                 </div>
                 <span class="font-semibold text-sm" style="color: var(--text-primary);">EduWise</span>
             </div>
-            <p class="text-xs" style="color: var(--text-muted);">&copy; 2025 EduWise &middot; Built with intention.</p>
+            <p class="text-xs" style="color: var(--text-muted);">&copy; <script>document.write(new Date().getFullYear())</script> EduWise &middot; Built with intention.</p>
             <div class="flex gap-5 text-xs">
                 <a href="#" class="hover:underline" style="color: var(--text-muted);">Privacy</a>
                 <a href="#" class="hover:underline" style="color: var(--text-muted);">Terms</a>
@@ -172,5 +241,104 @@
         </div>
     </footer>
 
+    <style>
+    .guest-tab.active {
+        background: var(--surface-card);
+        color: var(--text-primary);
+        box-shadow: var(--shadow-sm);
+    }
+    </style>
+
+    <script>
+    const toolConfigs = {
+        'quiz': {
+            action: "{{ url_for('generation.generate_quiz') }}",
+            label: "What should this quiz focus on?",
+            placeholder: "e.g. Cellular Respiration, History of Rome, Neural Networks...",
+            btnText: "Generate Quiz",
+            isTextarea: false,
+            inputName: "topic"
+        },
+        'flashcards': {
+            action: "{{ url_for('generation.generate_flashcards') }}",
+            label: "What topic should flashcards cover?",
+            placeholder: "e.g. Organic Chemistry Functional Groups, Spanish Vocab...",
+            btnText: "Generate Flashcards",
+            isTextarea: false,
+            inputName: "topic_or_text"
+        },
+        'explain': {
+            action: "{{ url_for('generation.present') }}",
+            label: "What concept should I explain?",
+            placeholder: "e.g. Quantum Entanglement, Black-Scholes Formula...",
+            btnText: "Explain Topic",
+            isTextarea: false,
+            inputName: "topic"
+        },
+        'summarize': {
+            action: "{{ url_for('generation.summarize_text') }}",
+            label: "Paste text or article to summarize",
+            placeholder: "Paste your article, paper excerpt, or textbook notes here...",
+            btnText: "Generate Summary",
+            isTextarea: true,
+            inputName: "text"
+        }
+    };
+
+    function selectGuestTool(toolKey) {
+        const config = toolConfigs[toolKey] || toolConfigs['quiz'];
+        const form = document.getElementById('guest-generate-form');
+        const label = document.getElementById('guest-input-label');
+        const btnText = document.getElementById('guest-btn-text');
+        const singleWrapper = document.getElementById('single-input-wrapper');
+        const textWrapper = document.getElementById('textarea-input-wrapper');
+        const singleInput = document.getElementById('guest-input');
+        const textInput = document.getElementById('guest-textarea');
+
+        // Update tabs
+        document.querySelectorAll('.guest-tab').forEach(t => {
+            t.classList.remove('active');
+            t.classList.add('text-text-muted');
+        });
+        const activeTab = document.getElementById('tab-' + toolKey);
+        if (activeTab) {
+            activeTab.classList.add('active');
+            activeTab.classList.remove('text-text-muted');
+        }
+
+        // Update form action and inputs
+        form.action = config.action;
+        label.textContent = config.label;
+        btnText.textContent = config.btnText;
+
+        if (config.isTextarea) {
+            singleWrapper.classList.add('hidden');
+            textWrapper.classList.remove('hidden');
+            singleInput.removeAttribute('required');
+            textInput.setAttribute('required', 'required');
+            textInput.name = config.inputName;
+            textInput.placeholder = config.placeholder;
+        } else {
+            textWrapper.classList.add('hidden');
+            singleWrapper.classList.remove('hidden');
+            textInput.removeAttribute('required');
+            singleInput.setAttribute('required', 'required');
+            singleInput.name = config.inputName;
+            singleInput.placeholder = config.placeholder;
+        }
+    }
+
+    // Submit state
+    const guestForm = document.getElementById('guest-generate-form');
+    const guestBtn = document.getElementById('guest-submit-btn');
+    const guestBtnText = document.getElementById('guest-btn-text');
+    if (guestForm && guestBtn) {
+        guestForm.addEventListener('submit', function() {
+            guestBtn.disabled = true;
+            guestBtn.style.opacity = '0.85';
+            guestBtnText.innerHTML = '<i class="fas fa-circle-notch fa-spin text-xs"></i> Generating...';
+        });
+    }
+    </script>
 </body>
 </html>

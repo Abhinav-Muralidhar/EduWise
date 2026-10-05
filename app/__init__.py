@@ -10,11 +10,16 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
+    # Enable ProxyFix for deployment behind reverse proxies (e.g. Render)
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
     # Initialize extensions
     from app.extensions import db, csrf, limiter, scheduler, migrate
     db.init_app(app)
     migrate.init_app(app, db)
     csrf.init_app(app)
+    limiter.init_app(app)
     if not app.config.get('TESTING') and not scheduler.running:
         try:
             scheduler.init_app(app)
