@@ -286,11 +286,14 @@
             <div>
                 <label class="label-caps block mb-1.5">Select File (PDF, DOCX, TXT)</label>
                 <input type="file" name="file" required accept=".pdf,.docx,.txt"
+                       data-supported-types=".pdf,.docx,.txt"
+                       data-max-size="{{ config.MAX_CONTENT_LENGTH }}"
                        class="studio-input text-[13px] file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-[12px] file:font-semibold file:cursor-pointer"
                        style="padding: 8px 12px;">
                 <p class="mt-2 text-[11px]" style="color: var(--text-muted);">
-                    EduWise will chunk, index, and generate embeddings for RAG retrieval automatically.
+                    Supported files: PDF, DOCX, TXT. Max size: {{ (config.MAX_CONTENT_LENGTH / (1024 * 1024)) | round(0, 'common') | int }} MB.
                 </p>
+                <p data-upload-feedback class="hidden mt-2 text-[11px] font-medium"></p>
             </div>
             <div class="pt-2 space-y-2">
                 <button type="submit" class="btn-primary w-full">
@@ -824,12 +827,13 @@
             return true;
         }
 
-        const supportedTypes = (input.dataset.supportedTypes || '')
+        const rawSupported = input.dataset.supportedTypes || input.getAttribute('accept') || '.pdf,.docx,.txt';
+        const supportedTypes = rawSupported
             .split(',')
             .map(item => item.trim().toLowerCase())
             .filter(Boolean);
         const fileName = file.name.toLowerCase();
-        const hasValidExtension = supportedTypes.some(ext => fileName.endsWith(ext));
+        const hasValidExtension = supportedTypes.length === 0 || supportedTypes.some(ext => fileName.endsWith(ext));
         const maxSize = Number(input.dataset.maxSize || 0);
 
         if (!hasValidExtension) {
@@ -854,19 +858,19 @@
     }
 
     function initializeModalValidation() {
-        const quizFileInput = modalContent.querySelector('input[type="file"][name="file"]');
-        if (!quizFileInput) return;
-
-        quizFileInput.addEventListener('change', () => validateQuizUpload(quizFileInput));
-
-        const quizForm = quizFileInput.closest('form');
-        if (quizForm) {
-            quizForm.addEventListener('submit', (event) => {
-                if (!validateQuizUpload(quizFileInput)) {
-                    event.preventDefault();
-                }
-            });
-        }
+        const fileInputs = modalContent.querySelectorAll('input[type="file"]');
+        fileInputs.forEach(fileInput => {
+            fileInput.addEventListener('change', () => validateQuizUpload(fileInput));
+            const form = fileInput.closest('form');
+            if (form && !form.dataset.validationBound) {
+                form.dataset.validationBound = 'true';
+                form.addEventListener('submit', (event) => {
+                    if (!validateQuizUpload(fileInput)) {
+                        event.preventDefault();
+                    }
+                });
+            }
+        });
     }
 
     function hideLoading() {

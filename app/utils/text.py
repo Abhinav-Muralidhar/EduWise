@@ -14,7 +14,13 @@ def extract_text(file_storage):
             doc = docx.Document(file_storage)
             return "\n".join([p.text for p in doc.paragraphs])
         elif filename.endswith(".txt"):
-            return file_storage.read().decode("utf-8")
+            content = file_storage.read()
+            for encoding in ('utf-8', 'utf-8-sig', 'latin-1', 'cp1252'):
+                try:
+                    return content.decode(encoding)
+                except UnicodeDecodeError:
+                    continue
+            return content.decode('utf-8', errors='ignore')
     except Exception as e:
         current_app.logger.exception("Error extracting text: %s", e)
     return ""
