@@ -1,14 +1,12 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response, send_file, session, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response, send_file, session, jsonify, current_app
 from werkzeug.utils import secure_filename
 from app.utils.decorators import login_required
-from app.utils.text import extract_text
 from app.utils.resource_helper import save_resource_to_db
 from app.services import gemini, pptx_builder, pdf_builder
 from app.services.retrieval import get_relevant_chunks
 from app.extensions import limiter
 
 generation_bp = Blueprint('generation', __name__)
-ALLOWED_UPLOAD_EXTENSIONS = {'.pdf', '.docx', '.txt'}
 
 
 def _is_fetch_request():
@@ -28,21 +26,6 @@ def _validate_non_empty_text(value, field_name):
         flash(f"{field_name} is required.", "danger")
         return None
     return cleaned
-
-
-def _validate_upload(uploaded_file):
-    if not uploaded_file or uploaded_file.filename == '':
-        return None
-
-    filename = secure_filename(uploaded_file.filename)
-    ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
-    ext = f'.{ext}' if ext else ''
-
-    if ext not in ALLOWED_UPLOAD_EXTENSIONS:
-        flash("Unsupported file type. Please upload a PDF, DOCX, or TXT file.", "danger")
-        return False
-
-    return filename
 
 
 def _get_rag_context_and_sources(user_id, query_text, knowledge_source_id=None):
@@ -254,47 +237,26 @@ def present():
 @limiter.limit("20 per hour")
 @login_required 
 def generate_quiz():
-    topic_manual = request.form.get('topic_manual')
-    uploaded_file = request.files.get('file')
+    topic = _validate_non_empty_text(
+        request.form.get('topic') or request.form.get('topic_manual'),
+        "Topic"
+    )
+    if topic is None:
+        return redirect(url_for('dashboard.index'))
+        
     ks_id = request.form.get('knowledge_source_id')
     user_id = session.get('user_id')
     
-    content_source = ""
-    source_filename = "Knowledge Source"
     rag_context = None
     sources = []
 
-    validated_filename = _validate_upload(uploaded_file)
-    if validated_filename is False:
-        return redirect(url_for('dashboard.index'))
+    # If Knowledge Source is selected, retrieve relevant chunks for the topic
+    if ks_id:
+        rag_context, sources = _get_rag_context_and_sources(user_id, topic, ks_id)
 
-    if validated_filename:
-        content_source = extract_text(uploaded_file)
-        source_filename = validated_filename
-        if not content_source:
-            flash("Could not extract text from the uploaded file.", "danger")
-            return redirect(url_for('dashboard.index'))
-    elif ks_id:
-        query = topic_manual or "Key concepts and study definitions"
-        rag_context, sources = _get_rag_context_and_sources(user_id, query, ks_id)
-        if rag_context:
-            content_source = rag_context
-            source_filename = sources[0] if sources else "Knowledge Base"
-        elif topic_manual and topic_manual.strip():
-            content_source = f"The topic is: {topic_manual}."
-            source_filename = topic_manual
-        else:
-            flash("Could not retrieve content from the selected knowledge source.", "warning")
-            return redirect(url_for('dashboard.index'))
-    elif topic_manual and topic_manual.strip():
-        content_source = f"The topic is: {topic_manual}."
-        source_filename = topic_manual
-    else:
-        flash("Please provide either a Topic, a File, or select a Knowledge Source.", "warning")
-        return redirect(url_for('dashboard.index'))
-
+    # Generate quiz questions (grounded if rag_context present)
     session.pop('questions', None)
-    questions = gemini.generate_quiz_content(content_source, rag_context=rag_context)
+    questions = gemini.generate_quiz_content(topic, rag_context=rag_context)
     
     if not questions:
         flash("We couldn't generate a quiz right now. Please try again in a moment.", "warning")
@@ -306,7 +268,7 @@ def generate_quiz():
         q['correct_index'] = q.get('correct_index', q.get('answer_index'))
         
     session['questions'] = questions
-    quiz_topic = f"Quiz: {secure_filename(source_filename)}"
+    quiz_topic = f"Quiz: {topic}"
     save_resource_to_db(quiz_topic, 'quiz', file_data=None)
     
     flash("Quiz generated successfully!", "success")

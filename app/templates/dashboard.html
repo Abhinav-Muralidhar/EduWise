@@ -622,56 +622,31 @@
             </div>
             <div>
                 <h3 class="text-[16px] font-semibold" style="color: var(--text-primary);">Smart Quiz</h3>
-                <p class="text-[12px]" style="color: var(--text-muted);">Topic-based or from your knowledge base</p>
+                <p class="text-[12px]" style="color: var(--text-muted);">Topic-based or grounded on your knowledge base</p>
             </div>
         </div>
-        <form method="post" enctype="multipart/form-data" action="{{ url_for('generation.generate_quiz') }}" class="space-y-4">
+        <form method="post" action="{{ url_for('generation.generate_quiz') }}" class="space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             
+            <div>
+                <label class="label-caps block mb-1.5">What should this quiz focus on?</label>
+                <input type="text" name="topic" required placeholder="e.g. Cellular Respiration, History of Rome..." class="studio-input">
+            </div>
+
             {% if knowledge_sources %}
             <div>
                 <label class="label-caps block mb-1.5 flex items-center justify-between">
-                    <span>Ground with Knowledge Base</span>
-                    <span style="color: var(--sage); font-size: 10px;"><i class="fas fa-sparkles mr-1"></i>RAG Ready</span>
+                    <span>Knowledge Source</span>
+                    <span style="color: var(--sage); font-size: 10px;"><i class="fas fa-sparkles mr-1"></i>RAG Grounded</span>
                 </label>
                 <select name="knowledge_source_id" class="studio-select">
-                    <option value="">None (Use manual topic or direct upload below)</option>
+                    <option value="">None (General AI Knowledge)</option>
                     {% for ks in knowledge_sources %}
                         <option value="{{ ks.id }}">{{ ks.title }} ({{ ks.chunk_count }} chunks)</option>
                     {% endfor %}
                 </select>
             </div>
-
-            <div class="flex items-center gap-3">
-                <div class="flex-1 h-px" style="background: var(--border);"></div>
-                <span class="text-[10px] font-bold uppercase" style="color: var(--text-ghost);">or direct topic / file</span>
-                <div class="flex-1 h-px" style="background: var(--border);"></div>
-            </div>
             {% endif %}
-
-            <div>
-                <label class="label-caps block mb-1.5">Topic</label>
-                <input type="text" name="topic_manual" placeholder="e.g. History of Rome" class="studio-input">
-            </div>
-
-            <div class="flex items-center gap-3">
-                <div class="flex-1 h-px" style="background: var(--border);"></div>
-                <span class="text-[10px] font-bold uppercase" style="color: var(--text-ghost);">or</span>
-                <div class="flex-1 h-px" style="background: var(--border);"></div>
-            </div>
-
-            <div>
-                <label class="label-caps block mb-1.5">Upload Material</label>
-                <input type="file" name="file" accept=".pdf,.docx,.txt" 
-                       data-supported-types=".pdf,.docx,.txt"
-                       data-max-size="{{ config.MAX_CONTENT_LENGTH }}"
-                       class="studio-input text-[13px] file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-[12px] file:font-semibold file:cursor-pointer"
-                       style="padding: 8px 12px;">
-                <p class="mt-2 text-[11px]" style="color: var(--text-muted);">
-                    Supported files: PDF, DOCX, TXT. Max size: {{ (config.MAX_CONTENT_LENGTH / (1024 * 1024)) | round(0, 'common') | int }} MB.
-                </p>
-                <p data-upload-feedback class="hidden mt-2 text-[11px] font-medium"></p>
-            </div>
             
             <div class="pt-2 space-y-2">
                 <button type="submit" class="btn-primary w-full">

@@ -21,7 +21,8 @@ class Config:
     # Session security
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
-    PERMANENT_SESSION_LIFETIME = 3600  # 1 hour
+    SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "False").lower() in ("true", "1")
+    PERMANENT_SESSION_LIFETIME = int(os.getenv("PERMANENT_SESSION_LIFETIME", 30 * 24 * 3600))  # 30 days for persistent session
     
     # API Keys
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
