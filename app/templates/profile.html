@@ -113,24 +113,48 @@
             <!-- Password Change -->
             <div class="studio-card p-8 animate-enter" style="animation-delay: 200ms;">
                 <h3 class="text-lg font-semibold mb-6 flex items-center gap-2">
-                    <i class="fas fa-lock text-accent"></i> Security
+                    <i class="fas fa-lock text-accent"></i> Security & Password
                 </h3>
                 <form action="{{ url_for('auth.change_password') }}" method="POST" class="space-y-5">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     
                     <div>
-                        <label class="label-caps block mb-2">Current Password</label>
-                        <input type="password" name="current_password" required class="studio-input" placeholder="********">
+                        <label for="current_password" class="label-caps block mb-2">Current Password</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-xs" style="color: var(--text-muted);">
+                                <i class="fas fa-key"></i>
+                            </span>
+                            <input type="password" id="current_password" name="current_password" required class="studio-input pl-10 pr-11" placeholder="Current password">
+                            <button type="button" onclick="toggleField('current_password', 'toggle-current-pw-icon')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-xs" style="color: var(--text-muted);" aria-label="Toggle password">
+                                <i class="fas fa-eye" id="toggle-current-pw-icon"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
-                            <label class="label-caps block mb-2">New Password</label>
-                            <input type="password" name="new_password" required minlength="8" class="studio-input" placeholder="New password">
+                            <label for="new_password" class="label-caps block mb-2">New Password</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-xs" style="color: var(--text-muted);">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                <input type="password" id="new_password" name="new_password" required minlength="8" class="studio-input pl-10 pr-11" placeholder="Min 8 characters">
+                                <button type="button" onclick="toggleField('new_password', 'toggle-new-pw-icon')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-xs" style="color: var(--text-muted);" aria-label="Toggle password">
+                                <i class="fas fa-eye" id="toggle-new-pw-icon"></i>
+                            </button>
+                            </div>
                         </div>
                         <div>
-                            <label class="label-caps block mb-2">Confirm New Password</label>
-                            <input type="password" name="confirm_password" required class="studio-input" placeholder="Confirm new password">
+                            <label for="confirm_password" class="label-caps block mb-2">Confirm New Password</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-xs" style="color: var(--text-muted);">
+                                    <i class="fas fa-shield-alt"></i>
+                                </span>
+                                <input type="password" id="confirm_password" name="confirm_password" required class="studio-input pl-10 pr-11" placeholder="Confirm new password">
+                                <button type="button" onclick="toggleField('confirm_password', 'toggle-confirm-pw-icon')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-xs" style="color: var(--text-muted);" aria-label="Toggle password">
+                                <i class="fas fa-eye" id="toggle-confirm-pw-icon"></i>
+                            </button>
+                            </div>
                         </div>
                     </div>
 
@@ -165,8 +189,16 @@
         <form action="{{ url_for('auth.delete_account') }}" method="POST" class="space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div>
-                <label class="label-caps block mb-2">Confirm with your password</label>
-                <input type="password" name="password" required class="studio-input" placeholder="********">
+                <label for="delete-password" class="label-caps block mb-2">Confirm with your password</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-xs" style="color: var(--text-muted);">
+                        <i class="fas fa-lock"></i>
+                    </span>
+                    <input type="password" id="delete-password" name="password" required class="studio-input pl-10 pr-11" placeholder="••••••••">
+                    <button type="button" onclick="toggleField('delete-password', 'toggle-del-icon')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-xs" style="color: var(--text-muted);" aria-label="Toggle password">
+                        <i class="fas fa-eye" id="toggle-del-icon"></i>
+                    </button>
+                </div>
             </div>
             
             <div class="flex gap-3 pt-2">
@@ -180,6 +212,17 @@
         </form>
     </div>
 </div>
+
+<script>
+function toggleField(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (!input || !icon) return;
+    const isPw = input.type === 'password';
+    input.type = isPw ? 'text' : 'password';
+    icon.className = isPw ? 'fas fa-eye-slash' : 'fas fa-eye';
+}
+</script>
 
 <style>
 .animate-scale { animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }

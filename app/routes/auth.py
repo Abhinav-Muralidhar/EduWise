@@ -19,12 +19,16 @@ auth_bp = Blueprint('auth', __name__)
 def signup():
     if request.method == 'POST':
         username = (request.form.get('username') or '').strip()
-        email = (request.form.get('email') or '').strip()
+        email = (request.form.get('email') or '').strip().lower()
         password = request.form.get('password') or ''
         confirm_password = request.form.get('confirm_password') or ''
 
         if not username or not email or not password:
             flash("Username, email, and password are required.", "danger")
+            return redirect(url_for('auth.signup'))
+
+        if len(username) < 3:
+            flash("Username must be at least 3 characters.", "danger")
             return redirect(url_for('auth.signup'))
 
         if len(password) < 8:
@@ -35,7 +39,11 @@ def signup():
             flash("Passwords do not match.", "danger")
             return redirect(url_for('auth.signup'))
         
-        user_exists = User.query.filter((User.username == username) | (User.email == email)).first()
+        user_exists = User.query.filter(
+            (db.func.lower(User.username) == username.lower()) | 
+            (db.func.lower(User.email) == email)
+        ).first()
+
         if user_exists:
             flash("Username or Email already exists.", "danger")
             return redirect(url_for('auth.signup'))
@@ -60,18 +68,25 @@ def login():
     if request.method == 'POST':
         identifier = (request.form.get('username_or_email') or '').strip()
         password = request.form.get('password') or ''
+        remember = bool(request.form.get('remember_me'))
 
         if not identifier or not password:
             flash("Username/email and password are required.", "danger")
             return render_template('login.html')
         
-        user = User.query.filter((User.username == identifier) | (User.email == identifier)).first()
+        # Case-insensitive lookup for both username and email
+        user = User.query.filter(
+            (db.func.lower(User.username) == identifier.lower()) | 
+            (db.func.lower(User.email) == identifier.lower())
+        ).first()
+
         if user and check_password_hash(user.password, password):
+            session.permanent = remember
             session['user_id'] = user.id
             session['username'] = user.username
             return redirect(url_for('dashboard.index'))
         else:
-            flash("Invalid credentials.", "danger")
+            flash("Invalid username/email or password.", "danger")
     
     return render_template('login.html')
 
@@ -93,8 +108,8 @@ def logout():
 @limiter.limit("5 per hour")
 def forgot_password():
     if request.method == 'POST':
-        email = (request.form.get('email') or '').strip()
-        user = User.query.filter_by(email=email).first()
+        email = (request.form.get('email') or '').strip().lower()
+        user = User.query.filter(db.func.lower(User.email) == email).first()
 
         if user:
             token = secrets.token_urlsafe(32)

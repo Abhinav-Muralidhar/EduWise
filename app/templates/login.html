@@ -3,40 +3,151 @@
 
 {% block content %}
 <div class="min-h-screen flex items-center justify-center pt-24 pb-20 px-6" style="background: var(--surface-page);">
-    <div class="w-full max-w-[400px]">
+    <div class="w-full max-w-[420px]">
         
+        <!-- Header Branding -->
         <div class="text-center mb-8 animate-enter">
-            <h1 class="text-[28px] font-semibold tracking-tight mb-2" style="color: var(--text-primary);">Login</h1>
-            <p class="text-[15px]" style="color: var(--text-secondary);">Welcome back to EduWise.</p>
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4 shadow-sm" style="background: var(--accent-surface); color: var(--accent);">
+                <i class="fas fa-graduation-cap text-xl"></i>
+            </div>
+            <h1 class="text-[26px] font-bold tracking-tight mb-1.5" style="color: var(--text-primary);">Welcome back</h1>
+            <p class="text-[14px]" style="color: var(--text-secondary);">Log in to continue your intelligent learning journey.</p>
         </div>
 
-        <div class="studio-card p-8 animate-enter" style="animation-delay: 80ms;">
-            <form method="POST" action="{{ url_for('auth.login') }}" class="space-y-5">
+        <!-- Login Card -->
+        <div class="studio-card p-8 sm:p-9 animate-enter shadow-lg relative overflow-hidden" style="animation-delay: 80ms;">
+            <form method="POST" action="{{ url_for('auth.login') }}" id="login-form" class="space-y-5">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 
+                <!-- Identifier Field -->
                 <div>
-                    <label class="label-caps block mb-2">Email or Username</label>
-                    <input type="text" name="username_or_email" required maxlength="100" class="studio-input" placeholder="Enter your email">
+                    <label for="username_or_email" class="label-caps block mb-2">Username or Email</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-xs" style="color: var(--text-muted);">
+                            <i class="fas fa-user"></i>
+                        </span>
+                        <input type="text" 
+                               id="username_or_email"
+                               name="username_or_email" 
+                               required 
+                               maxlength="100" 
+                               autofocus
+                               autocomplete="username"
+                               class="studio-input pl-10" 
+                               placeholder="e.g. alex or alex@university.edu">
+                    </div>
                 </div>
 
+                <!-- Password Field -->
                 <div>
                     <div class="flex items-center justify-between mb-2">
-                        <label class="label-caps mb-0">Password</label>
+                        <label for="login-password" class="label-caps mb-0">Password</label>
                         <a href="{{ url_for('auth.forgot_password') }}" class="text-[12px] font-medium hover:underline transition-colors" style="color: var(--accent);">Forgot password?</a>
                     </div>
-                    <input type="password" name="password" required maxlength="100" class="studio-input" placeholder="********">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-xs" style="color: var(--text-muted);">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                        <input type="password" 
+                               id="login-password"
+                               name="password" 
+                               required 
+                               maxlength="100" 
+                               autocomplete="current-password"
+                               class="studio-input pl-10 pr-11" 
+                               placeholder="••••••••">
+                        <button type="button" 
+                                id="toggle-password" 
+                                tabindex="-1"
+                                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-xs transition-colors hover:opacity-100"
+                                style="color: var(--text-muted);" 
+                                aria-label="Toggle password visibility">
+                            <i class="fas fa-eye" id="toggle-icon"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Caps Lock Warning -->
+                    <div id="caps-lock-warning" class="hidden mt-1.5 flex items-center gap-1.5 text-[11px] font-medium animate-enter" style="color: var(--amber);">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Caps Lock is ON</span>
+                    </div>
                 </div>
 
-                <button type="submit" class="btn-primary w-full mt-2">Log in</button>
+                <!-- Remember Me Checkbox -->
+                <div class="flex items-center justify-between pt-1">
+                    <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                        <input type="checkbox" name="remember_me" class="w-4 h-4 rounded cursor-pointer transition" style="accent-color: var(--accent);">
+                        <span class="text-[13px]" style="color: var(--text-secondary);">Remember this device</span>
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="submit-btn" class="btn-primary w-full py-2.5 mt-2 flex items-center justify-center gap-2">
+                    <span id="btn-text">Sign In</span>
+                    <i class="fas fa-arrow-right text-xs transition-transform group-hover:translate-x-0.5"></i>
+                </button>
             </form>
 
             <div class="mt-8 pt-6 text-center" style="border-top: 1px solid var(--border);">
-                <p class="text-[14px]" style="color: var(--text-muted);">
-                    New to EduWise? 
-                    <a href="{{ url_for('auth.signup') }}" class="font-semibold hover:underline" style="color: var(--accent);">Create account</a>
+                <p class="text-[13px]" style="color: var(--text-secondary);">
+                    Don't have an account yet? 
+                    <a href="{{ url_for('auth.signup') }}" class="font-semibold hover:underline ml-1" style="color: var(--accent);">Create account</a>
                 </p>
             </div>
         </div>
+
+        <!-- Trust footer note -->
+        <p class="text-center text-[12px] mt-6" style="color: var(--text-muted);">
+            Protected by end-to-end encryption &middot; EduWise
+        </p>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    const passwordInput = document.getElementById('login-password');
+    const toggleBtn = document.getElementById('toggle-password');
+    const toggleIcon = document.getElementById('toggle-icon');
+    const capsWarning = document.getElementById('caps-lock-warning');
+    const form = document.getElementById('login-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const btnText = document.getElementById('btn-text');
+
+    // Password Show / Hide Toggle
+    if (toggleBtn && passwordInput) {
+        toggleBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const isPassword = passwordInput.type === 'password';
+            passwordInput.type = isPassword ? 'text' : 'password';
+            toggleIcon.className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
+            toggleBtn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+        });
+    }
+
+    // Caps Lock Warning
+    if (passwordInput && capsWarning) {
+        const checkCapsLock = (e) => {
+            if (e.getModifierState && e.getModifierState('CapsLock')) {
+                capsWarning.classList.remove('hidden');
+            } else {
+                capsWarning.classList.add('hidden');
+            }
+        };
+        passwordInput.addEventListener('keydown', checkCapsLock);
+        passwordInput.addEventListener('keyup', checkCapsLock);
+        passwordInput.addEventListener('blur', () => capsWarning.classList.add('hidden'));
+    }
+
+    // Submit loading state
+    if (form && submitBtn) {
+        form.addEventListener('submit', function() {
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.85';
+            btnText.innerHTML = '<i class="fas fa-circle-notch fa-spin text-xs"></i> Signing in...';
+        });
+    }
+})();
+</script>
 {% endblock %}

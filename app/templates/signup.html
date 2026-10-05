@@ -3,60 +3,153 @@
 
 {% block content %}
 <div class="min-h-screen flex items-center justify-center pt-24 pb-20 px-6" style="background: var(--surface-page);">
-    <div class="w-full max-w-[400px]">
+    <div class="w-full max-w-[420px]">
         
+        <!-- Header Branding -->
         <div class="text-center mb-8 animate-enter">
-            <h1 class="text-[28px] font-semibold tracking-tight mb-2" style="color: var(--text-primary);">Create Account</h1>
-            <p class="text-[15px]" style="color: var(--text-secondary);">Join over 1,000 learners today.</p>
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4 shadow-sm" style="background: var(--accent-surface); color: var(--accent);">
+                <i class="fas fa-user-plus text-xl"></i>
+            </div>
+            <h1 class="text-[26px] font-bold tracking-tight mb-1.5" style="color: var(--text-primary);">Create your account</h1>
+            <p class="text-[14px]" style="color: var(--text-secondary);">Unlock AI-powered study guides, flashcards, & smart quizzes.</p>
         </div>
 
-        <div class="studio-card p-8 animate-enter" style="animation-delay: 80ms;">
-            <form method="POST" action="{{ url_for('auth.signup') }}" class="space-y-5">
+        <!-- Signup Card -->
+        <div class="studio-card p-8 sm:p-9 animate-enter shadow-lg relative overflow-hidden" style="animation-delay: 80ms;">
+            <form method="POST" action="{{ url_for('auth.signup') }}" id="signup-form" class="space-y-4">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 
+                <!-- Username Field -->
                 <div>
-                    <label class="label-caps block mb-2">Username</label>
-                    <input type="text" name="username" required maxlength="50" class="studio-input" placeholder="Choose a username">
-                </div>
-
-                <div>
-                    <label class="label-caps block mb-2">Email</label>
-                    <input type="email" name="email" required maxlength="100" class="studio-input" placeholder="you@example.com">
-                </div>
-
-                <div>
-                    <label class="label-caps block mb-2">Password</label>
-                    <input type="password" name="password" id="signup-password" required minlength="8" maxlength="100" class="studio-input" placeholder="Min 8 characters">
-                    <div id="password-strength" class="mt-2 flex gap-1">
-                        <div class="h-1 flex-1 rounded-full transition-colors" style="background: var(--border);"></div>
-                        <div class="h-1 flex-1 rounded-full transition-colors" style="background: var(--border);"></div>
-                        <div class="h-1 flex-1 rounded-full transition-colors" style="background: var(--border);"></div>
-                        <div class="h-1 flex-1 rounded-full transition-colors" style="background: var(--border);"></div>
+                    <label for="signup-username" class="label-caps block mb-1.5">Username</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-xs" style="color: var(--text-muted);">
+                            <i class="fas fa-at"></i>
+                        </span>
+                        <input type="text" 
+                               id="signup-username"
+                               name="username" 
+                               required 
+                               minlength="3"
+                               maxlength="50" 
+                               autofocus
+                               autocomplete="username"
+                               class="studio-input pl-10" 
+                               placeholder="e.g. alexander">
                     </div>
-                    <p id="password-label" class="text-[11px] mt-1" style="color: var(--text-muted);">At least 8 characters required</p>
+                    <p class="text-[11px] mt-1" style="color: var(--text-muted);">Case-insensitive. 3-50 characters.</p>
                 </div>
 
+                <!-- Email Field -->
                 <div>
-                    <label class="label-caps block mb-2">Confirm Password</label>
-                    <input type="password" name="confirm_password" id="signup-confirm" required maxlength="100" class="studio-input" placeholder="Re-enter your password">
+                    <label for="signup-email" class="label-caps block mb-1.5">Email Address</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-xs" style="color: var(--text-muted);">
+                            <i class="fas fa-envelope"></i>
+                        </span>
+                        <input type="email" 
+                               id="signup-email"
+                               name="email" 
+                               required 
+                               maxlength="100" 
+                               autocomplete="email"
+                               class="studio-input pl-10" 
+                               placeholder="you@university.edu">
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div>
+                    <label for="signup-password" class="label-caps block mb-1.5">Password</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-xs" style="color: var(--text-muted);">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                        <input type="password" 
+                               id="signup-password"
+                               name="password" 
+                               required 
+                               minlength="8" 
+                               maxlength="100" 
+                               autocomplete="new-password"
+                               class="studio-input pl-10 pr-11" 
+                               placeholder="Min 8 characters">
+                        <button type="button" 
+                                id="toggle-signup-password" 
+                                tabindex="-1"
+                                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-xs transition-colors hover:opacity-100"
+                                style="color: var(--text-muted);" 
+                                aria-label="Toggle password visibility">
+                            <i class="fas fa-eye" id="toggle-signup-icon"></i>
+                        </button>
+                    </div>
+
+                    <!-- Strength Indicator -->
+                    <div id="password-strength" class="mt-2 flex gap-1.5">
+                        <div class="h-1 flex-1 rounded-full transition-all" style="background: var(--border);"></div>
+                        <div class="h-1 flex-1 rounded-full transition-all" style="background: var(--border);"></div>
+                        <div class="h-1 flex-1 rounded-full transition-all" style="background: var(--border);"></div>
+                        <div class="h-1 flex-1 rounded-full transition-all" style="background: var(--border);"></div>
+                    </div>
+                    <div class="flex items-center justify-between mt-1 text-[11px]">
+                        <span id="password-label" style="color: var(--text-muted);">At least 8 characters required</span>
+                        <span id="caps-warning-pw" class="hidden text-amber font-medium"><i class="fas fa-exclamation-triangle"></i> Caps Lock</span>
+                    </div>
+                </div>
+
+                <!-- Confirm Password Field -->
+                <div>
+                    <label for="signup-confirm" class="label-caps block mb-1.5">Confirm Password</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-xs" style="color: var(--text-muted);">
+                            <i class="fas fa-shield-alt"></i>
+                        </span>
+                        <input type="password" 
+                               id="signup-confirm"
+                               name="confirm_password" 
+                               required 
+                               maxlength="100" 
+                               autocomplete="new-password"
+                               class="studio-input pl-10 pr-11" 
+                               placeholder="Re-enter your password">
+                        <button type="button" 
+                                id="toggle-confirm-password" 
+                                tabindex="-1"
+                                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-xs transition-colors hover:opacity-100"
+                                style="color: var(--text-muted);" 
+                                aria-label="Toggle confirm password visibility">
+                            <i class="fas fa-eye" id="toggle-confirm-icon"></i>
+                        </button>
+                    </div>
                     <p id="match-label" class="text-[11px] mt-1 hidden"></p>
                 </div>
 
-                <div class="flex items-center gap-3">
-                    <input type="checkbox" id="terms" required class="w-4 h-4 rounded cursor-pointer" style="accent-color: var(--accent);">
-                    <label for="terms" class="text-[12px]" style="color: var(--text-muted);">I agree to the <a href="#" class="hover:underline font-medium" style="color: var(--accent);">Terms of Service</a></label>
+                <!-- Terms agreement -->
+                <div class="flex items-start gap-2.5 pt-1">
+                    <input type="checkbox" id="terms" required class="w-4 h-4 mt-0.5 rounded cursor-pointer transition" style="accent-color: var(--accent);">
+                    <label for="terms" class="text-[12px] leading-tight cursor-pointer select-none" style="color: var(--text-secondary);">
+                        I agree to EduWise's <a href="#" class="hover:underline font-semibold" style="color: var(--accent);">Terms</a> and <a href="#" class="hover:underline font-semibold" style="color: var(--accent);">Privacy Policy</a>
+                    </label>
                 </div>
 
-                <button type="submit" class="btn-primary w-full mt-2">Join EduWise</button>
+                <!-- Submit Button -->
+                <button type="submit" id="signup-submit-btn" class="btn-primary w-full py-2.5 mt-2 flex items-center justify-center gap-2">
+                    <span id="signup-btn-text">Create Account</span>
+                    <i class="fas fa-arrow-right text-xs transition-transform group-hover:translate-x-0.5"></i>
+                </button>
             </form>
 
-            <div class="mt-8 pt-6 text-center" style="border-top: 1px solid var(--border);">
-                <p class="text-[14px]" style="color: var(--text-muted);">
-                    Already a member? 
-                    <a href="{{ url_for('auth.login') }}" class="font-semibold hover:underline" style="color: var(--accent);">Log in</a>
+            <div class="mt-7 pt-6 text-center" style="border-top: 1px solid var(--border);">
+                <p class="text-[13px]" style="color: var(--text-secondary);">
+                    Already have an account? 
+                    <a href="{{ url_for('auth.login') }}" class="font-semibold hover:underline ml-1" style="color: var(--accent);">Log in</a>
                 </p>
             </div>
         </div>
+
+        <p class="text-center text-[12px] mt-6" style="color: var(--text-muted);">
+            Join thousands of students mastering their courses faster.
+        </p>
     </div>
 </div>
 {% endblock %}
@@ -69,18 +162,60 @@
     const bars = document.querySelectorAll('#password-strength div');
     const label = document.getElementById('password-label');
     const matchLabel = document.getElementById('match-label');
+    const capsWarningPw = document.getElementById('caps-warning-pw');
+    const form = document.getElementById('signup-form');
+    const submitBtn = document.getElementById('signup-submit-btn');
+    const btnText = document.getElementById('signup-btn-text');
 
+    // Toggles
+    function setupToggle(inputEl, btnEl, iconEl) {
+        if (!inputEl || !btnEl || !iconEl) return;
+        btnEl.addEventListener('click', function(e) {
+            e.preventDefault();
+            const isPassword = inputEl.type === 'password';
+            inputEl.type = isPassword ? 'text' : 'password';
+            iconEl.className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
+            btnEl.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+        });
+    }
+
+    setupToggle(
+        pw, 
+        document.getElementById('toggle-signup-password'), 
+        document.getElementById('toggle-signup-icon')
+    );
+    setupToggle(
+        confirm, 
+        document.getElementById('toggle-confirm-password'), 
+        document.getElementById('toggle-confirm-icon')
+    );
+
+    // Caps Lock indicator
+    if (pw && capsWarningPw) {
+        const checkCapsLock = (e) => {
+            if (e.getModifierState && e.getModifierState('CapsLock')) {
+                capsWarningPw.classList.remove('hidden');
+            } else {
+                capsWarningPw.classList.add('hidden');
+            }
+        };
+        pw.addEventListener('keydown', checkCapsLock);
+        pw.addEventListener('keyup', checkCapsLock);
+        pw.addEventListener('blur', () => capsWarningPw.classList.add('hidden'));
+    }
+
+    // Password Strength
     function getStrength(val) {
         let score = 0;
         if (val.length >= 8) score++;
         if (val.length >= 12) score++;
         if (/[A-Z]/.test(val) && /[a-z]/.test(val)) score++;
-        if (/\d/.test(val) && /[^a-zA-Z0-9]/.test(val)) score++;
+        if (/\d/.test(val) || /[^a-zA-Z0-9]/.test(val)) score++;
         return score;
     }
 
     const colors = ['#E03131', '#E67700', '#2B8A3E', '#2B8A3E'];
-    const labels = ['Weak', 'Fair', 'Good', 'Strong'];
+    const labels = ['Weak (add length & symbols)', 'Fair (good progress)', 'Good password', 'Strong password!'];
 
     pw.addEventListener('input', function() {
         const s = getStrength(this.value);
@@ -98,21 +233,30 @@
     });
 
     function checkMatch() {
-        if (confirm.value.length === 0) {
+        if (!confirm.value.length) {
             matchLabel.classList.add('hidden');
             return;
         }
         matchLabel.classList.remove('hidden');
         if (pw.value === confirm.value) {
-            matchLabel.textContent = 'Passwords match ✓';
-            matchLabel.style.color = '#2B8A3E';
+            matchLabel.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Passwords match';
+            matchLabel.style.color = 'var(--sage, #2B8A3E)';
         } else {
-            matchLabel.textContent = 'Passwords do not match';
-            matchLabel.style.color = '#E03131';
+            matchLabel.innerHTML = '<i class="fas fa-times-circle mr-1"></i> Passwords do not match';
+            matchLabel.style.color = 'var(--coral, #E03131)';
         }
     }
 
     confirm.addEventListener('input', checkMatch);
+
+    // Submit state
+    if (form && submitBtn) {
+        form.addEventListener('submit', function() {
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.85';
+            btnText.innerHTML = '<i class="fas fa-circle-notch fa-spin text-xs"></i> Creating account...';
+        });
+    }
 })();
 </script>
 {% endblock %}
