@@ -1,7 +1,11 @@
 import requests
 from flask import current_app
 
-EMBEDDING_MODEL = "models/text-embedding-004"
+MODELS_TO_TRY = [
+    ("v1beta", "models/text-embedding-004"),
+    ("v1", "models/text-embedding-004"),
+    ("v1beta", "models/embedding-001")
+]
 
 def embed_texts(texts: list[str]) -> list[list[float]]:
     """
@@ -19,39 +23,40 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
     batch_size = 50
     all_embeddings = []
     
-    url = f"https://generativelanguage.googleapis.com/v1beta/{EMBEDDING_MODEL}:batchEmbedContents"
-    
     for i in range(0, len(texts), batch_size):
         batch = texts[i:i + batch_size]
-        requests_payload = [
-            {
-                "model": EMBEDDING_MODEL,
-                "content": {"parts": [{"text": t}]}
-            }
-            for t in batch
-        ]
+        batch_results = None
         
-        try:
-            response = requests.post(
-                url,
-                json={"requests": requests_payload},
-                headers={
-                    'Content-Type': 'application/json',
-                    'x-goog-api-key': api_key
-                },
-                timeout=60
-            )
-            response.raise_for_status()
-            data = response.json()
-            embeddings = data.get('embeddings', [])
+        for version, model_name in MODELS_TO_TRY:
+            url = f"https://generativelanguage.googleapis.com/{version}/{model_name}:batchEmbedContents?key={api_key}"
+            requests_payload = [
+                {
+                    "model": model_name,
+                    "content": {"parts": [{"text": t}]}
+                }
+                for t in batch
+            ]
             
-            for item in embeddings:
-                values = item.get('values', [])
-                all_embeddings.append(values)
+            try:
+                response = requests.post(
+                    url,
+                    json={"requests": requests_payload},
+                    headers={'Content-Type': 'application/json'},
+                    timeout=60
+                )
+                if response.status_code == 200:
+                    data = response.json()
+                    embeddings = data.get('embeddings', [])
+                    if len(embeddings) == len(batch):
+                        batch_results = [item.get('values', [0.0] * 768) for item in embeddings]
+                        break
+            except Exception as e:
+                current_app.logger.warning("Batch embedding attempt failed for %s: %s", model_name, e)
                 
-        except Exception as e:
-            current_app.logger.exception("Error in batch embeddings: %s", e)
-            # Fallback for failed batch items: try individually or fill empty
+        if batch_results is not None:
+            all_embeddings.extend(batch_results)
+        else:
+            # Fallback for failed batch: embed one by one
             for text in batch:
                 single_emb = embed_query(text)
                 all_embeddings.append(single_emb)
@@ -71,24 +76,27 @@ def embed_query(query: str) -> list[float]:
         current_app.logger.warning("GEMINI_API_KEY is not configured for embedding query.")
         return [0.0] * 768
     
-    url = f"https://generativelanguage.googleapis.com/v1beta/{EMBEDDING_MODEL}:embedContent"
-    body = {
-        "content": {"parts": [{"text": query}]}
-    }
-    
-    try:
-        response = requests.post(
-            url,
-            json=body,
-            headers={
-                'Content-Type': 'application/json',
-                'x-goog-api-key': api_key
-            },
-            timeout=30
-        )
-        response.raise_for_status()
-        data = response.json()
-        return data.get('embedding', {}).get('values', [0.0] * 768)
-    except Exception as e:
-        current_app.logger.exception("Error embedding query '%s': %s", query[:50], e)
-        return [0.0] * 768
+    for version, model_name in MODELS_TO_TRY:
+        url = f"https://generativelanguage.googleapis.com/{version}/{model_name}:embedContent?key={api_key}"
+        body = {
+            "model": model_name,
+            "content": {"parts": [{"text": query}]}
+        }
+        
+        try:
+            response = requests.post(
+                url,
+                json=body,
+                headers={'Content-Type': 'application/json'},
+                timeout=30
+            )
+            if response.status_code == 200:
+                data = response.json()
+                values = data.get('embedding', {}).get('values', [])
+                if values:
+                    return values
+        except Exception as e:
+            current_app.logger.warning("Single embedding attempt failed for %s: %s", model_name, e)
+            
+    current_app.logger.error("All embedding attempts failed for query '%s'", query[:50])
+    return [0.0] * 768
