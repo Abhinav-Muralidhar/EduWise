@@ -72,13 +72,14 @@
         {% block content %}{% endblock %}
     </main>
 
+    {% block footer %}
     <footer class="border-t py-12 px-6 mt-auto relative z-10 transition-colors"
         style="border-color: var(--border); background: var(--surface-card);">
         <div class="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-6">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-md flex items-center justify-center text-sm shadow-sm"
                     style="background: var(--accent); color: var(--accent-ink); border: 1.5px solid var(--border-ink);">
-                    <i class="fas fa-feather-alt"></i>
+                    <i class="fas fa-graduation-cap logo-hat-tilt"></i>
                 </div>
                 <div class="flex items-baseline gap-2">
                     <span class="font-heading font-bold text-base tracking-tight"
@@ -94,10 +95,11 @@
                 <a href="{{ url_for('dashboard.home') }}#features" class="hover:underline transition-colors"
                     style="color: var(--text-muted);">Features</a>
                 <a href="{{ url_for('dashboard.home') }}#quick-try" class="hover:underline transition-colors"
-                    style="color: var(--accent);">Guest Mode</a>
+                    style="color: var(--accent);">Guest Studio</a>
             </div>
         </div>
     </footer>
+    {% endblock %}
 
     <script id="flash-data" type="application/json">
         {{ get_flashed_messages(with_categories=true) | tojson }}
@@ -121,7 +123,7 @@
         window.showToast = function (message, category) {
             const toast = document.createElement('div');
             toast.className = 'toast';
-            let icon = '<i class="fas fa-feather text-xs" style="color:var(--accent)"></i>';
+            let icon = '<i class="fas fa-graduation-cap logo-hat-tilt text-xs" style="color:var(--accent)"></i>';
             if (category === 'success') icon = '<i class="fas fa-check-circle text-xs" style="color:var(--olive)"></i>';
             if (category === 'error' || category === 'danger') icon = '<i class="fas fa-exclamation-circle text-xs" style="color:var(--coral)"></i>';
 

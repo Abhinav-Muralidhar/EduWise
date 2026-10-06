@@ -781,19 +781,24 @@
                 <i class="fas fa-layer-group"></i>
             </div>
             <div>
-                <h3 class="text-[16px] font-semibold" style="color: var(--text-primary);">Generate Flashcards</h3>
-                <p class="text-[12px]" style="color: var(--text-muted);">From topics or knowledge base</p>
+                <h3 class="text-lg font-bold font-heading" style="color: var(--text-primary);">Generate Flashcards</h3>
+                <p class="text-xs" style="color: var(--text-muted);">From topic or knowledge base</p>
             </div>
         </div>
         <form method="post" action="{{ url_for('generation.generate_flashcards') }}" class="space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
+            <div>
+                <label class="label-caps block mb-1.5">Deck Topic or Focus</label>
+                <input type="text" name="topic_or_text" required placeholder="e.g. Cognitive Biases, Organic Chemistry Reactions..."
+                    class="studio-input">
+            </div>
+
             {% if knowledge_sources %}
             <div>
                 <label class="label-caps block mb-1.5 flex items-center justify-between">
                     <span>Knowledge Source</span>
-                    <span style="color: var(--plum); font-size: 10px;"><i class="fas fa-sparkles mr-1"></i>RAG
-                        Grounded</span>
+                    <span style="color: var(--accent); font-size: 10px;"><i class="fas fa-sparkles mr-1"></i>RAG Grounded</span>
                 </label>
                 <select name="knowledge_source_id" class="studio-select">
                     <option value="">None (General AI Knowledge)</option>
@@ -804,13 +809,8 @@
             </div>
             {% endif %}
 
-            <div>
-                <label class="label-caps block mb-1.5">Topic or Text</label>
-                <textarea name="topic_or_text" rows="4" placeholder="e.g. Key concepts of photosynthesis…" required
-                    class="studio-input" style="resize: vertical;"></textarea>
-            </div>
             <div class="pt-2 space-y-2">
-                <button type="submit" class="btn-primary w-full" style="background: var(--plum);">
+                <button type="submit" class="btn-primary w-full">
                     <i class="fas fa-layer-group text-[11px]"></i> Create Flashcards
                 </button>
                 <button type="button" onclick="closeFormModal()" class="btn-ghost w-full">Cancel</button>
@@ -822,26 +822,31 @@
     <div id="summarizeFormTemplate">
         <div class="flex items-center gap-3 mb-6">
             <div class="w-9 h-9 rounded-lg flex items-center justify-center"
-                style="background: var(--sky-surface); color: var(--sky);">
+                style="background: var(--accent-surface); color: var(--accent);">
                 <i class="fas fa-compress-alt"></i>
             </div>
             <div>
-                <h3 class="text-[16px] font-semibold" style="color: var(--text-primary);">Summarizer</h3>
-                <p class="text-[12px]" style="color: var(--text-muted);">Distill long text or knowledge sources</p>
+                <h3 class="text-lg font-bold font-heading" style="color: var(--text-primary);">Distill & Summarize</h3>
+                <p class="text-xs" style="color: var(--text-muted);">Extract key concepts from text or documents</p>
             </div>
         </div>
         <form method="post" action="{{ url_for('generation.summarize_text') }}" class="space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
+            <div>
+                <label class="label-caps block mb-1.5">Paste text <span style="color: var(--text-ghost);">(or focus query)</span></label>
+                <textarea name="text" rows="4" placeholder="Paste excerpt, lecture notes, or key topic to synthesize…" required
+                    class="studio-input resize-none py-2.5"></textarea>
+            </div>
+
             {% if knowledge_sources %}
             <div>
                 <label class="label-caps block mb-1.5 flex items-center justify-between">
                     <span>Knowledge Source</span>
-                    <span style="color: var(--sky); font-size: 10px;"><i class="fas fa-sparkles mr-1"></i>RAG
-                        Grounded</span>
+                    <span style="color: var(--accent); font-size: 10px;"><i class="fas fa-sparkles mr-1"></i>RAG Grounded</span>
                 </label>
                 <select name="knowledge_source_id" class="studio-select">
-                    <option value="">None (Direct pasted text below)</option>
+                    <option value="">None (Direct text input above)</option>
                     {% for ks in knowledge_sources %}
                     <option value="{{ ks.id }}">{{ ks.title }} ({{ ks.chunk_count }} chunks)</option>
                     {% endfor %}
@@ -849,15 +854,9 @@
             </div>
             {% endif %}
 
-            <div>
-                <label class="label-caps block mb-1.5">Paste text <span style="color: var(--text-ghost);">(or focus
-                        query if knowledge source selected)</span></label>
-                <textarea name="text" rows="6" placeholder="Paste your article, paper, or focus query here…" required
-                    class="studio-input" style="resize: vertical;"></textarea>
-            </div>
             <div class="pt-2 space-y-2">
-                <button type="submit" class="btn-primary w-full" style="background: var(--sky);">
-                    <i class="fas fa-compress-alt text-[11px]"></i> Summarize
+                <button type="submit" class="btn-primary w-full">
+                    <i class="fas fa-compress-alt text-[11px]"></i> Distill Key Takeaways
                 </button>
                 <button type="button" onclick="closeFormModal()" class="btn-ghost w-full">Cancel</button>
             </div>

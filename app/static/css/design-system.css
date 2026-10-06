@@ -403,8 +403,19 @@ body {
     transition: transform var(--dur-quick) var(--ease-tactile);
 }
 
+.brand-icon i,
+.logo-hat-tilt {
+    transform: rotate(-12deg);
+    display: inline-block;
+    transition: transform var(--dur-quick) ease;
+}
+
 .brand-mark:hover .brand-icon {
-    transform: rotate(-4deg) scale(1.05);
+    transform: scale(1.05);
+}
+
+.brand-mark:hover .brand-icon i {
+    transform: rotate(-4deg) scale(1.1);
 }
 
 /* Profile Dropdown Component */
@@ -620,10 +631,12 @@ body {
     gap: 14px;
     padding: 14px 18px;
     background: var(--surface-card);
-    border: 1.5px solid var(--border-strong);
+    border: 2px solid var(--border-strong);
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: all var(--dur-quick) var(--ease-tactile);
+    position: relative;
+    user-select: none;
 }
 
 .quiz-option-label:hover {
@@ -633,15 +646,17 @@ body {
     transform: translate(-1px, -1px);
 }
 
-.quiz-option-input:checked + .quiz-option-label {
-    border-color: var(--border-ink);
-    background: var(--accent-surface);
-    box-shadow: var(--shadow-tactile);
+.quiz-option-label:has(.quiz-option-input:checked),
+.quiz-option-label.is-selected {
+    border-color: var(--border-ink) !important;
+    background: var(--accent-surface) !important;
+    box-shadow: 2px 2px 0 var(--border-ink) !important;
+    transform: translate(-1px, -1px);
 }
 
 .quiz-option-pill {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
@@ -656,10 +671,12 @@ body {
     transition: all var(--dur-quick) ease;
 }
 
-.quiz-option-input:checked + .quiz-option-label .quiz-option-pill {
-    background: var(--accent);
-    color: var(--accent-ink);
-    border-color: var(--border-ink);
+.quiz-option-label:has(.quiz-option-input:checked) .quiz-option-pill,
+.quiz-option-label.is-selected .quiz-option-pill {
+    background: var(--accent) !important;
+    color: var(--accent-ink) !important;
+    border-color: var(--border-ink) !important;
+    box-shadow: 1px 1px 0 var(--border-ink);
 }
 
 /* ── Resource History Rows ── */

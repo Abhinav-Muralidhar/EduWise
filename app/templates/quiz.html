@@ -2,86 +2,263 @@
 {% block title %}Quiz: {{ topic or 'Challenge' }}{% endblock %}
 
 {% block content %}
-<div class="min-h-screen pt-12 pb-32" style="background: var(--surface-page);">
-    <div class="max-w-2xl mx-auto px-6">
+<div class="min-h-screen pt-8 pb-14 flex flex-col justify-between" style="background: var(--surface-page);">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 w-full flex-1 flex flex-col justify-between">
         
-        <!-- Header -->
-        <div class="mb-10 animate-enter">
-            <a href="{{ url_for('dashboard.index') if session.user_id else url_for('dashboard.home') }}" class="text-xs font-semibold inline-flex items-center gap-2 mb-4 transition-colors hover:underline" style="color: var(--text-muted);">
-                <i class="fas fa-arrow-left text-[10px]"></i> {{ 'Back to workspace' if session.user_id else 'Back to home' }}
-            </a>
-            <div class="flex items-start justify-between gap-4">
-                <div>
-                    <span class="editorial-stamp mb-2">Examination</span>
-                    <h1 class="text-2xl sm:text-3xl font-bold font-heading tracking-tight" style="color: var(--text-primary);">{{ topic or 'Knowledge Challenge' }}</h1>
-                </div>
-                <span class="editorial-stamp accent flex-shrink-0">
-                    {{ questions|length }} Questions
+        <!-- Header & Progress -->
+        <div class="mb-4 animate-enter">
+            <div class="flex items-center justify-between mb-3">
+                <a href="{{ url_for('dashboard.index') if session.user_id else url_for('dashboard.home') }}" class="text-xs font-semibold flex items-center gap-2 transition-colors hover:underline" style="color: var(--text-muted);">
+                    <i class="fas fa-arrow-left text-[9px]"></i> {{ 'Back to workspace' if session.user_id else 'Back to home' }}
+                </a>
+                <span class="editorial-stamp" id="quizCounter">Question 1 of {{ questions|length }}</span>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="w-full h-1.5 rounded-full overflow-hidden mb-4" style="background: var(--surface-sunken); border: 1px solid var(--border);">
+                <div id="quizProgressBar" class="h-full transition-all duration-300 rounded-full" style="background: var(--accent); width: {{ (1 / questions|length * 100) if questions|length > 0 else 100 }}%;"></div>
+            </div>
+
+            <div class="flex items-center justify-between gap-4">
+                <h1 class="text-xl sm:text-2xl font-bold font-heading truncate" style="color: var(--text-primary);">
+                    {{ topic or 'Knowledge Challenge' }}
+                </h1>
+                {% if sources %}
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold flex-shrink-0" style="background: var(--olive-surface); color: var(--olive); border: 1px solid var(--border);">
+                    <i class="fas fa-book-bookmark text-[9px]"></i> Grounded
                 </span>
+                {% endif %}
             </div>
-            {% if sources %}
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md text-xs font-semibold mt-3" style="background: var(--olive-surface); color: var(--olive); border: 1px solid var(--border);">
-                <i class="fas fa-book-bookmark text-[10px]"></i> Grounded in: {{ sources | join(', ') }}
-            </div>
-            {% endif %}
         </div>
 
         {% if not session.user_id %}
         <!-- Guest Notice -->
-        <div class="mb-8 p-4 rounded-lg border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-enter" style="background: var(--accent-surface); border-color: var(--accent);">
-            <div class="flex items-center gap-3">
-                <span class="bracket-num text-sm">[!]</span>
-                <div>
-                    <p class="text-xs font-bold" style="color: var(--text-primary);">Guest Quiz Session</p>
-                    <p class="text-xs" style="color: var(--text-secondary);">Your quiz results won't be saved after this session. <a href="{{ url_for('auth.signup') }}" class="font-bold underline" style="color: var(--accent);">Sign up</a> to keep a study log.</p>
-                </div>
+        <div class="mb-4 p-3.5 rounded-lg border flex items-center justify-between gap-3 animate-enter" style="background: var(--accent-surface); border-color: var(--accent);">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <span class="bracket-num text-xs">[!]</span>
+                <p class="text-xs truncate" style="color: var(--text-secondary);"><span class="font-bold text-text-primary">Guest Mode Session:</span> Results are ephemeral.</p>
             </div>
-            <a href="{{ url_for('auth.signup') }}" class="btn-primary !py-1.5 !px-3 !text-xs whitespace-nowrap">
-                Save Progress
+            <a href="{{ url_for('auth.signup') }}" class="btn-primary !py-1 !px-2.5 !text-[11px] whitespace-nowrap">
+                Sign up to save
             </a>
         </div>
         {% endif %}
 
-        <form method="POST" action="{{ url_for('generation.submit_quiz') }}" class="space-y-8">
+        <!-- Quiz Form & Question Card Viewport -->
+        <form id="quizForm" method="POST" action="{{ url_for('generation.submit_quiz') }}" class="flex-1 flex flex-col justify-center my-auto">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             
-            {% for q in questions %}
-            <div class="studio-card p-6 sm:p-8 animate-enter" {{ ('style="animation-delay: ' ~ (loop.index0 * 50) ~ 'ms;"')|safe }}>
-                <div class="flex items-center justify-between mb-3">
-                    <span class="bracket-num">[Q {{ "%02d" % loop.index }}]</span>
-                    <span class="text-[11px] font-mono font-medium" style="color: var(--text-muted);">Select one answer</span>
-                </div>
-                <h2 class="text-base sm:text-lg font-bold font-heading mb-6 leading-relaxed" style="color: var(--text-primary);">{{ q.question }}</h2>
-                
-                <div class="space-y-3">
-                    {% for option in q.options %}
-                    {% set opt_letter = ['A', 'B', 'C', 'D'][loop.index0] if loop.index0 < 4 else (loop.index0 + 1) %}
-                    <label class="quiz-option-label group">
-                        <input type="radio" name="question_{{ q.id }}" value="{{ loop.index0 }}" required 
-                               class="quiz-option-input sr-only">
-                        <span class="quiz-option-pill">
-                            {{ opt_letter }}
-                        </span>
-                        <span class="text-sm font-medium leading-relaxed transition-colors flex-1" style="color: var(--text-primary);">{{ option }}</span>
-                    </label>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endfor %}
+            <div class="relative min-h-[440px] sm:min-h-[400px] w-full my-auto animate-enter" style="animation-delay: 80ms;">
+                {% for q in questions %}
+                {% set q_idx = loop.index0 %}
+                <div id="q-card-{{ q_idx }}" class="quiz-card-stack absolute inset-0 transition-all duration-300 {{ 'opacity-0 pointer-events-none translate-x-8' if not loop.first else 'opacity-100 translate-x-0' }}">
+                    <div class="studio-card p-6 sm:p-8 h-full flex flex-col justify-between" style="border: 2px solid var(--border-ink); box-shadow: var(--shadow-tactile-lg);">
+                        
+                        <!-- Side-by-side on desktop, stacked on mobile -->
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 flex-1 items-stretch">
+                            
+                            <!-- Left: Question statement -->
+                            <div class="md:col-span-5 flex flex-col justify-between pb-4 md:pb-0 md:pr-6 md:border-r" style="border-color: var(--border);">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <span class="bracket-num text-xs">[Q {{ "%02d" % (q_idx + 1) }}]</span>
+                                        <span class="text-[11px] font-mono font-semibold" style="color: var(--text-muted);">Question</span>
+                                    </div>
+                                    <h2 class="text-lg sm:text-xl font-bold font-heading leading-snug" style="color: var(--text-primary);">
+                                        {{ q.question }}
+                                    </h2>
+                                </div>
+                                <div class="hidden md:block pt-4 text-[11px] font-mono" style="color: var(--text-muted);">
+                                    <span>Select the single best answer</span>
+                                </div>
+                            </div>
 
-            <!-- Floating submit bar -->
-            <div class="fixed bottom-0 left-0 w-full py-4 px-6 z-40" style="background: var(--surface-card); border-top: 1.5px solid var(--border-ink); box-shadow: 0 -4px 12px rgba(28, 26, 23, 0.08);">
-                <div class="max-w-2xl mx-auto flex items-center justify-between">
-                    <p class="text-xs font-semibold hidden sm:block" style="color: var(--text-muted);">
-                        <span class="bracket-num">&bull;</span> {{ questions|length }} total questions to score
-                    </p>
-                    <button type="submit" class="btn-primary w-full sm:w-auto py-2.5 px-8">
-                        <span>Submit Examination</span>
-                        <i class="fas fa-arrow-right text-xs"></i>
-                    </button>
+                            <!-- Right: Selectable Option Cards -->
+                            <div class="md:col-span-7 flex flex-col justify-center space-y-3">
+                                {% for option in q.options %}
+                                {% set opt_letter = ['A', 'B', 'C', 'D'][loop.index0] if loop.index0 < 4 else (loop.index0 + 1) %}
+                                <label class="quiz-option-label group" onclick="selectOption(this, {{ q_idx }})">
+                                    <input type="radio" name="question_{{ q.id }}" value="{{ loop.index0 }}" required 
+                                           class="quiz-option-input sr-only">
+                                    <span class="quiz-option-pill">
+                                        {{ opt_letter }}
+                                    </span>
+                                    <span class="text-sm font-medium leading-relaxed flex-1 transition-colors" style="color: var(--text-primary);">
+                                        {{ option }}
+                                    </span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Card Footer: Clean Key hints -->
+                        <div class="pt-4 mt-4 border-t flex justify-between items-center text-[11px] font-mono" style="border-color: var(--border); color: var(--text-muted);">
+                            <span>Hotkeys: <kbd class="px-1 py-0.5 rounded border border-[var(--border-strong)] bg-[var(--surface-card)]">A</kbd> <kbd class="px-1 py-0.5 rounded border border-[var(--border-strong)] bg-[var(--surface-card)]">B</kbd> <kbd class="px-1 py-0.5 rounded border border-[var(--border-strong)] bg-[var(--surface-card)]">C</kbd> <kbd class="px-1 py-0.5 rounded border border-[var(--border-strong)] bg-[var(--surface-card)]">D</kbd></span>
+                            <span class="hidden sm:inline">Press <kbd class="px-1.5 py-0.5 rounded border border-[var(--border-strong)] bg-[var(--surface-card)]">Enter</kbd> to proceed</span>
+                        </div>
+                    </div>
                 </div>
+                {% endfor %}
             </div>
+
+            <!-- Stepper Controls (Matching Flashcards deck) -->
+            <div class="mt-8 flex justify-center items-center gap-4 animate-enter" style="animation-delay: 160ms;">
+                <button id="prevBtn" type="button" onclick="prevQuestion()" class="w-10 h-10 rounded-md flex items-center justify-center btn-soft !p-0 disabled:opacity-30 disabled:cursor-not-allowed" title="Previous question">
+                    <i class="fas fa-arrow-left text-xs"></i>
+                </button>
+                
+                <button id="nextBtn" type="button" onclick="nextQuestion()" class="btn-primary !py-2.5 !px-8 text-xs flex items-center gap-2">
+                    <span id="nextBtnText">Next Question</span>
+                    <i id="nextBtnIcon" class="fas fa-arrow-right text-xs"></i>
+                </button>
+            </div>
+
+            <p class="text-center mt-3 text-xs font-mono" style="color: var(--text-muted);">
+                Navigate: <kbd class="px-1.5 py-0.5 rounded border border-[var(--border-strong)] bg-[var(--surface-card)] text-[10px]">&larr;</kbd> <kbd class="px-1.5 py-0.5 rounded border border-[var(--border-strong)] bg-[var(--surface-card)] text-[10px]">&rarr;</kbd>
+            </p>
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block footer %}
+<!-- Footer suppressed for clean full-height quiz card experience -->
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentIndex = 0;
+    const totalQuestions = parseInt("{{ questions|length }}", 10);
+    const counter = document.getElementById('quizCounter');
+    const progressBar = document.getElementById('quizProgressBar');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const nextBtnText = document.getElementById('nextBtnText');
+    const nextBtnIcon = document.getElementById('nextBtnIcon');
+    const quizForm = document.getElementById('quizForm');
+
+    function selectOption(labelEl, cardIndex) {
+        const card = document.getElementById(`q-card-${cardIndex}`);
+        if (!card) return;
+        
+        // Remove selection outline from peer labels in this card
+        card.querySelectorAll('.quiz-option-label').forEach(lbl => {
+            lbl.classList.remove('is-selected');
+        });
+        
+        // Add prominent outline and highlight to clicked label
+        labelEl.classList.add('is-selected');
+        const radio = labelEl.querySelector('input[type="radio"]');
+        if (radio) {
+            radio.checked = true;
+        }
+    }
+
+    function syncSelectedClasses(cardIndex) {
+        const card = document.getElementById(`q-card-${cardIndex}`);
+        if (!card) return;
+        card.querySelectorAll('.quiz-option-label').forEach(lbl => {
+            const radio = lbl.querySelector('input[type="radio"]');
+            if (radio && radio.checked) {
+                lbl.classList.add('is-selected');
+            } else {
+                lbl.classList.remove('is-selected');
+            }
+        });
+    }
+
+    function updateQuestionVisibility() {
+        document.querySelectorAll('.quiz-card-stack').forEach((el, index) => {
+            el.classList.add('opacity-0', 'pointer-events-none', 'translate-x-8');
+            el.classList.remove('opacity-100', 'translate-x-0');
+            if (index === currentIndex) {
+                el.classList.remove('opacity-0', 'pointer-events-none', 'translate-x-8');
+                el.classList.add('opacity-100', 'translate-x-0');
+                syncSelectedClasses(index);
+            }
+        });
+        
+        if (counter) counter.textContent = `Question ${currentIndex + 1} of ${totalQuestions}`;
+        if (progressBar && totalQuestions > 0) {
+            progressBar.style.width = `${((currentIndex + 1) / totalQuestions) * 100}%`;
+        }
+        if (prevBtn) prevBtn.disabled = (currentIndex === 0);
+        
+        if (nextBtnText && nextBtnIcon) {
+            if (currentIndex === totalQuestions - 1) {
+                nextBtnText.textContent = 'Submit Examination';
+                nextBtnIcon.className = 'fas fa-check text-xs';
+            } else {
+                nextBtnText.textContent = 'Next Question';
+                nextBtnIcon.className = 'fas fa-arrow-right text-xs';
+            }
+        }
+    }
+
+    function nextQuestion() {
+        if (currentIndex < totalQuestions - 1) {
+            currentIndex++;
+            updateQuestionVisibility();
+        } else {
+            // Validate all answered before final submit
+            const unanswered = [];
+            document.querySelectorAll('.quiz-card-stack').forEach((card, idx) => {
+                const checked = card.querySelector('input[type="radio"]:checked');
+                if (!checked) unanswered.push(idx + 1);
+            });
+
+            if (unanswered.length > 0) {
+                const firstUnanswered = unanswered[0] - 1;
+                currentIndex = firstUnanswered;
+                updateQuestionVisibility();
+                if (window.showToast) {
+                    window.showToast(`Please answer Question ${unanswered[0]} before submitting.`, 'danger');
+                } else {
+                    alert(`Please answer Question ${unanswered[0]} before submitting.`);
+                }
+                return;
+            }
+
+            quizForm.submit();
+        }
+    }
+
+    function prevQuestion() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updateQuestionVisibility();
+        }
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' && e.target.type !== 'radio') return;
+        if (e.target.tagName === 'TEXTAREA') return;
+
+        if (e.code === 'ArrowRight' || e.code === 'Enter') {
+            e.preventDefault();
+            nextQuestion();
+        } else if (e.code === 'ArrowLeft') {
+            e.preventDefault();
+            prevQuestion();
+        } else {
+            // A, B, C, D or 1, 2, 3, 4 selection
+            const currentCard = document.getElementById(`q-card-${currentIndex}`);
+            if (!currentCard) return;
+            const labels = currentCard.querySelectorAll('.quiz-option-label');
+            
+            let chosenIdx = -1;
+            if (e.key.toLowerCase() === 'a' || e.key === '1') chosenIdx = 0;
+            if (e.key.toLowerCase() === 'b' || e.key === '2') chosenIdx = 1;
+            if (e.key.toLowerCase() === 'c' || e.key === '3') chosenIdx = 2;
+            if (e.key.toLowerCase() === 'd' || e.key === '4') chosenIdx = 3;
+
+            if (chosenIdx >= 0 && chosenIdx < labels.length) {
+                selectOption(labels[chosenIdx], currentIndex);
+            }
+        }
+    });
+
+    updateQuestionVisibility();
+</script>
 {% endblock %}
