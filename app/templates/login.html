@@ -2,20 +2,20 @@
 {% block title %}Login - EduWise{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center pt-24 pb-20 px-6" style="background: var(--surface-page);">
+<div class="min-h-screen flex items-center justify-center pt-12 pb-20 px-6" style="background: var(--surface-page);">
     <div class="w-full max-w-[420px]">
         
         <!-- Header Branding -->
         <div class="text-center mb-8 animate-enter">
-            <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4 shadow-sm" style="background: var(--accent-surface); color: var(--accent);">
-                <i class="fas fa-graduation-cap text-xl"></i>
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-md mb-4" style="background: var(--accent); color: var(--accent-ink); border: 1.5px solid var(--border-ink); box-shadow: var(--shadow-tactile);">
+                <i class="fas fa-feather-alt text-lg"></i>
             </div>
-            <h1 class="text-[26px] font-bold tracking-tight mb-1.5" style="color: var(--text-primary);">Welcome back</h1>
-            <p class="text-[14px]" style="color: var(--text-secondary);">Log in to continue your intelligent learning journey.</p>
+            <h1 class="text-3xl font-bold font-heading tracking-tight mb-1" style="color: var(--text-primary);">Sign in to EduWise</h1>
+            <p class="text-xs sm:text-sm" style="color: var(--text-muted);">Access your study archive, flashcards, and grounded notes.</p>
         </div>
 
         <!-- Login Card -->
-        <div class="studio-card p-8 sm:p-9 animate-enter shadow-lg relative overflow-hidden" style="animation-delay: 80ms;">
+        <div class="studio-card p-8 sm:p-9 animate-enter relative overflow-hidden" style="border: 2px solid var(--border-ink); box-shadow: var(--shadow-tactile-lg); animation-delay: 80ms;">
             <form method="POST" action="{{ url_for('auth.login') }}" id="login-form" class="space-y-5">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 
@@ -42,7 +42,7 @@
                 <div>
                     <div class="flex items-center justify-between mb-2">
                         <label for="login-password" class="label-caps mb-0">Password</label>
-                        <a href="{{ url_for('auth.forgot_password') }}" class="text-[12px] font-medium hover:underline transition-colors" style="color: var(--accent);">Forgot password?</a>
+                        <a href="{{ url_for('auth.forgot_password') }}" class="text-xs font-semibold hover:underline transition-colors" style="color: var(--accent);">Forgot?</a>
                     </div>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-xs" style="color: var(--text-muted);">
@@ -67,9 +67,9 @@
                     </div>
                     
                     <!-- Caps Lock Warning -->
-                    <div id="caps-lock-warning" class="hidden mt-1.5 flex items-center gap-1.5 text-[11px] font-medium animate-enter" style="color: var(--amber);">
+                    <div id="caps-lock-warning" class="hidden mt-1.5 flex items-center gap-1.5 text-[11px] font-mono font-medium animate-enter" style="color: var(--ochre);">
                         <i class="fas fa-exclamation-triangle"></i>
-                        <span>Caps Lock is ON</span>
+                        <span>Caps Lock is ACTIVE</span>
                     </div>
                 </div>
 
@@ -77,77 +77,69 @@
                 <div class="flex items-center justify-between pt-1">
                     <label class="flex items-center gap-2.5 cursor-pointer select-none">
                         <input type="checkbox" name="remember_me" class="w-4 h-4 rounded cursor-pointer transition" style="accent-color: var(--accent);">
-                        <span class="text-[13px]" style="color: var(--text-secondary);">Remember this device</span>
+                        <span class="text-xs font-medium" style="color: var(--text-secondary);">Remember this device</span>
                     </label>
                 </div>
 
                 <!-- Submit Button -->
                 <button type="submit" id="submit-btn" class="btn-primary w-full py-2.5 mt-2 flex items-center justify-center gap-2">
-                    <span id="btn-text">Sign In</span>
-                    <i class="fas fa-arrow-right text-xs transition-transform group-hover:translate-x-0.5"></i>
+                    <span id="btn-text">Authenticate & Enter</span>
+                    <i class="fas fa-arrow-right text-xs"></i>
                 </button>
             </form>
 
-            <div class="mt-8 pt-6 text-center" style="border-top: 1px solid var(--border);">
-                <p class="text-[13px]" style="color: var(--text-secondary);">
+            <div class="mt-8 pt-6 text-center" style="border-top: 1.5px solid var(--border);">
+                <p class="text-xs" style="color: var(--text-muted);">
                     Don't have an account yet? 
-                    <a href="{{ url_for('auth.signup') }}" class="font-semibold hover:underline ml-1" style="color: var(--accent);">Create account</a>
+                    <a href="{{ url_for('auth.signup') }}" class="font-bold hover:underline ml-1" style="color: var(--accent);">Create an account</a>
                 </p>
             </div>
         </div>
 
         <!-- Trust footer note -->
-        <p class="text-center text-[12px] mt-6" style="color: var(--text-muted);">
-            Protected by end-to-end encryption &middot; EduWise
+        <p class="text-center text-xs mt-6" style="color: var(--text-muted);">
+            <i class="fas fa-shield-alt mr-1"></i> Private study sessions with encrypted data storage
         </p>
     </div>
 </div>
-{% endblock %}
 
-{% block scripts %}
 <script>
-(function() {
-    const passwordInput = document.getElementById('login-password');
+    // Password toggle
     const toggleBtn = document.getElementById('toggle-password');
+    const pwdInput = document.getElementById('login-password');
     const toggleIcon = document.getElementById('toggle-icon');
-    const capsWarning = document.getElementById('caps-lock-warning');
-    const form = document.getElementById('login-form');
-    const submitBtn = document.getElementById('submit-btn');
-    const btnText = document.getElementById('btn-text');
 
-    // Password Show / Hide Toggle
-    if (toggleBtn && passwordInput) {
-        toggleBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const isPassword = passwordInput.type === 'password';
-            passwordInput.type = isPassword ? 'text' : 'password';
+    if (toggleBtn && pwdInput) {
+        toggleBtn.addEventListener('click', () => {
+            const isPassword = pwdInput.type === 'password';
+            pwdInput.type = isPassword ? 'text' : 'password';
             toggleIcon.className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
-            toggleBtn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+            pwdInput.focus();
         });
     }
 
-    // Caps Lock Warning
-    if (passwordInput && capsWarning) {
-        const checkCapsLock = (e) => {
+    // Caps lock detection
+    const capsWarning = document.getElementById('caps-lock-warning');
+    if (pwdInput && capsWarning) {
+        pwdInput.addEventListener('keyup', (e) => {
             if (e.getModifierState && e.getModifierState('CapsLock')) {
                 capsWarning.classList.remove('hidden');
             } else {
                 capsWarning.classList.add('hidden');
             }
-        };
-        passwordInput.addEventListener('keydown', checkCapsLock);
-        passwordInput.addEventListener('keyup', checkCapsLock);
-        passwordInput.addEventListener('blur', () => capsWarning.classList.add('hidden'));
-    }
-
-    // Submit loading state
-    if (form && submitBtn) {
-        form.addEventListener('submit', function() {
-            submitBtn.disabled = true;
-            submitBtn.style.opacity = '0.85';
-            btnText.innerHTML = '<i class="fas fa-circle-notch fa-spin text-xs"></i> Signing in...';
         });
     }
-})();
+
+    // Form submit loading
+    const form = document.getElementById('login-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const btnText = document.getElementById('btn-text');
+
+    if (form && submitBtn) {
+        form.addEventListener('submit', () => {
+            submitBtn.disabled = true;
+            btnText.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Signing in...';
+        });
+    }
 </script>
 {% endblock %}

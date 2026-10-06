@@ -2,55 +2,58 @@
 {% block title %}Quiz Results - EduWise{% endblock %}
 
 {% block content %}
-<div class="min-h-screen pt-24 pb-20" style="background: var(--surface-page);">
-    <div class="max-w-3xl mx-auto px-6">
+<div class="min-h-screen pt-12 pb-20" style="background: var(--surface-page);">
+    <div class="max-w-2xl mx-auto px-6">
         
         <!-- Score Card -->
-        <div class="studio-card p-12 text-center mb-8 animate-enter">
-            <p class="label-caps mb-4">Results</p>
-            <div class="text-[72px] font-semibold leading-none mb-4" style="color: var(--accent);">
-                {{ (score / questions|length * 100) | round | int }}%
+        <div class="studio-card p-10 sm:p-12 text-center mb-8 animate-enter" style="border: 2px solid var(--border-ink); box-shadow: var(--shadow-tactile-lg);">
+            <span class="editorial-stamp accent mb-3">Evaluation Report</span>
+            <div class="text-6xl sm:text-7xl font-bold font-heading leading-none my-4" style="color: var(--text-primary);">
+                {{ (score / questions|length * 100) | round | int }}<span class="text-3xl font-mono" style="color: var(--accent);">%</span>
             </div>
-            <p class="text-[15px]" style="color: var(--text-secondary);">
-                You scored {{ score }} out of {{ questions|length }} correct answers.
+            <p class="text-sm font-semibold" style="color: var(--text-secondary);">
+                Mastered <span class="bracket-num">[{{ score }} / {{ questions|length }}]</span> correct answers.
             </p>
         </div>
 
         {% if not session.user_id %}
-        <!-- Guest Notice / Soft Nudge -->
-        <div class="mb-10 p-5 rounded-2xl border flex flex-col sm:flex-row items-center justify-between gap-4 animate-enter" style="background: var(--accent-surface); border-color: rgba(67,97,238,0.25);">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: var(--accent); color: white;">
-                    <i class="fas fa-sparkles text-sm"></i>
-                </div>
-                <div>
-                    <h4 class="text-[14px] font-semibold" style="color: var(--text-primary);">Save your progress & generate with your own PDFs</h4>
-                    <p class="text-[12px]" style="color: var(--text-secondary);">Create a free account to track your study streaks and unlock full document uploads.</p>
-                </div>
+        <!-- Guest Notice -->
+        <div class="mb-10 p-5 rounded-lg border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-enter" style="background: var(--surface-card); border: 1.5px solid var(--border-ink); box-shadow: var(--shadow-tactile);">
+            <div>
+                <span class="editorial-stamp mb-1.5">Preserve Your Work</span>
+                <h4 class="text-sm font-bold font-heading" style="color: var(--text-primary);">Create your permanent notebook</h4>
+                <p class="text-xs" style="color: var(--text-muted);">Sign up for free to index textbooks, track performance over time, and export presentations.</p>
             </div>
-            <a href="{{ url_for('auth.signup') }}" class="btn-primary !py-2.5 !px-5 text-xs whitespace-nowrap">
-                Create free account
+            <a href="{{ url_for('auth.signup') }}" class="btn-primary !py-2 !px-4 text-xs whitespace-nowrap flex-shrink-0">
+                Join EduWise Free
             </a>
         </div>
         {% endif %}
 
-        <!-- Review -->
-        <p class="label-caps text-center mb-8 animate-enter" style="animation-delay: 60ms;">Review</p>
+        <!-- Review Header -->
+        <div class="flex items-center justify-between mb-6 animate-enter" style="animation-delay: 60ms;">
+            <span class="editorial-stamp">Itemized Review</span>
+            <span class="text-xs font-mono font-bold" style="color: var(--text-muted);">{{ score }}/{{ questions|length }} COMPLETED</span>
+        </div>
         
         <div class="space-y-5">
             {% for q in questions %}
             {% set user_ans_idx = user_answers[q.id] %}
             {% set correct_ans_idx = q.correct_index %}
             {% set is_question_correct = (user_ans_idx == correct_ans_idx) %}
-            {% set border_color = 'rgba(43,138,62,0.25)' if is_question_correct else 'rgba(224,49,49,0.25)' %}
-            <div class="studio-card p-7 animate-enter" {{ ('style="animation-delay: ' ~ ((loop.index0 + 2) * 60) ~ 'ms; border-color: ' ~ border_color ~ ';"')|safe }}>
-                <div class="flex items-center gap-3 mb-5">
-                    {% set icon_bg = 'var(--sage)' if is_question_correct else 'var(--coral)' %}
-                    <div class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] text-white"
-                         {{ ('style="background: ' ~ icon_bg ~ ';"')|safe }}>
-                        {% if is_question_correct %}<i class="fas fa-check"></i>{% else %}<i class="fas fa-times"></i>{% endif %}
-                    </div>
-                    <h3 class="text-[15px] font-semibold" style="color: var(--text-primary);">{{ q.question }}</h3>
+            <div class="studio-card p-6 sm:p-7 animate-enter" {{ ('style="animation-delay: ' ~ ((loop.index0 + 2) * 60) ~ 'ms;"')|safe }}>
+                <div class="flex items-start gap-3 mb-5">
+                    <span class="bracket-num text-xs">[Q {{ "%02d" % loop.index }}]</span>
+                    <h3 class="text-base font-bold font-heading leading-snug flex-1" style="color: var(--text-primary);">{{ q.question }}</h3>
+                    {% if is_question_correct %}
+                        <span class="editorial-stamp !text-[10px] !py-0.5" style="background: var(--olive-surface); color: var(--olive); border-color: var(--olive);">
+                            <i class="fas fa-check text-[9px]"></i> Correct
+                        </span>
+                    {% else %}
+                        <span class="editorial-stamp !text-[10px] !py-0.5" style="background: var(--coral-surface); color: var(--coral); border-color: var(--coral);">
+                            <i class="fas fa-times text-[9px]"></i> Missed
+                        </span>
+                    {% endif %}
                 </div>
                 
                 <div class="space-y-2">
@@ -58,28 +61,26 @@
                         {% set current_idx = loop.index0 %}
                         {% set is_correct = (current_idx == correct_ans_idx) %}
                         {% set is_user_ans = (current_idx == user_ans_idx) %}
+                        {% set opt_letter = ['A', 'B', 'C', 'D'][loop.index0] if loop.index0 < 4 else (loop.index0 + 1) %}
                         
-                        {% set opt_bg = 'var(--surface-raised)' %}
-                        {% set opt_color = 'var(--text-muted)' %}
-                        {% set opt_border = '1px solid var(--border)' %}
+                        {% set opt_style = 'background: var(--surface-raised); border: 1.5px solid var(--border); color: var(--text-muted);' %}
                         {% if is_correct %}
-                            {% set opt_bg = 'var(--sage-surface)' %}
-                            {% set opt_color = 'var(--sage)' %}
-                            {% set opt_border = '1px solid rgba(43,138,62,0.2)' %}
+                            {% set opt_style = 'background: var(--olive-surface); border: 1.5px solid var(--olive); color: var(--text-primary); font-weight: 600;' %}
                         {% elif is_user_ans %}
-                            {% set opt_bg = 'var(--coral-surface)' %}
-                            {% set opt_color = 'var(--coral)' %}
-                            {% set opt_border = '1px solid rgba(224,49,49,0.2)' %}
+                            {% set opt_style = 'background: var(--coral-surface); border: 1.5px solid var(--coral); color: var(--coral); font-weight: 600;' %}
                         {% endif %}
-                        <div class="px-4 py-3 rounded-lg text-[13px] flex justify-between items-center"
-                             {{ ('style="background: ' ~ opt_bg ~ '; color: ' ~ opt_color ~ '; border: ' ~ opt_border ~ ';"')|safe }}>
+                        <div class="px-4 py-3 rounded-md text-xs flex justify-between items-center transition-all"
+                             {{ ('style="' ~ opt_style ~ '"')|safe }}>
                             
-                            <span>{{ option }}</span>
+                            <div class="flex items-center gap-3">
+                                <span class="font-mono font-bold">{{ opt_letter }}</span>
+                                <span>{{ option }}</span>
+                            </div>
                             
                             {% if is_correct %}
-                                <span class="text-[10px] font-bold uppercase tracking-widest">Correct</span>
+                                <span class="editorial-stamp !text-[9px] !py-0.5" style="background: var(--olive); color: #fff; border-color: var(--olive);">Key Answer</span>
                             {% elif is_user_ans %}
-                                <span class="text-[10px] font-bold uppercase tracking-widest">Your choice</span>
+                                <span class="editorial-stamp !text-[9px] !py-0.5" style="background: var(--coral); color: #fff; border-color: var(--coral);">Your Choice</span>
                             {% endif %}
                         </div>
                     {% endfor %}
@@ -89,12 +90,13 @@
         </div>
 
         <!-- Actions -->
-        <div class="mt-12 flex flex-col sm:flex-row gap-3 justify-center animate-enter">
-            <a href="{{ url_for('dashboard.index') if session.user_id else url_for('dashboard.home') }}" class="btn-primary py-3 px-10 text-center">
-                {{ 'Return to Dashboard' if session.user_id else 'Back to Home' }}
+        <div class="mt-12 flex flex-col sm:flex-row gap-4 justify-center animate-enter">
+            <a href="{{ url_for('dashboard.index') if session.user_id else url_for('dashboard.home') }}" class="btn-primary py-3 px-8 text-center">
+                {{ 'Return to Workspace' if session.user_id else 'Back to Home' }}
             </a>
-            <button onclick="window.print()" class="btn-ghost py-3 px-10" style="border: 1px solid var(--border);">
-                Print Results
+            <button onclick="window.print()" class="btn-soft py-3 px-8">
+                <i class="fas fa-print text-xs"></i>
+                <span>Print Record</span>
             </button>
         </div>
     </div>

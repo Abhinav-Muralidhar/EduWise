@@ -2,52 +2,83 @@
 {% block title %}Summary — EduWise{% endblock %}
 
 {% block content %}
-<div class="min-h-screen pt-24 pb-20" style="background: var(--surface-page);">
-    <div class="max-w-[68ch] mx-auto px-6">
+<div class="min-h-screen pt-12 pb-20" style="background: var(--surface-page);">
+    <div class="max-w-[65ch] mx-auto px-6">
         
         <!-- Header -->
-        <div class="mb-10 animate-enter">
-            <a href="{{ url_for('dashboard.index') if session.user_id else url_for('dashboard.home') }}" class="text-[13px] font-medium flex items-center gap-2 mb-4 transition-colors hover:underline" style="color: var(--text-muted);">
-                <i class="fas fa-arrow-left text-[9px]"></i> {{ 'Back' if session.user_id else 'Back to home' }}
+        <div class="mb-8 animate-enter">
+            <a href="{{ url_for('dashboard.index') if session.user_id else url_for('dashboard.home') }}" class="text-xs font-semibold flex items-center gap-2 mb-4 transition-colors hover:underline" style="color: var(--text-muted);">
+                <i class="fas fa-arrow-left text-[9px]"></i> {{ 'Back to workspace' if session.user_id else 'Back to home' }}
             </a>
-            <h1 class="text-[28px] font-semibold tracking-tight mb-2" style="color: var(--text-primary);">Summary</h1>
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <span class="editorial-stamp mb-2">Synthesis & Extraction</span>
+                    <h1 class="text-2xl sm:text-3xl font-bold font-heading tracking-tight" style="color: var(--text-primary);">Distilled Summary</h1>
+                </div>
+                <span class="editorial-stamp accent flex-shrink-0">
+                    {{ summary_text.split()|length }} words
+                </span>
+            </div>
             {% if sources %}
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[12px] font-medium mt-1" style="background: var(--surface-card); border-color: var(--border); color: var(--accent);">
-                <i class="fas fa-book-bookmark text-[11px]"></i> Grounded in: {{ sources | join(', ') }}
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md text-xs font-semibold mt-3" style="background: var(--olive-surface); color: var(--olive); border: 1px solid var(--border);">
+                <i class="fas fa-book-bookmark text-[10px]"></i> Grounded in: {{ sources | join(', ') }}
             </div>
             {% endif %}
         </div>
 
         {% if not session.user_id %}
-        <!-- Guest Notice / Soft Nudge -->
-        <div class="mb-6 p-4 rounded-xl border flex items-center justify-between gap-4 animate-enter" style="background: var(--amber-surface); border-color: rgba(245,159,0,0.2);">
+        <!-- Guest Notice -->
+        <div class="mb-8 p-4 rounded-lg border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-enter" style="background: var(--accent-surface); border-color: var(--accent);">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: var(--amber); color: white;">
-                    <i class="fas fa-file-lines text-xs"></i>
-                </div>
+                <span class="bracket-num text-sm">[!]</span>
                 <div>
-                    <p class="text-[13px] font-semibold" style="color: var(--text-primary);">Guest Mode</p>
-                    <p class="text-[11px]" style="color: var(--text-secondary);"><a href="{{ url_for('auth.signup') }}" class="font-bold underline" style="color: var(--amber);">Sign up free</a> to save summaries to your workspace and upload PDFs.</p>
+                    <p class="text-xs font-bold" style="color: var(--text-primary);">Guest Summary Mode</p>
+                    <p class="text-xs" style="color: var(--text-secondary);"><a href="{{ url_for('auth.signup') }}" class="font-bold underline" style="color: var(--accent);">Sign up free</a> to index PDF textbooks and save key takeaways permanently.</p>
                 </div>
             </div>
-            <a href="{{ url_for('auth.signup') }}" class="btn-primary !py-1.5 !px-3 text-xs hidden sm:inline-flex whitespace-nowrap" style="background: var(--amber);">
-                Sign up
+            <a href="{{ url_for('auth.signup') }}" class="btn-primary !py-1.5 !px-3 !text-xs whitespace-nowrap">
+                Save Work
             </a>
         </div>
         {% endif %}
 
-        <!-- Content -->
-        <div class="studio-card p-10 animate-enter" style="animation-delay: 80ms;">
-            <div class="text-[15px] leading-[1.8] whitespace-pre-wrap" style="color: var(--text-secondary);">
+        <!-- Content Card -->
+        <div class="studio-card p-8 sm:p-10 animate-enter relative" style="border: 2px solid var(--border-ink); box-shadow: var(--shadow-tactile-lg); animation-delay: 80ms;">
+            <div class="flex items-center justify-between pb-4 mb-6 border-b" style="border-color: var(--border);">
+                <span class="editorial-stamp">Key Takeaways</span>
+                <button id="copyBtn" onclick="copySummaryText()" class="btn-soft !py-1.5 !px-3 text-xs flex items-center gap-1.5" title="Copy to clipboard">
+                    <i class="fas fa-copy text-[10px]"></i>
+                    <span id="copyText">Copy text</span>
+                </button>
+            </div>
+            <div id="summaryContent" class="text-base sm:text-lg leading-[1.85] whitespace-pre-wrap font-normal" style="color: var(--text-primary);">
                 {{ summary_text }}
             </div>
         </div>
         
-        <div class="mt-8 flex justify-center animate-enter" style="animation-delay: 160ms;">
-             <button onclick="window.print()" class="btn-ghost text-[13px] flex items-center gap-2" style="color: var(--text-muted);">
-                <i class="fas fa-print text-[11px]"></i> Save as PDF
+        <!-- Action Bar -->
+        <div class="mt-8 flex justify-center items-center gap-4 animate-enter" style="animation-delay: 160ms;">
+            <a href="{{ url_for('dashboard.index') if session.user_id else url_for('dashboard.home') }}" class="btn-primary !py-2.5 !px-6 text-xs">
+                {{ 'Back to Workspace' if session.user_id else 'Back to Home' }}
+            </a>
+            <button onclick="window.print()" class="btn-soft !py-2.5 !px-5 text-xs flex items-center gap-2">
+                <i class="fas fa-print text-[11px]"></i>
+                <span>Print Notes</span>
             </button>
         </div>
     </div>
 </div>
+
+<script>
+    function copySummaryText() {
+        const text = document.getElementById('summaryContent').innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            const copyText = document.getElementById('copyText');
+            copyText.textContent = 'Copied to clipboard!';
+            setTimeout(() => {
+                copyText.textContent = 'Copy text';
+            }, 2000);
+        });
+    }
+</script>
 {% endblock %}

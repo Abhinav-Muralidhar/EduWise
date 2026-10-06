@@ -4,12 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}EduWise{% endblock %}</title>
+    <title>{% block title %}EduWise — Studious AI Studio{% endblock %}</title>
 
-    <!-- Typography - Inter (400, 500, 600, 700) -->
+    <!-- Typography: Fraunces (Expressive Serif) + Plus Jakarta Sans + Space Grotesk -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..800;1,9..144,400..800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet">
 
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -17,14 +19,12 @@
     <!-- Design System -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
 
-
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW08X3P4KT"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-
         gtag('config', 'G-ZW08X3P4KT');
     </script>
 
@@ -35,20 +35,17 @@
             theme: {
                 extend: {
                     colors: {
-                        ink: { DEFAULT: '#1B1F3B', soft: '#2D3256', faint: '#4A4E6E' },
-                        paper: { DEFAULT: '#FAF9F7', warm: '#F5F3F0', deep: '#ECEAE6' },
-                        accent: { DEFAULT: '#4361EE', hover: '#3651D4', glow: 'rgba(67,97,238,0.12)', surface: '#EEF1FE' },
-                        sage: { DEFAULT: '#2B8A3E', surface: '#EDFCF0' },
-                        coral: { DEFAULT: '#E03131', surface: '#FFF0F0' },
-                        plum: { DEFAULT: '#7048E8', surface: '#F3F0FF' },
-                        amber: { DEFAULT: '#E67700', surface: '#FFF9EB' },
-                        sky: { DEFAULT: '#1C7ED6', surface: '#E7F5FF' },
+                        accent: { DEFAULT: '#E8590C', hover: '#D9480F', surface: '#FDF0E7' },
+                        ink: { DEFAULT: '#1C1A17', muted: '#7A756A' },
+                        paper: { DEFAULT: '#F6F4EE', card: '#FFFEFA' },
                     },
                     fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+                        heading: ['Fraunces', 'Georgia', 'serif'],
+                        mono: ['"Space Grotesk"', 'monospace'],
                     },
                     borderRadius: {
-                        'studio': '14px',
+                        'tactile': '12px',
                     }
                 }
             }
@@ -56,33 +53,48 @@
     </script>
 </head>
 
-<body class="font-sans min-h-screen flex flex-col">
+<body class="font-sans min-h-screen flex flex-col relative selection:bg-[#E8590C] selection:text-white">
+    <!-- Ambient subtle warm paper glow -->
+    <div class="ambient-bg" aria-hidden="true">
+        <div class="ambient-glow-1"></div>
+        <div class="ambient-glow-2"></div>
+    </div>
 
     <!-- Accessibility -->
     <a href="#main-content" class="skip-link">Skip to content</a>
 
     {% include '_header.html' %}
 
-    <main id="main-content" class="flex-1">
+    <main id="main-content" class="flex-1 relative z-10">
         <!-- Toast container for flashes -->
         <div id="toast-container"></div>
 
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="border-t py-10 px-6 mt-auto" style="border-color: var(--border); background: var(--surface-card);">
-        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-2.5">
-                <div class="w-7 h-7 rounded-md flex items-center justify-center text-sm"
-                    style="background: var(--accent-surface); color: var(--accent);">
-                    <i class="fas fa-graduation-cap"></i>
+    <footer class="border-t py-12 px-6 mt-auto relative z-10 transition-colors"
+        style="border-color: var(--border); background: var(--surface-card);">
+        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-md flex items-center justify-center text-sm shadow-sm"
+                    style="background: var(--accent); color: var(--accent-ink); border: 1.5px solid var(--border-ink);">
+                    <i class="fas fa-feather-alt"></i>
                 </div>
-                <span class="font-semibold text-sm" style="color: var(--text-primary);">EduWise</span>
+                <div class="flex items-baseline gap-2">
+                    <span class="font-heading font-bold text-base tracking-tight"
+                        style="color: var(--text-primary);">EduWise</span>
+                    <span class="editorial-stamp !text-[9px] !py-0.5">Studious Edition</span>
+                </div>
             </div>
-            <p class="text-xs" style="color: var(--text-muted);">&copy; <script>document.write(new Date().getFullYear())</script> EduWise &middot; Built with intention.</p>
-            <div class="flex gap-5 text-xs">
-                <a href="#" class="hover:underline" style="color: var(--text-muted);">Privacy</a>
-                <a href="#" class="hover:underline" style="color: var(--text-muted);">Terms</a>
+            <p class="text-xs" style="color: var(--text-muted);">&copy;
+                <script>document.write(new Date().getFullYear())</script> EduWise &middot; Thoughtful AI learning for
+                deep retention.
+            </p>
+            <div class="flex gap-6 text-xs font-semibold">
+                <a href="{{ url_for('dashboard.home') }}#features" class="hover:underline transition-colors"
+                    style="color: var(--text-muted);">Features</a>
+                <a href="{{ url_for('dashboard.home') }}#quick-try" class="hover:underline transition-colors"
+                    style="color: var(--accent);">Guest Mode</a>
             </div>
         </div>
     </footer>
@@ -106,12 +118,12 @@
         const flashData = rawFlashes.map(f => ({ category: f[0], message: f[1] }));
 
         const toastContainer = document.getElementById('toast-container');
-        window.showToast = function(message, category) {
+        window.showToast = function (message, category) {
             const toast = document.createElement('div');
             toast.className = 'toast';
-            let icon = '<i class="fas fa-info-circle" style="color:var(--accent)"></i>';
-            if (category === 'success') icon = '<i class="fas fa-check-circle" style="color:var(--sage)"></i>';
-            if (category === 'error' || category === 'danger') icon = '<i class="fas fa-exclamation-circle" style="color:var(--coral)"></i>';
+            let icon = '<i class="fas fa-feather text-xs" style="color:var(--accent)"></i>';
+            if (category === 'success') icon = '<i class="fas fa-check-circle text-xs" style="color:var(--olive)"></i>';
+            if (category === 'error' || category === 'danger') icon = '<i class="fas fa-exclamation-circle text-xs" style="color:var(--coral)"></i>';
 
             toast.innerHTML = `${icon} <span>${message}</span>`;
             toastContainer.appendChild(toast);
@@ -121,7 +133,7 @@
                 setTimeout(() => toast.remove(), 400);
             }, 5000);
         };
-        
+
         flashData.forEach(f => window.showToast(f.message, f.category));
     </script>
 

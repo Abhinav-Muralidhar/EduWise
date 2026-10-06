@@ -2,20 +2,20 @@
 {% block title %}Sign Up - EduWise{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center pt-24 pb-20 px-6" style="background: var(--surface-page);">
-    <div class="w-full max-w-[420px]">
+<div class="min-h-screen flex items-center justify-center pt-12 pb-20 px-6" style="background: var(--surface-page);">
+    <div class="w-full max-w-[440px]">
         
         <!-- Header Branding -->
         <div class="text-center mb-8 animate-enter">
-            <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4 shadow-sm" style="background: var(--accent-surface); color: var(--accent);">
-                <i class="fas fa-user-plus text-xl"></i>
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-md mb-4" style="background: var(--accent); color: var(--accent-ink); border: 1.5px solid var(--border-ink); box-shadow: var(--shadow-tactile);">
+                <i class="fas fa-feather-alt text-lg"></i>
             </div>
-            <h1 class="text-[26px] font-bold tracking-tight mb-1.5" style="color: var(--text-primary);">Create your account</h1>
-            <p class="text-[14px]" style="color: var(--text-secondary);">Unlock AI-powered study guides, flashcards, & smart quizzes.</p>
+            <h1 class="text-3xl font-bold font-heading tracking-tight mb-1" style="color: var(--text-primary);">Create Your Account</h1>
+            <p class="text-xs sm:text-sm" style="color: var(--text-muted);">Unlock RAG document indexing, quiz grading, and spaced active recall decks.</p>
         </div>
 
         <!-- Signup Card -->
-        <div class="studio-card p-8 sm:p-9 animate-enter shadow-lg relative overflow-hidden" style="animation-delay: 80ms;">
+        <div class="studio-card p-8 sm:p-9 animate-enter relative overflow-hidden" style="border: 2px solid var(--border-ink); box-shadow: var(--shadow-tactile-lg); animation-delay: 80ms;">
             <form method="POST" action="{{ url_for('auth.signup') }}" id="signup-form" class="space-y-4">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 
@@ -37,7 +37,7 @@
                                class="studio-input pl-10" 
                                placeholder="e.g. alexander">
                     </div>
-                    <p class="text-[11px] mt-1" style="color: var(--text-muted);">Case-insensitive. 3-50 characters.</p>
+                    <p class="text-[11px] font-mono mt-1" style="color: var(--text-muted);">Case-insensitive &middot; 3-50 characters</p>
                 </div>
 
                 <!-- Email Field -->
@@ -91,9 +91,9 @@
                         <div class="h-1 flex-1 rounded-full transition-all" style="background: var(--border);"></div>
                         <div class="h-1 flex-1 rounded-full transition-all" style="background: var(--border);"></div>
                     </div>
-                    <div class="flex items-center justify-between mt-1 text-[11px]">
-                        <span id="password-label" style="color: var(--text-muted);">At least 8 characters required</span>
-                        <span id="caps-warning-pw" class="hidden text-amber font-medium"><i class="fas fa-exclamation-triangle"></i> Caps Lock</span>
+                    <div class="flex items-center justify-between mt-1 text-[11px] font-mono">
+                        <span id="password-label" style="color: var(--text-muted);">Min 8 characters required</span>
+                        <span id="caps-warning-pw" class="hidden text-ochre font-medium"><i class="fas fa-exclamation-triangle"></i> Caps Lock</span>
                     </div>
                 </div>
 
@@ -111,7 +111,7 @@
                                maxlength="100" 
                                autocomplete="new-password"
                                class="studio-input pl-10 pr-11" 
-                               placeholder="Re-enter your password">
+                               placeholder="Re-enter password">
                         <button type="button" 
                                 id="toggle-confirm-password" 
                                 tabindex="-1"
@@ -121,34 +121,34 @@
                             <i class="fas fa-eye" id="toggle-confirm-icon"></i>
                         </button>
                     </div>
-                    <p id="match-label" class="text-[11px] mt-1 hidden"></p>
+                    <p id="match-label" class="text-[11px] font-mono mt-1 hidden"></p>
                 </div>
 
                 <!-- Terms agreement -->
                 <div class="flex items-start gap-2.5 pt-1">
                     <input type="checkbox" id="terms" required class="w-4 h-4 mt-0.5 rounded cursor-pointer transition" style="accent-color: var(--accent);">
-                    <label for="terms" class="text-[12px] leading-tight cursor-pointer select-none" style="color: var(--text-secondary);">
-                        I agree to EduWise's <a href="#" class="hover:underline font-semibold" style="color: var(--accent);">Terms</a> and <a href="#" class="hover:underline font-semibold" style="color: var(--accent);">Privacy Policy</a>
+                    <label for="terms" class="text-xs leading-tight cursor-pointer select-none" style="color: var(--text-secondary);">
+                        I agree to EduWise's <a href="#" class="hover:underline font-bold" style="color: var(--accent);">Terms</a> and <a href="#" class="hover:underline font-bold" style="color: var(--accent);">Privacy Notice</a>
                     </label>
                 </div>
 
                 <!-- Submit Button -->
                 <button type="submit" id="signup-submit-btn" class="btn-primary w-full py-2.5 mt-2 flex items-center justify-center gap-2">
-                    <span id="signup-btn-text">Create Account</span>
-                    <i class="fas fa-arrow-right text-xs transition-transform group-hover:translate-x-0.5"></i>
+                    <span id="signup-btn-text">Create Free Account</span>
+                    <i class="fas fa-arrow-right text-xs"></i>
                 </button>
             </form>
 
-            <div class="mt-7 pt-6 text-center" style="border-top: 1px solid var(--border);">
-                <p class="text-[13px]" style="color: var(--text-secondary);">
+            <div class="mt-7 pt-6 text-center" style="border-top: 1.5px solid var(--border);">
+                <p class="text-xs" style="color: var(--text-muted);">
                     Already have an account? 
-                    <a href="{{ url_for('auth.login') }}" class="font-semibold hover:underline ml-1" style="color: var(--accent);">Log in</a>
+                    <a href="{{ url_for('auth.login') }}" class="font-bold hover:underline ml-1" style="color: var(--accent);">Log in</a>
                 </p>
             </div>
         </div>
 
-        <p class="text-center text-[12px] mt-6" style="color: var(--text-muted);">
-            Join thousands of students mastering their courses faster.
+        <p class="text-center text-xs mt-6" style="color: var(--text-muted);">
+            Join students and researchers studying with deep AI retention.
         </p>
     </div>
 </div>
@@ -214,7 +214,7 @@
         return score;
     }
 
-    const colors = ['#E03131', '#E67700', '#2B8A3E', '#2B8A3E'];
+    const colors = ['#DC3545', '#B8730E', '#2B6B4F', '#2B6B4F'];
     const labels = ['Weak (add length & symbols)', 'Fair (good progress)', 'Good password', 'Strong password!'];
 
     pw.addEventListener('input', function() {
@@ -224,9 +224,9 @@
         });
         if (this.value.length > 0) {
             label.textContent = s > 0 ? labels[s - 1] : 'Too short';
-            label.style.color = s > 0 ? colors[s - 1] : '#E03131';
+            label.style.color = s > 0 ? colors[s - 1] : '#DC3545';
         } else {
-            label.textContent = 'At least 8 characters required';
+            label.textContent = 'Min 8 characters required';
             label.style.color = 'var(--text-muted)';
         }
         checkMatch();
@@ -240,10 +240,10 @@
         matchLabel.classList.remove('hidden');
         if (pw.value === confirm.value) {
             matchLabel.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Passwords match';
-            matchLabel.style.color = 'var(--sage, #2B8A3E)';
+            matchLabel.style.color = 'var(--olive)';
         } else {
             matchLabel.innerHTML = '<i class="fas fa-times-circle mr-1"></i> Passwords do not match';
-            matchLabel.style.color = 'var(--coral, #E03131)';
+            matchLabel.style.color = 'var(--coral)';
         }
     }
 
@@ -254,7 +254,7 @@
         form.addEventListener('submit', function() {
             submitBtn.disabled = true;
             submitBtn.style.opacity = '0.85';
-            btnText.innerHTML = '<i class="fas fa-circle-notch fa-spin text-xs"></i> Creating account...';
+            btnText.innerHTML = '<i class="fas fa-circle-notch fa-spin text-xs mr-1"></i> Creating account...';
         });
     }
 })();

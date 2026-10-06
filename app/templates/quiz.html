@@ -2,58 +2,67 @@
 {% block title %}Quiz: {{ topic or 'Challenge' }}{% endblock %}
 
 {% block content %}
-<div class="min-h-screen pt-24 pb-32" style="background: var(--surface-page);">
-    <div class="max-w-3xl mx-auto px-6">
+<div class="min-h-screen pt-12 pb-32" style="background: var(--surface-page);">
+    <div class="max-w-2xl mx-auto px-6">
         
         <!-- Header -->
-        <div class="mb-8 animate-enter">
-            <a href="{{ url_for('dashboard.index') if session.user_id else url_for('dashboard.home') }}" class="text-[13px] font-medium inline-flex items-center gap-2 mb-3 transition-colors hover:underline" style="color: var(--text-muted);">
-                <i class="fas fa-arrow-left text-[9px]"></i> {{ 'Back to dashboard' if session.user_id else 'Back to home' }}
+        <div class="mb-10 animate-enter">
+            <a href="{{ url_for('dashboard.index') if session.user_id else url_for('dashboard.home') }}" class="text-xs font-semibold inline-flex items-center gap-2 mb-4 transition-colors hover:underline" style="color: var(--text-muted);">
+                <i class="fas fa-arrow-left text-[10px]"></i> {{ 'Back to workspace' if session.user_id else 'Back to home' }}
             </a>
-            <h1 class="text-[28px] font-semibold tracking-tight mb-1" style="color: var(--text-primary);">{{ topic or 'Generated Challenge' }}</h1>
-            <p class="text-[13px]" style="color: var(--text-muted);">{{ questions|length }} questions</p>
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <span class="editorial-stamp mb-2">Examination</span>
+                    <h1 class="text-2xl sm:text-3xl font-bold font-heading tracking-tight" style="color: var(--text-primary);">{{ topic or 'Knowledge Challenge' }}</h1>
+                </div>
+                <span class="editorial-stamp accent flex-shrink-0">
+                    {{ questions|length }} Questions
+                </span>
+            </div>
             {% if sources %}
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[12px] font-medium mt-3" style="background: var(--surface-card); border-color: var(--border); color: var(--sage);">
-                <i class="fas fa-book-bookmark text-[11px]"></i> Grounded in: {{ sources | join(', ') }}
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md text-xs font-semibold mt-3" style="background: var(--olive-surface); color: var(--olive); border: 1px solid var(--border);">
+                <i class="fas fa-book-bookmark text-[10px]"></i> Grounded in: {{ sources | join(', ') }}
             </div>
             {% endif %}
         </div>
 
         {% if not session.user_id %}
-        <!-- Guest Notice / Soft Nudge -->
-        <div class="mb-8 p-4 rounded-xl border flex items-center justify-between gap-4 animate-enter" style="background: var(--accent-surface); border-color: rgba(67,97,238,0.2);">
+        <!-- Guest Notice -->
+        <div class="mb-8 p-4 rounded-lg border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-enter" style="background: var(--accent-surface); border-color: var(--accent);">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: var(--accent); color: white;">
-                    <i class="fas fa-user-clock text-xs"></i>
-                </div>
+                <span class="bracket-num text-sm">[!]</span>
                 <div>
-                    <p class="text-[13px] font-semibold" style="color: var(--text-primary);">Guest Mode</p>
-                    <p class="text-[11px]" style="color: var(--text-secondary);">Your quiz is active in this session. <a href="{{ url_for('auth.signup') }}" class="font-bold underline" style="color: var(--accent);">Sign up</a> to save quiz history and study analytics.</p>
+                    <p class="text-xs font-bold" style="color: var(--text-primary);">Guest Quiz Session</p>
+                    <p class="text-xs" style="color: var(--text-secondary);">Your quiz results won't be saved after this session. <a href="{{ url_for('auth.signup') }}" class="font-bold underline" style="color: var(--accent);">Sign up</a> to keep a study log.</p>
                 </div>
             </div>
-            <a href="{{ url_for('auth.signup') }}" class="btn-primary !py-1.5 !px-3 text-xs hidden sm:inline-flex whitespace-nowrap">
-                Sign up free
+            <a href="{{ url_for('auth.signup') }}" class="btn-primary !py-1.5 !px-3 !text-xs whitespace-nowrap">
+                Save Progress
             </a>
         </div>
         {% endif %}
 
-        <form method="POST" action="{{ url_for('generation.submit_quiz') }}" class="space-y-6">
+        <form method="POST" action="{{ url_for('generation.submit_quiz') }}" class="space-y-8">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             
             {% for q in questions %}
-            <div class="studio-card p-7 animate-enter" {{ ('style="animation-delay: ' ~ (loop.index0 * 60) ~ 'ms;"')|safe }}>
-                <p class="label-caps mb-3">Question {{ loop.index }} of {{ questions|length }}</p>
-                <h3 class="text-[16px] font-semibold mb-6 leading-relaxed" style="color: var(--text-primary);">{{ q.question }}</h3>
+            <div class="studio-card p-6 sm:p-8 animate-enter" {{ ('style="animation-delay: ' ~ (loop.index0 * 50) ~ 'ms;"')|safe }}>
+                <div class="flex items-center justify-between mb-3">
+                    <span class="bracket-num">[Q {{ "%02d" % loop.index }}]</span>
+                    <span class="text-[11px] font-mono font-medium" style="color: var(--text-muted);">Select one answer</span>
+                </div>
+                <h2 class="text-base sm:text-lg font-bold font-heading mb-6 leading-relaxed" style="color: var(--text-primary);">{{ q.question }}</h2>
                 
-                <div class="space-y-2">
+                <div class="space-y-3">
                     {% for option in q.options %}
-                    <label class="flex items-center p-3.5 rounded-lg cursor-pointer transition-all group"
-                           style="border: 1px solid var(--border); background: var(--surface-card);"
-                           onmouseover="this.style.borderColor='var(--border-strong)'" 
-                           onmouseout="this.style.borderColor='var(--border)'">
+                    {% set opt_letter = ['A', 'B', 'C', 'D'][loop.index0] if loop.index0 < 4 else (loop.index0 + 1) %}
+                    <label class="quiz-option-label group">
                         <input type="radio" name="question_{{ q.id }}" value="{{ loop.index0 }}" required 
-                               class="w-4 h-4 rounded-full" style="accent-color: var(--accent);">
-                        <span class="ml-3.5 text-[14px] transition-colors" style="color: var(--text-secondary);">{{ option }}</span>
+                               class="quiz-option-input sr-only">
+                        <span class="quiz-option-pill">
+                            {{ opt_letter }}
+                        </span>
+                        <span class="text-sm font-medium leading-relaxed transition-colors flex-1" style="color: var(--text-primary);">{{ option }}</span>
                     </label>
                     {% endfor %}
                 </div>
@@ -61,11 +70,14 @@
             {% endfor %}
 
             <!-- Floating submit bar -->
-            <div class="fixed bottom-0 left-0 w-full py-4 px-6 z-40" style="background: var(--surface-card); border-top: 1px solid var(--border);">
-                <div class="max-w-3xl mx-auto flex items-center justify-between">
-                    <p class="text-[13px] font-medium hidden sm:block" style="color: var(--text-muted);">Answer all questions to submit.</p>
-                    <button type="submit" class="btn-primary w-full sm:w-auto py-3 px-10">
-                        Submit Quiz
+            <div class="fixed bottom-0 left-0 w-full py-4 px-6 z-40" style="background: var(--surface-card); border-top: 1.5px solid var(--border-ink); box-shadow: 0 -4px 12px rgba(28, 26, 23, 0.08);">
+                <div class="max-w-2xl mx-auto flex items-center justify-between">
+                    <p class="text-xs font-semibold hidden sm:block" style="color: var(--text-muted);">
+                        <span class="bracket-num">&bull;</span> {{ questions|length }} total questions to score
+                    </p>
+                    <button type="submit" class="btn-primary w-full sm:w-auto py-2.5 px-8">
+                        <span>Submit Examination</span>
+                        <i class="fas fa-arrow-right text-xs"></i>
                     </button>
                 </div>
             </div>

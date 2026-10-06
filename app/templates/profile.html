@@ -2,12 +2,12 @@
 {% block title %}My Profile - EduWise{% endblock %}
 
 {% block content %}
-<div class="min-h-screen pt-12 pb-20 px-6" style="background: var(--surface-page);">
+<div class="min-h-screen pt-10 pb-20 px-6" style="background: var(--surface-page);">
     <div class="max-w-4xl mx-auto">
         <!-- Back Navigation -->
         <div class="mb-6">
-            <a href="{{ url_for('dashboard.index') }}" class="inline-flex items-center gap-2 text-sm font-medium transition-colors hover:text-accent" style="color: var(--text-muted);">
-                <i class="fas fa-arrow-left text-xs"></i> Back to Dashboard
+            <a href="{{ url_for('dashboard.index') }}" class="inline-flex items-center gap-2 text-xs font-semibold transition-colors hover:underline" style="color: var(--text-muted);">
+                <i class="fas fa-arrow-left text-[9px]"></i> Back to Workspace
             </a>
         </div>
         
@@ -15,18 +15,18 @@
         
         <!-- Left: User Info -->
         <div class="md:col-span-1 space-y-6">
-            <div class="studio-card p-8 text-center animate-enter">
-                <div class="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl font-bold text-white shadow-lg"
-                     style="background: {{ user.avatar_color or 'var(--accent)' }};">
+            <div class="studio-card p-8 text-center animate-enter" style="border: 2px solid var(--border-ink); box-shadow: var(--shadow-tactile);">
+                <div class="w-16 h-16 rounded-md mx-auto mb-4 flex items-center justify-center text-2xl font-bold text-white shadow-sm font-heading"
+                     style="background: {{ user.avatar_color or 'var(--accent)' }}; border: 1.5px solid var(--border-ink);">
                     {{ (user.display_name or user.username)[0].upper() }}
                 </div>
-                <h2 class="text-xl font-semibold mb-1" style="color: var(--text-primary);">
+                <h2 class="text-xl font-bold font-heading mb-0.5" style="color: var(--text-primary);">
                     {{ user.display_name or user.username }}
                 </h2>
-                <p class="text-sm mb-4" style="color: var(--text-muted);">@{{ user.username }}</p>
+                <p class="text-xs font-mono mb-4" style="color: var(--text-muted);">@{{ user.username }}</p>
                 
                 {% if user.bio %}
-                <p class="text-[13px] italic mb-6 leading-relaxed" style="color: var(--text-secondary);">
+                <p class="text-xs italic mb-6 leading-relaxed" style="color: var(--text-secondary);">
                     "{{ user.bio }}"
                 </p>
                 {% endif %}
@@ -34,44 +34,28 @@
                 <div class="pt-6 border-t flex flex-col gap-2 text-left" style="border-color: var(--border);">
                     <div class="flex justify-between text-xs">
                         <span style="color: var(--text-muted);">Joined</span>
-                        <span style="color: var(--text-primary);">{{ user.created_at.strftime('%b %Y') }}</span>
+                        <span class="font-mono font-semibold" style="color: var(--text-primary);">{{ user.created_at.strftime('%b %Y') }}</span>
                     </div>
                     <div class="flex justify-between text-xs">
                         <span style="color: var(--text-muted);">Email</span>
-                        <span style="color: var(--text-primary);">{{ user.email }}</span>
+                        <span class="font-mono truncate max-w-[140px]" style="color: var(--text-primary);" title="{{ user.email }}">{{ user.email }}</span>
                     </div>
                 </div>
             </div>
 
             <!-- Stats -->
             <div class="studio-card p-6 animate-enter" style="animation-delay: 80ms;">
-                <h3 class="label-caps mb-4">Activity Stats</h3>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="p-3 rounded-lg" style="background: var(--accent-surface);">
-                        <div class="text-[20px] font-bold" style="color: var(--accent);">{{ stats.total }}</div>
-                        <div class="text-[10px] uppercase font-semibold" style="color: var(--accent);">Resources</div>
-                    </div>
-                    <div class="p-3 rounded-lg" style="background: var(--sage-surface);">
-                        <div class="text-[20px] font-bold" style="color: var(--sage);">{{ stats.favorites }}</div>
-                        <div class="text-[10px] uppercase font-semibold" style="color: var(--sage);">Favorites</div>
-                    </div>
+                <div class="flex items-center justify-between mb-4">
+                    <span class="editorial-stamp">Notebook Stats</span>
                 </div>
-                <div class="mt-4 space-y-2">
-                    <div class="flex items-center justify-between text-xs p-2 rounded hover:bg-black/5">
-                        <span class="flex items-center gap-2"><i class="fas fa-file-powerpoint w-4" style="color: #D24726"></i> Slides</span>
-                        <span class="font-medium">{{ stats.pptx }}</span>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-3 rounded-md border" style="background: var(--surface-raised); border-color: var(--border);">
+                        <div class="text-xl font-bold font-mono" style="color: var(--accent);">{{ stats.total }}</div>
+                        <div class="text-[9px] uppercase font-mono font-bold" style="color: var(--text-muted);">Saved Items</div>
                     </div>
-                    <div class="flex items-center justify-between text-xs p-2 rounded hover:bg-black/5">
-                        <span class="flex items-center gap-2"><i class="fas fa-file-pdf w-4" style="color: #E03131"></i> PDFs</span>
-                        <span class="font-medium">{{ stats.pdf }}</span>
-                    </div>
-                    <div class="flex items-center justify-between text-xs p-2 rounded hover:bg-black/5">
-                        <span class="flex items-center gap-2"><i class="fas fa-question-circle w-4" style="color: var(--plum)"></i> Quizzes</span>
-                        <span class="font-medium">{{ stats.quiz }}</span>
-                    </div>
-                    <div class="flex items-center justify-between text-xs p-2 rounded hover:bg-black/5">
-                        <span class="flex items-center gap-2"><i class="fas fa-bolt w-4" style="color: var(--amber)"></i> Flashcards</span>
-                        <span class="font-medium">{{ stats.flashcard }}</span>
+                    <div class="p-3 rounded-md border" style="background: var(--surface-raised); border-color: var(--border);">
+                        <div class="text-xl font-bold font-mono" style="color: var(--olive);">{{ stats.favorites }}</div>
+                        <div class="text-[9px] uppercase font-mono font-bold" style="color: var(--text-muted);">Favorites</div>
                     </div>
                 </div>
             </div>
@@ -82,8 +66,8 @@
             
             <!-- Profile Settings -->
             <div class="studio-card p-8 animate-enter" style="animation-delay: 150ms;">
-                <h3 class="text-lg font-semibold mb-6 flex items-center gap-2">
-                    <i class="fas fa-user-circle text-accent"></i> Profile Settings
+                <h3 class="text-lg font-bold font-heading mb-6 flex items-center gap-2" style="color: var(--text-primary);">
+                    <span class="bracket-num">[01]</span> Profile Preferences
                 </h3>
                 <form action="{{ url_for('auth.update_profile') }}" method="POST" class="space-y-5">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -100,20 +84,20 @@
                     </div>
 
                     <div>
-                        <label class="label-caps block mb-2">Short Bio</label>
-                        <textarea name="bio" rows="3" maxlength="500" class="studio-input py-3 resize-none" placeholder="Tell us about your learning goals...">{{ user.bio or '' }}</textarea>
+                        <label class="label-caps block mb-2">Study Bio</label>
+                        <textarea name="bio" rows="3" maxlength="500" class="studio-input py-3 resize-none" placeholder="Major, study goals, or subject interests...">{{ user.bio or '' }}</textarea>
                     </div>
 
                     <div class="flex justify-end">
-                        <button type="submit" class="btn-primary">Save Changes</button>
+                        <button type="submit" class="btn-primary">Save Profile</button>
                     </div>
                 </form>
             </div>
 
             <!-- Password Change -->
             <div class="studio-card p-8 animate-enter" style="animation-delay: 200ms;">
-                <h3 class="text-lg font-semibold mb-6 flex items-center gap-2">
-                    <i class="fas fa-lock text-accent"></i> Security & Password
+                <h3 class="text-lg font-bold font-heading mb-6 flex items-center gap-2" style="color: var(--text-primary);">
+                    <span class="bracket-num">[02]</span> Security & Credentials
                 </h3>
                 <form action="{{ url_for('auth.change_password') }}" method="POST" class="space-y-5">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -165,13 +149,13 @@
             </div>
 
             <!-- Danger Zone -->
-            <div class="studio-card p-8 border-coral/30 animate-enter" style="animation-delay: 250ms; border: 1px solid rgba(224,49,49,0.2);">
+            <div class="studio-card p-8 animate-enter" style="animation-delay: 250ms; border: 1.5px solid var(--coral); background: var(--coral-surface);">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
-                        <h3 class="text-lg font-semibold text-coral mb-1">Delete Account</h3>
-                        <p class="text-sm" style="color: var(--text-secondary);">Permanently remove your account and all generated resources.</p>
+                        <h3 class="text-base font-bold font-heading text-coral mb-1">Delete Account & Data</h3>
+                        <p class="text-xs" style="color: var(--text-secondary);">Permanently erase your study notebook and all indexed documents.</p>
                     </div>
-                    <button onclick="document.getElementById('delete-modal').classList.remove('hidden')" class="px-4 py-2 text-xs font-bold rounded-lg border border-coral text-coral hover:bg-coral hover:text-white transition-all">
+                    <button onclick="document.getElementById('delete-modal').classList.remove('hidden')" class="btn-soft !text-coral !border-coral hover:!bg-coral hover:!text-white text-xs whitespace-nowrap">
                         Delete Data
                     </button>
                 </div>
@@ -181,10 +165,10 @@
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div id="delete-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6 bg-ink/60 backdrop-blur-sm">
-    <div class="studio-card p-8 max-w-[400px] w-full animate-scale">
-        <h3 class="text-xl font-bold text-coral mb-2">Are you absolutely sure?</h3>
-        <p class="text-sm mb-6" style="color: var(--text-secondary);">This action cannot be undone. All your resources, quizzes, and files will be permanently deleted.</p>
+<div id="delete-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+    <div class="studio-card p-8 max-w-[400px] w-full" style="border: 2px solid var(--border-ink); box-shadow: var(--shadow-tactile-lg);">
+        <h3 class="text-xl font-bold font-heading text-coral mb-2">Delete all account records?</h3>
+        <p class="text-xs mb-6" style="color: var(--text-muted);">This action is irreversible. All your study decks, quizzes, notes, and uploaded PDFs will be deleted immediately.</p>
         
         <form action="{{ url_for('auth.delete_account') }}" method="POST" class="space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -202,11 +186,11 @@
             </div>
             
             <div class="flex gap-3 pt-2">
-                <button type="button" onclick="document.getElementById('delete-modal').classList.add('hidden')" class="flex-1 py-2.5 rounded-lg font-medium border border-border hover:bg-black/5 transition-colors">
+                <button type="button" onclick="document.getElementById('delete-modal').classList.add('hidden')" class="btn-soft flex-1 text-xs">
                     Cancel
                 </button>
-                <button type="submit" class="flex-1 py-2.5 rounded-lg font-medium bg-coral text-white hover:opacity-90 transition-opacity">
-                    Yes, delete everything
+                <button type="submit" class="btn-primary flex-1 !bg-coral !text-white text-xs">
+                    Delete
                 </button>
             </div>
         </form>
@@ -223,9 +207,4 @@ function toggleField(inputId, iconId) {
     icon.className = isPw ? 'fas fa-eye-slash' : 'fas fa-eye';
 }
 </script>
-
-<style>
-.animate-scale { animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-@keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-</style>
 {% endblock %}

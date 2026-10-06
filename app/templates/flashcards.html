@@ -2,63 +2,85 @@
 {% block title %}Flashcards - EduWise{% endblock %}
 
 {% block content %}
-<div class="min-h-screen pt-24 pb-20" style="background: var(--surface-page);">
+<div class="min-h-screen pt-12 pb-20" style="background: var(--surface-page);">
     <div class="max-w-2xl mx-auto px-6">
         
         <!-- Header -->
         <div class="flex items-center justify-between mb-4 animate-enter">
-            <a href="{{ url_for('dashboard.index') if session.user_id else url_for('dashboard.home') }}" class="text-[13px] font-medium flex items-center gap-2 transition-colors hover:underline" style="color: var(--text-muted);">
-                <i class="fas fa-arrow-left text-[9px]"></i> {{ 'Back' if session.user_id else 'Back to home' }}
+            <a href="{{ url_for('dashboard.index') if session.user_id else url_for('dashboard.home') }}" class="text-xs font-semibold flex items-center gap-2 transition-colors hover:underline" style="color: var(--text-muted);">
+                <i class="fas fa-arrow-left text-[9px]"></i> {{ 'Back to workspace' if session.user_id else 'Back to home' }}
             </a>
-            <span class="label-caps" id="cardCounter">Card 1 of {{ flashcards|length }}</span>
+            <div class="flex items-center gap-2">
+                <span class="editorial-stamp" id="cardCounter">Card 1 of {{ flashcards|length }}</span>
+            </div>
         </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full h-1.5 rounded-full overflow-hidden mb-8 animate-enter" style="background: var(--surface-sunken); border: 1px solid var(--border);">
+            <div id="deckProgressBar" class="h-full transition-all duration-300 rounded-full" style="background: var(--accent); width: {{ (1 / flashcards|length * 100) if flashcards|length > 0 else 100 }}%;"></div>
+        </div>
+
         {% if sources %}
-        <div class="mb-8 flex justify-center animate-enter">
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[12px] font-medium" style="background: var(--surface-card); border-color: var(--border); color: var(--plum);">
-                <i class="fas fa-book-bookmark text-[11px]"></i> Grounded in: {{ sources | join(', ') }}
+        <div class="mb-6 flex justify-center animate-enter">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md text-xs font-semibold" style="background: var(--olive-surface); color: var(--olive); border: 1px solid var(--border);">
+                <i class="fas fa-book-bookmark text-[10px]"></i> Grounded in: {{ sources | join(', ') }}
             </div>
         </div>
         {% endif %}
 
         {% if not session.user_id %}
-        <!-- Guest Notice / Soft Nudge -->
-        <div class="mb-6 p-4 rounded-xl border flex items-center justify-between gap-4 animate-enter" style="background: var(--plum-surface); border-color: rgba(112,72,232,0.2);">
+        <!-- Guest Notice -->
+        <div class="mb-6 p-4 rounded-lg border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-enter" style="background: var(--accent-surface); border-color: var(--accent);">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: var(--plum); color: white;">
-                    <i class="fas fa-user-clock text-xs"></i>
-                </div>
+                <span class="bracket-num text-sm">[!]</span>
                 <div>
-                    <p class="text-[13px] font-semibold" style="color: var(--text-primary);">Guest Deck Preview</p>
-                    <p class="text-[11px]" style="color: var(--text-secondary);"><a href="{{ url_for('auth.signup') }}" class="font-bold underline" style="color: var(--plum);">Sign up free</a> to save this deck to your library and study on any device.</p>
+                    <p class="text-xs font-bold" style="color: var(--text-primary);">Guest Deck Preview</p>
+                    <p class="text-xs" style="color: var(--text-secondary);"><a href="{{ url_for('auth.signup') }}" class="font-bold underline" style="color: var(--accent);">Sign up</a> to save this deck and build spaced recall streaks.</p>
                 </div>
             </div>
-            <a href="{{ url_for('auth.signup') }}" class="btn-primary !py-1.5 !px-3 text-xs hidden sm:inline-flex whitespace-nowrap" style="background: var(--plum);">
-                Sign up
+            <a href="{{ url_for('auth.signup') }}" class="btn-primary !py-1.5 !px-3 !text-xs whitespace-nowrap">
+                Save Deck
             </a>
         </div>
         {% endif %}
 
         <!-- Flashcard Viewport -->
-        <div class="relative h-[400px] animate-enter" style="animation-delay: 80ms;">
+        <div class="relative h-[360px] sm:h-[400px] animate-enter flashcard-perspective" style="animation-delay: 80ms;">
             {% for card in flashcards %}
             <div id="card-{{ loop.index0 }}" class="flashcard-stack absolute inset-0 transition-all duration-300 {{ 'opacity-0 pointer-events-none translate-x-8' if not loop.first else 'opacity-100' }}">
-                <div class="w-full h-full studio-card cursor-pointer p-8 flex flex-col items-center justify-center text-center relative overflow-hidden" 
-                     data-index="{{ loop.index0 }}" onclick="toggleFlip(this.dataset.index)">
+                <div class="flashcard-container w-full h-full" 
+                     id="inner-{{ loop.index0 }}"
+                     data-index="{{ loop.index0 }}" 
+                     onclick="toggleFlip(this.dataset.index)">
                     
-                    <div id="front-{{ loop.index0 }}" class="transition-opacity duration-200">
-                        <span class="text-[10px] font-bold uppercase tracking-[0.2em] mb-4 block" style="color: var(--plum);">Question</span>
-                        <h2 class="text-[20px] font-semibold leading-relaxed px-4" style="color: var(--text-primary);">
+                    <!-- Front Face -->
+                    <div class="flashcard-face">
+                        <div class="flex justify-between items-center w-full">
+                            <span class="editorial-stamp">Question</span>
+                            <span class="bracket-num">[#{{ "%02d" % loop.index }}]</span>
+                        </div>
+                        <h2 class="text-xl sm:text-2xl font-bold font-heading leading-relaxed text-center px-4 my-auto" style="color: var(--text-primary);">
                             {{ card.question }}
                         </h2>
-                        <p class="absolute bottom-8 left-0 w-full text-[12px]" style="color: var(--text-ghost);">Tap to reveal answer</p>
+                        <div class="flex items-center justify-center gap-2 text-xs font-mono font-medium" style="color: var(--text-muted);">
+                            <i class="fas fa-rotate text-[10px]"></i>
+                            <span>Click card or hit Space to reveal</span>
+                        </div>
                     </div>
 
-                    <div id="back-{{ loop.index0 }}" class="absolute inset-0 p-8 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200" style="background: var(--plum-surface);">
-                        <span class="text-[10px] font-bold uppercase tracking-[0.2em] mb-4 block" style="color: var(--plum);">Answer</span>
-                        <p class="text-[18px] font-medium leading-relaxed px-4" style="color: var(--text-primary);">
+                    <!-- Back Face -->
+                    <div class="flashcard-face flashcard-back">
+                        <div class="flex justify-between items-center w-full">
+                            <span class="editorial-stamp accent">Answer</span>
+                            <span class="bracket-num">[#{{ "%02d" % loop.index }}]</span>
+                        </div>
+                        <p class="text-base sm:text-lg font-medium leading-relaxed text-center px-4 my-auto" style="color: var(--text-primary);">
                             {{ card.answer }}
                         </p>
-                        <p class="absolute bottom-8 left-0 w-full text-[12px]" style="color: var(--text-ghost);">Tap to see question</p>
+                        <div class="flex items-center justify-center gap-2 text-xs font-mono font-medium" style="color: var(--text-muted);">
+                            <i class="fas fa-rotate text-[10px]"></i>
+                            <span>Click card or hit Space to flip back</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -66,18 +88,21 @@
         </div>
 
         <!-- Controls -->
-        <div class="mt-10 flex justify-center items-center gap-5 animate-enter" style="animation-delay: 160ms;">
-            <button onclick="prevCard()" class="w-11 h-11 rounded-full flex items-center justify-center transition-colors"
-                    style="border: 1px solid var(--border); color: var(--text-muted);">
-                <i class="fas fa-chevron-left text-sm"></i>
+        <div class="mt-8 flex justify-center items-center gap-4 animate-enter" style="animation-delay: 160ms;">
+            <button id="prevBtn" onclick="prevCard()" class="w-10 h-10 rounded-md flex items-center justify-center btn-soft !p-0 disabled:opacity-30 disabled:cursor-not-allowed" title="Previous card">
+                <i class="fas fa-arrow-left text-xs"></i>
             </button>
-            <button onclick="nextCard()" class="btn-primary w-11 h-11 rounded-full !p-0" style="background: var(--plum);">
-                <i class="fas fa-chevron-right text-sm"></i>
+            <button onclick="toggleFlip(currentIndex)" class="btn-soft !py-2 !px-6 text-xs flex items-center gap-2">
+                <i class="fas fa-arrows-rotate text-[11px]"></i>
+                <span>Flip Card</span>
+            </button>
+            <button id="nextBtn" onclick="nextCard()" class="btn-primary w-10 h-10 rounded-md !p-0 disabled:opacity-30 disabled:cursor-not-allowed" title="Next card">
+                <i class="fas fa-arrow-right text-xs"></i>
             </button>
         </div>
 
-        <p class="text-center mt-4 text-[11px]" style="color: var(--text-ghost);">
-            Use <kbd class="kbd-hint" style="position:static; opacity:1; display:inline-flex;">&larr;</kbd> <kbd class="kbd-hint" style="position:static; opacity:1; display:inline-flex;">&rarr;</kbd> keys or <kbd class="kbd-hint" style="position:static; opacity:1; display:inline-flex;">Space</kbd> to flip
+        <p class="text-center mt-6 text-xs font-mono" style="color: var(--text-muted);">
+            Shortcuts: <kbd class="px-1.5 py-0.5 rounded border border-[var(--border-strong)] bg-[var(--surface-card)] text-[10px]">&larr;</kbd> <kbd class="px-1.5 py-0.5 rounded border border-[var(--border-strong)] bg-[var(--surface-card)] text-[10px]">&rarr;</kbd> and <kbd class="px-1.5 py-0.5 rounded border border-[var(--border-strong)] bg-[var(--surface-card)] text-[10px]">Space</kbd>
         </p>
     </div>
 </div>
@@ -88,16 +113,14 @@
     let currentIndex = 0;
     const totalCards = parseInt("{{ flashcards|length }}", 10);
     const counter = document.getElementById('cardCounter');
+    const progressBar = document.getElementById('deckProgressBar');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
 
     function toggleFlip(index) {
-        const front = document.getElementById(`front-${index}`);
-        const back = document.getElementById(`back-${index}`);
-        if (front.classList.contains('opacity-0')) {
-            front.classList.remove('opacity-0', 'pointer-events-none');
-            back.classList.add('opacity-0', 'pointer-events-none');
-        } else {
-            front.classList.add('opacity-0', 'pointer-events-none');
-            back.classList.remove('opacity-0', 'pointer-events-none');
+        const inner = document.getElementById(`inner-${index}`);
+        if (inner) {
+            inner.classList.toggle('flipped');
         }
     }
 
@@ -110,7 +133,12 @@
                 el.classList.add('opacity-100', 'translate-x-0');
             }
         });
-        counter.textContent = `Card ${currentIndex + 1} of ${totalCards}`;
+        if (counter) counter.textContent = `Card ${currentIndex + 1} of ${totalCards}`;
+        if (progressBar && totalCards > 0) {
+            progressBar.style.width = `${((currentIndex + 1) / totalCards) * 100}%`;
+        }
+        if (prevBtn) prevBtn.disabled = (currentIndex === 0);
+        if (nextBtn) nextBtn.disabled = (currentIndex === totalCards - 1);
     }
 
     function nextCard() {
@@ -127,10 +155,19 @@
         }
     }
 
+    // Keyboard navigation
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowRight') nextCard();
-        if (e.key === 'ArrowLeft') prevCard();
-        if (e.key === ' ') { e.preventDefault(); toggleFlip(currentIndex); }
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        if (e.code === 'Space') {
+            e.preventDefault();
+            toggleFlip(currentIndex);
+        } else if (e.code === 'ArrowRight') {
+            nextCard();
+        } else if (e.code === 'ArrowLeft') {
+            prevCard();
+        }
     });
+
+    updateCardVisibility();
 </script>
 {% endblock %}

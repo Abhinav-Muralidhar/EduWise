@@ -1,77 +1,166 @@
-<style>
-    .nav-active {
-        background: var(--accent-surface);
-        color: var(--accent);
-    }
-
-    .nav-inactive {
-        background: transparent;
-        color: var(--text-muted);
-        hover: var(--text-primary);
-    }
-</style>
-<nav class="w-full sticky top-0 z-50"
-    style="background: var(--surface-card); border-bottom: 1px solid var(--border); height: var(--header-height);">
+<nav class="w-full sticky top-0 z-50 transition-colors app-header"
+    style="background: var(--surface-glass); border-bottom: 1.5px solid var(--border); height: var(--header-height);">
     <div class="max-w-5xl mx-auto px-6 h-full flex justify-between items-center">
         <!-- Brand -->
         <a href="{{ url_for('dashboard.index') if session.user_id else url_for('dashboard.home') }}"
-            class="flex items-center gap-2.5 group">
-            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-transform group-hover:scale-105"
-                style="background: var(--accent-surface); color: var(--accent);">
-                <i class="fas fa-graduation-cap"></i>
+            class="brand-mark group" title="EduWise Home">
+            <div class="brand-icon">
+                <i class="fas fa-feather-alt text-xs"></i>
             </div>
-            <span class="text-[16px] font-semibold tracking-tight" style="color: var(--text-primary);">EduWise</span>
+            <span class="font-heading font-bold text-xl tracking-tight" style="color: var(--text-primary);">EduWise</span>
         </a>
 
-        <!-- Right side -->
+        <!-- Right Side Nav -->
         <div class="flex items-center gap-3">
-            <!-- Nav links -->
-            <div class="hidden sm:flex items-center gap-1">
-                {% if session.user_id %}
-                {% set nav_class = 'nav-active' if request.path == url_for('dashboard.index') else 'nav-inactive' %}
-                <a href="{{ url_for('dashboard.index') }}"
-                    class="px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors {{ nav_class }}">
-                    Dashboard
-                </a>
-                {% else %}
-                <a href="{{ url_for('auth.login') }}" class="px-3 py-1.5 text-[13px] font-medium transition-colors"
-                    style="color: var(--text-muted);">
-                    Login
-                </a>
-                {% endif %}
-            </div>
-
-            <!-- Divider -->
-            <div class="w-px h-5 mx-1" style="background: var(--border);"></div>
-
-            <!-- Theme Toggle -->
-            <button id="themeToggle" onclick="applyTheme(htmlElement.classList.contains('dark') ? 'light' : 'dark')"
-                class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-                style="border: 1px solid var(--border);" title="Toggle theme">
-                <i class="fas fa-moon text-xs dark:hidden" style="color: var(--text-muted);"></i>
-                <i class="fas fa-sun text-xs hidden dark:block" style="color: var(--amber);"></i>
-            </button>
-
-            <!-- User -->
             {% if session.user_id %}
-            <div class="flex items-center gap-2.5">
-                <a href="{{ url_for('auth.profile') }}" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-transform hover:scale-105"
-                    style="background: var(--accent-surface); color: var(--accent);">
-                    {{ session.username[0].upper() }}
+                <!-- My Knowledge Base Nav Item -->
+                <a href="{{ url_for('dashboard.index') }}#kb-section"
+                   class="hidden xs:inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-all hover:bg-black/5 dark:hover:bg-white/5"
+                   style="color: var(--text-secondary);"
+                   title="My Knowledge Base">
+                    <span class="bracket-num">[KB]</span>
+                    <span>Knowledge Base</span>
                 </a>
-                <form method="post" action="{{ url_for('auth.logout') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="text-xs font-medium transition-colors"
-                        style="color: var(--text-muted);">
-                        Log out
+
+                <!-- Profile Dropdown Trigger & Menu -->
+                <div class="profile-dropdown-container">
+                    <button id="profileMenuBtn" 
+                            onclick="toggleProfileDropdown(event)"
+                            aria-expanded="false"
+                            aria-haspopup="true"
+                            class="profile-avatar-btn"
+                            title="Account menu">
+                        <div class="profile-avatar-circle" style="background: var(--accent);">
+                            {{ session.username[0].upper() if session.username else 'U' }}
+                        </div>
+                        <i class="fas fa-chevron-down text-[10px] pr-1" style="color: var(--text-muted);"></i>
                     </button>
-                </form>
-            </div>
+
+                    <!-- Dropdown Content -->
+                    <div id="profileDropdown" class="profile-dropdown-menu">
+                        <!-- User Header -->
+                        <div class="px-3 py-2 border-b mb-1" style="border-color: var(--border);">
+                            <p class="font-heading text-sm font-bold truncate" style="color: var(--text-primary);">{{ session.username }}</p>
+                            <span class="editorial-stamp !text-[9px] !py-0.5 mt-1">Active Account</span>
+                        </div>
+
+                        <!-- Menu Items -->
+                        <div class="py-1 space-y-0.5">
+                            <a href="{{ url_for('auth.profile') }}" class="dropdown-item">
+                                <i class="fas fa-user text-xs w-4" style="color: var(--accent);"></i>
+                                <span>My Profile</span>
+                            </a>
+                            <a href="{{ url_for('dashboard.index') }}#kb-section" class="dropdown-item">
+                                <i class="fas fa-book-bookmark text-xs w-4" style="color: var(--olive);"></i>
+                                <span>Knowledge Base</span>
+                            </a>
+                            <button type="button" 
+                                    onclick="toggleThemeFromMenu()" 
+                                    class="dropdown-item">
+                                <i id="menuThemeIcon" class="fas fa-moon text-xs w-4" style="color: var(--ochre);"></i>
+                                <span id="menuThemeText">Dark Mode</span>
+                            </button>
+                        </div>
+
+                        <div class="dropdown-divider"></div>
+
+                        <!-- Logout Action -->
+                        <form method="post" action="{{ url_for('auth.logout') }}" class="m-0 p-0">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="dropdown-item !text-[#DC3545] hover:!bg-[#FDECEC] dark:hover:!bg-red-950/30">
+                                <i class="fas fa-arrow-right-from-bracket text-xs w-4"></i>
+                                <span>Log out</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
             {% else %}
-            <a href="{{ url_for('auth.signup') }}" class="btn-primary text-xs py-2 px-4 rounded-lg">
-                Get Started
-            </a>
+                <!-- Unauthenticated Nav -->
+                <!-- Theme Quick Toggle for Guests -->
+                <button onclick="applyTheme(htmlElement.classList.contains('dark') ? 'light' : 'dark')"
+                    class="w-9 h-9 rounded-md flex items-center justify-center transition-all btn-soft !p-0"
+                    title="Toggle theme">
+                    <i class="fas fa-moon text-xs dark:hidden" style="color: var(--text-muted);"></i>
+                    <i class="fas fa-sun text-xs hidden dark:block" style="color: var(--ochre);"></i>
+                </button>
+
+                <a href="{{ url_for('auth.login') }}" class="btn-ghost !text-xs !font-semibold">
+                    Log In
+                </a>
+
+                <a href="{{ url_for('auth.signup') }}" class="btn-primary !text-xs !py-2 !px-4">
+                    Get Started
+                </a>
             {% endif %}
         </div>
     </div>
 </nav>
+
+<script>
+    function toggleProfileDropdown(event) {
+        if (event) event.stopPropagation();
+        const dropdown = document.getElementById('profileDropdown');
+        const btn = document.getElementById('profileMenuBtn');
+        if (!dropdown) return;
+        
+        const isOpen = dropdown.classList.contains('show');
+        if (isOpen) {
+            dropdown.classList.remove('show');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+        } else {
+            dropdown.classList.add('show');
+            if (btn) btn.setAttribute('aria-expanded', 'true');
+            updateMenuThemeState();
+        }
+    }
+
+    function updateMenuThemeState() {
+        const isDark = document.documentElement.classList.contains('dark');
+        const icon = document.getElementById('menuThemeIcon');
+        const text = document.getElementById('menuThemeText');
+        if (icon && text) {
+            if (isDark) {
+                icon.className = 'fas fa-sun text-xs w-4';
+                icon.style.color = 'var(--ochre)';
+                text.textContent = 'Light Paper Mode';
+            } else {
+                icon.className = 'fas fa-moon text-xs w-4';
+                icon.style.color = 'var(--accent)';
+                text.textContent = 'Dark Library Mode';
+            }
+        }
+    }
+
+    function toggleThemeFromMenu() {
+        const isDark = document.documentElement.classList.contains('dark');
+        applyTheme(isDark ? 'light' : 'dark');
+        updateMenuThemeState();
+    }
+
+    // Close dropdown on outside click or Escape key
+    document.addEventListener('click', function(e) {
+        const dropdown = document.getElementById('profileDropdown');
+        const btn = document.getElementById('profileMenuBtn');
+        if (dropdown && dropdown.classList.contains('show')) {
+            if (!dropdown.contains(e.target) && (!btn || !btn.contains(e.target))) {
+                dropdown.classList.remove('show');
+                if (btn) btn.setAttribute('aria-expanded', 'false');
+            }
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const dropdown = document.getElementById('profileDropdown');
+            const btn = document.getElementById('profileMenuBtn');
+            if (dropdown && dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+                if (btn) {
+                    btn.setAttribute('aria-expanded', 'false');
+                    btn.focus();
+                }
+            }
+        }
+    });
+</script>
