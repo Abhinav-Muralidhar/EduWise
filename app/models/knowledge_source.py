@@ -5,7 +5,7 @@ class KnowledgeSource(db.Model):
     __tablename__ = 'knowledge_source'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False, index=True)
     title = db.Column(db.String(255), nullable=False)
     source_type = db.Column(db.String(20), default='txt')  # 'pdf', 'docx', 'txt'
     file_url = db.Column(db.String(500), nullable=True)     # Cloudinary / storage URL if saved

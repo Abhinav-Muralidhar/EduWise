@@ -1,10 +1,13 @@
+import hashlib
 import secrets
 from datetime import datetime, timedelta, timezone
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.extensions import db, limiter
 from app.models.user import User
 from app.models.resource import Resource
+from app.models.knowledge_source import KnowledgeSource
+from app.models.chunk import KnowledgeChunk
 from app.services.email import send_reset_email
 from app.utils.decorators import login_required
 
@@ -49,7 +52,7 @@ def signup():
             return redirect(url_for('auth.signup'))
         
         hashed_password = generate_password_hash(password)
-        new_user = User(username=username, email=email, password=hashed_password)
+        new_user = User(username=username, email=email, password=hashed_password, session_version=1)
         db.session.add(new_user)
         db.session.commit()
         
@@ -84,6 +87,7 @@ def login():
             session.permanent = remember
             session['user_id'] = user.id
             session['username'] = user.username
+            session['session_version'] = user.session_version or 1
             return redirect(url_for('dashboard.index'))
         else:
             flash("Invalid username/email or password.", "danger")
@@ -113,8 +117,9 @@ def forgot_password():
 
         if user:
             token = secrets.token_urlsafe(32)
-            user.reset_token = token
-            user.reset_token_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+            token_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
+            user.reset_token = token_hash
+            user.reset_token_expiry = datetime.now(timezone.utc) + timedelta(minutes=15)
             db.session.commit()
 
             reset_url = url_for('auth.reset_password', token=token, _external=True)
@@ -133,9 +138,15 @@ def forgot_password():
 @auth_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
 @limiter.limit("10 per hour")
 def reset_password(token):
-    user = User.query.filter_by(reset_token=token).first()
+    token_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
+    user = User.query.filter_by(reset_token=token_hash).first()
 
-    if not user or not user.reset_token_expiry or user.reset_token_expiry < datetime.now(timezone.utc):
+    now = datetime.now(timezone.utc)
+    expiry = user.reset_token_expiry if user else None
+    if expiry and expiry.tzinfo is None:
+        expiry = expiry.replace(tzinfo=timezone.utc)
+
+    if not user or not expiry or expiry < now:
         flash("This reset link is invalid or has expired.", "danger")
         return redirect(url_for('auth.forgot_password'))
 
@@ -153,6 +164,7 @@ def reset_password(token):
         user.password = generate_password_hash(password)
         user.reset_token = None
         user.reset_token_expiry = None
+        user.session_version = (user.session_version or 1) + 1
         db.session.commit()
 
         flash("Password reset successful! Please log in.", "success")
@@ -234,6 +246,8 @@ def change_password():
         return redirect(url_for('auth.profile'))
 
     user.password = generate_password_hash(new_pw)
+    user.session_version = (user.session_version or 1) + 1
+    session['session_version'] = user.session_version
     db.session.commit()
     flash("Password updated successfully!", "success")
     return redirect(url_for('auth.profile'))
@@ -255,11 +269,26 @@ def delete_account():
         flash("Incorrect password. Account not deleted.", "danger")
         return redirect(url_for('auth.profile'))
 
-    # Delete all user resources first
-    Resource.query.filter_by(user_id=user.id).delete()
-    db.session.delete(user)
-    db.session.commit()
-    session.clear()
+    try:
+        # Explicitly delete KnowledgeChunks and KnowledgeSources in the same transaction
+        sources = KnowledgeSource.query.filter_by(user_id=user.id).all()
+        source_ids = [s.id for s in sources]
+        if source_ids:
+            KnowledgeChunk.query.filter(KnowledgeChunk.source_id.in_(source_ids)).delete(synchronize_session=False)
+            KnowledgeSource.query.filter_by(user_id=user.id).delete(synchronize_session=False)
 
-    flash("Your account and all data have been permanently deleted.", "info")
-    return redirect(url_for('auth.login'))
+        # Delete all user resources
+        Resource.query.filter_by(user_id=user.id).delete(synchronize_session=False)
+
+        # Delete user
+        db.session.delete(user)
+        db.session.commit()
+        session.clear()
+
+        flash("Your account and all data have been permanently deleted.", "info")
+        return redirect(url_for('auth.login'))
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.exception("Error deleting user account: %s", e)
+        flash("An error occurred while deleting your account. Please try again.", "danger")
+        return redirect(url_for('auth.profile'))

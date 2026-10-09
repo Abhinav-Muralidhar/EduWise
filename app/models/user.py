@@ -17,3 +17,6 @@ class User(db.Model):
     display_name = db.Column(db.String(100), nullable=True)
     bio = db.Column(db.String(500), nullable=True)
     avatar_color = db.Column(db.String(7), default='#4361EE')
+
+    # Session security
+    session_version = db.Column(db.Integer, default=1, nullable=False)

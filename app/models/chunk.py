@@ -54,7 +54,7 @@ class KnowledgeChunk(db.Model):
     __tablename__ = 'knowledge_chunk'
 
     id = db.Column(db.Integer, primary_key=True)
-    source_id = db.Column(db.Integer, db.ForeignKey('knowledge_source.id', ondelete='CASCADE'), nullable=False)
+    source_id = db.Column(db.Integer, db.ForeignKey('knowledge_source.id', ondelete='CASCADE'), nullable=False, index=True)
     content = db.Column(db.Text, nullable=False)
     chunk_index = db.Column(db.Integer, default=0, nullable=False)
     embedding = db.Column(FlexibleVector(768), nullable=True)

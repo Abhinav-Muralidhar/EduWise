@@ -46,4 +46,5 @@ def auth_client(client, test_user_id):
     with client.session_transaction() as sess:
         sess['user_id'] = test_user_id
         sess['username'] = "teststudent"
+        sess['session_version'] = 1
     return client
