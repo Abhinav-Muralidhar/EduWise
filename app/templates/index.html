@@ -46,16 +46,16 @@
     <!-- Top Navigation -->
     <nav class="sticky top-0 z-50 transition-colors app-header"
         style="background: var(--surface-glass); border-bottom: 1.5px solid var(--border); height: var(--header-height);">
-        <div class="max-w-5xl mx-auto px-6 h-full flex justify-between items-center">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 h-full flex justify-between items-center">
             <a href="/" class="brand-mark group">
                 <div class="brand-icon">
                     <i class="fas fa-graduation-cap text-xs"></i>
                 </div>
-                <span class="font-heading font-bold text-xl tracking-tight"
+                <span class="font-heading font-bold text-lg sm:text-xl tracking-tight"
                     style="color: var(--text-primary);">EduWise</span>
             </a>
 
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1.5 sm:gap-3">
                 <a href="#quick-try"
                     class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold btn-soft"
                     style="color: var(--accent);">
@@ -64,22 +64,22 @@
 
                 <!-- Theme Toggle -->
                 <button onclick="applyTheme(document.documentElement.classList.contains('dark') ? 'light' : 'dark')"
-                    class="w-9 h-9 rounded-md flex items-center justify-center transition-all btn-soft !p-0"
+                    class="w-8 h-8 sm:w-9 sm:h-9 rounded-md flex items-center justify-center transition-all btn-soft !p-0 flex-shrink-0"
                     title="Toggle theme">
                     <i class="fas fa-moon text-xs dark:hidden" style="color: var(--text-muted);"></i>
                     <i class="fas fa-sun text-xs hidden dark:block" style="color: var(--ochre);"></i>
                 </button>
 
                 {% if session.user_id %}
-                <a href="{{ url_for('dashboard.index') }}" class="btn-primary !text-xs !py-2 !px-4">
+                <a href="{{ url_for('dashboard.index') }}" class="btn-primary !text-xs !py-1.5 sm:!py-2 !px-3 sm:!px-4 flex-shrink-0">
                     <span>Workspace</span>
                     <i class="fas fa-arrow-right text-[10px]"></i>
                 </a>
                 {% else %}
-                <a href="{{ url_for('auth.login') }}" class="btn-ghost !text-xs !font-semibold">
+                <a href="{{ url_for('auth.login') }}" class="btn-ghost !text-xs !font-semibold !px-2.5 sm:!px-3 flex-shrink-0">
                     Log In
                 </a>
-                <a href="{{ url_for('auth.signup') }}" class="btn-primary !text-xs !py-2 !px-4">
+                <a href="{{ url_for('auth.signup') }}" class="btn-primary !text-xs !py-1.5 sm:!py-2 !px-3 sm:!px-4 whitespace-nowrap flex-shrink-0">
                     Get Started
                 </a>
                 {% endif %}
@@ -88,7 +88,7 @@
     </nav>
 
     <!-- Hero Section -->
-    <section class="py-16 sm:py-24 px-6 relative z-10">
+    <section class="py-12 sm:py-24 px-4 sm:px-6 relative z-10">
         <div class="max-w-4xl mx-auto text-center animate-enter">
             <div class="inline-flex items-center gap-2 mb-6">
                 <span class="editorial-stamp accent">

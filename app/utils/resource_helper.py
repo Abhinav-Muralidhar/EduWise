@@ -1,6 +1,7 @@
 import os
 import uuid
 import io
+import json
 import cloudinary
 import cloudinary.uploader
 import re
@@ -14,7 +15,7 @@ cloudinary.config(
     api_secret=os.getenv("CLOUDINARY_API_SECRET")
 )
 
-def save_resource_to_db(topic, resource_type, file_data=None):
+def save_resource_to_db(topic, resource_type, file_data=None, content=None):
     try:
         user_id = session.get('user_id')
         if not user_id:
@@ -33,12 +34,20 @@ def save_resource_to_db(topic, resource_type, file_data=None):
                 public_id=public_id
             )
             file_url = result['secure_url']
-                
+            
+        content_json = None
+        if content is not None:
+            if isinstance(content, (dict, list)):
+                content_json = json.dumps(content)
+            else:
+                content_json = str(content)
+
         resource = Resource(
             user_id=user_id,
             resource_type=resource_type,
             topic=topic,
-            file_url=file_url
+            file_url=file_url,
+            content_json=content_json
         )
         db.session.add(resource)
         db.session.commit()

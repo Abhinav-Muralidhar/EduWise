@@ -62,22 +62,22 @@
 </div>
 
 <div style="background: var(--surface-page); min-height: calc(100vh - var(--header-height));">
-    <div class="max-w-5xl mx-auto px-6 pt-10 pb-20">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10 pb-20">
 
         <!-- Greeting -->
-        <div class="mb-10 animate-enter">
+        <div class="mb-8 sm:mb-10 animate-enter">
             <span class="editorial-stamp mb-2">Personal Workspace</span>
-            <h1 class="text-3xl sm:text-4xl font-bold font-heading tracking-tight mt-1"
+            <h1 class="text-2xl sm:text-4xl font-bold font-heading tracking-tight mt-1"
                 style="color: var(--text-primary);">
                 Welcome back, {{ session.username }}.
             </h1>
-            <p class="text-sm mt-1" style="color: var(--text-muted);">
+            <p class="text-xs sm:text-sm mt-1" style="color: var(--text-muted);">
                 Select an editorial tool below to synthesize new materials, or review your study library.
             </p>
         </div>
 
         <!-- Tool Grid -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 mb-14">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3.5 mb-10 sm:mb-14">
 
             <!-- PPT -->
             <button onclick="showFormModal('pptForm')" class="tool-tile animate-enter delay-1" data-color="blue">
@@ -212,10 +212,10 @@
         <!-- History Section -->
         <div class="animate-enter" style="animation-delay: 300ms;">
             <!-- Section header -->
-            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 mb-6">
                 <div class="flex items-center gap-3">
                     <span class="bracket-num">[LIB]</span>
-                    <h2 class="text-xl font-bold font-heading" style="color: var(--text-primary);">Study Library</h2>
+                    <h2 class="text-lg sm:text-xl font-bold font-heading" style="color: var(--text-primary);">Study Library</h2>
                     {% if resources %}
                     <span class="editorial-stamp !text-[9px] !py-0.5">
                         {{ resources|length }} Saved
@@ -223,15 +223,15 @@
                     {% endif %}
                 </div>
 
-                <div class="flex items-center gap-3">
-                    <div class="relative">
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <div class="relative flex-1 sm:w-60">
                         <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[11px]"
                             style="color: var(--text-ghost);"></i>
-                        <input type="text" id="searchInput" placeholder="Search archive..." class="search-input"
+                        <input type="text" id="searchInput" placeholder="Search archive..." class="search-input w-full"
                             oninput="filterResources()">
                     </div>
                     <label
-                        class="flex items-center gap-1.5 cursor-pointer select-none px-2.5 py-1.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)]">
+                        class="flex items-center gap-1.5 cursor-pointer select-none px-2.5 py-1.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] flex-shrink-0">
                         <input type="checkbox" id="favFilter" onchange="filterResources()"
                             class="w-3.5 h-3.5 rounded cursor-pointer accent-[#E8590C]">
                         <span class="text-[10px] font-mono font-bold uppercase tracking-wider"
@@ -258,32 +258,47 @@
 
                     <!-- Content -->
                     <div class="flex-1 min-w-0">
-                        <h3 class="text-[14px] font-semibold truncate" style="color: var(--text-primary);">{{
-                            resource.topic }}</h3>
+                        {% if resource.resource_type in ['quiz', 'flashcard'] %}
+                        <a href="{{ url_for('dashboard.view_resource', resource_id=resource.id) }}" class="group/title block">
+                            <h3 class="text-[14px] font-semibold truncate group-hover/title:text-accent transition-colors" style="color: var(--text-primary);">
+                                {{ resource.topic }}
+                            </h3>
+                        </a>
+                        {% else %}
+                        <h3 class="text-[14px] font-semibold truncate" style="color: var(--text-primary);">
+                            {{ resource.topic }}
+                        </h3>
+                        {% endif %}
                         <p class="text-[11px]" style="color: var(--text-muted);">
-                            {{ resource.resource_type.upper() }} &middot; {{ resource.created_at.strftime('%b %d, %Y')
-                            }}
+                            {{ resource.resource_type.upper() }} &middot; {{ resource.created_at.strftime('%b %d, %Y') }}
                         </p>
                     </div>
 
                     <!-- Actions -->
                     <div
-                        class="flex items-center gap-2 flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity">
+                        class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 opacity-80 sm:opacity-60 group-hover:opacity-100 transition-opacity">
                         {% set fav_status = 'active' if resource.is_favorite else 'inactive' %}
                         <button onclick="toggleFavorite(event, this.dataset.id)" data-id="{{ resource.id }}"
-                            class="w-7 h-7 rounded-md flex items-center justify-center transition-colors btn-fav {{ fav_status }}">
+                            class="w-7 h-7 rounded-md flex items-center justify-center transition-colors btn-fav {{ fav_status }}"
+                            title="Favorite">
                             <i id="fav-icon-{{ resource.id }}"
                                 class="{{ 'fas' if resource.is_favorite else 'far' }} fa-star text-[11px]"></i>
                         </button>
 
-                        {% if resource.resource_type in ['pptx', 'pdf'] %}
+                        {% if resource.resource_type in ['quiz', 'flashcard'] %}
+                        <a href="{{ url_for('dashboard.view_resource', resource_id=resource.id) }}" 
+                            title="{{ 'Take Quiz' if resource.resource_type == 'quiz' else 'Study Flashcards' }}"
+                            class="w-7 h-7 rounded-md flex items-center justify-center transition-colors hover:bg-accent/10 hover:text-accent text-text-ghost">
+                            <i class="{{ 'fas fa-play' if resource.resource_type == 'quiz' else 'fas fa-eye' }} text-[10px]"></i>
+                        </a>
+                        {% elif resource.resource_type in ['pptx', 'pdf'] %}
                         <a href="{{ url_for('dashboard.download', resource_id=resource.id) }}" title="Download"
                             class="w-7 h-7 rounded-md flex items-center justify-center transition-colors hover:bg-accent/10 hover:text-accent text-text-ghost">
                             <i class="fas fa-download text-[10px]"></i>
                         </a>
                         {% endif %}
 
-                        <button onclick="deleteResource(event, this.dataset.id)" data-id="{{ resource.id }}"
+                        <button onclick="deleteResource(event, this.dataset.id)" data-id="{{ resource.id }}" title="Delete"
                             class="w-7 h-7 rounded-md flex items-center justify-center transition-colors hover:bg-coral/10 hover:text-coral text-text-ghost">
                             <i class="fas fa-trash-alt text-[10px]"></i>
                         </button>

@@ -89,3 +89,120 @@ def test_quiz_generation_with_rag_knowledge_source(auth_client, app, test_user_i
         call_kwargs = mock_gen.call_args[1]
         assert "Newton's second law is F = ma." in call_kwargs.get('rag_context', '')
 
+
+def test_view_saved_quiz_and_submit(auth_client, app, test_user_id):
+    import json
+    from app.extensions import db
+    from app.models.resource import Resource
+
+    quiz_data = {
+        'questions': [
+            {'id': 0, 'question': 'What is H2O?', 'options': ['Water', 'Oxygen', 'Hydrogen', 'Carbon'], 'correct_index': 0, 'answer_index': 0}
+        ],
+        'sources': ['Chemistry 101']
+    }
+    with app.app_context():
+        res_obj = Resource(
+            user_id=test_user_id,
+            resource_type='quiz',
+            topic='Quiz: Chemistry',
+            content_json=json.dumps(quiz_data)
+        )
+        db.session.add(res_obj)
+        db.session.commit()
+        res_id = res_obj.id
+
+    # 1. Owner can open the saved quiz
+    get_res = auth_client.get(f'/resource/{res_id}')
+    assert get_res.status_code == 200
+    assert b"What is H2O?" in get_res.data
+    assert b"Grounded" in get_res.data
+
+    # 2. Owner can submit the quiz and receive a score
+    post_res = auth_client.post('/submit_quiz', data={'question_0': '0'})
+    assert post_res.status_code == 200
+    assert b"1 / 1" in post_res.data or b"Score" in post_res.data or b"Result" in post_res.data or b"What is H2O?" in post_res.data
+
+
+def test_view_saved_flashcards(auth_client, app, test_user_id):
+    import json
+    from app.extensions import db
+    from app.models.resource import Resource
+
+    cards_data = {
+        'flashcards': [
+            {'question': 'What is ATP?', 'answer': 'Adenosine Triphosphate, energy currency of the cell.'}
+        ],
+        'sources': ['Bio Chapter 3']
+    }
+    with app.app_context():
+        res_obj = Resource(
+            user_id=test_user_id,
+            resource_type='flashcard',
+            topic='Flashcards on: ATP',
+            content_json=json.dumps(cards_data)
+        )
+        db.session.add(res_obj)
+        db.session.commit()
+        res_id = res_obj.id
+
+    get_res = auth_client.get(f'/resource/{res_id}')
+    assert get_res.status_code == 200
+    assert b"What is ATP?" in get_res.data
+    assert b"Bio Chapter 3" in get_res.data
+
+
+def test_view_resource_unauthorized_returns_404(client, app, test_user_id):
+    import json
+    from app.extensions import db
+    from app.models.resource import Resource
+    from app.models.user import User
+    from werkzeug.security import generate_password_hash
+
+    # Create another user and a resource belonging to test_user_id
+    with app.app_context():
+        user2 = User(username='otheruser', email='other@example.com', password=generate_password_hash('pass12345'), session_version=1)
+        db.session.add(user2)
+        
+        res_obj = Resource(
+            user_id=test_user_id,
+            resource_type='quiz',
+            topic='Quiz: Secret Physics',
+            content_json=json.dumps({'questions': [], 'sources': []})
+        )
+        db.session.add(res_obj)
+        db.session.commit()
+        user2_id = user2.id
+        res_id = res_obj.id
+
+    # Log in as user2
+    with client.session_transaction() as sess:
+        sess['user_id'] = user2_id
+        sess['username'] = 'otheruser'
+        sess['session_version'] = 1
+
+    # User 2 tries to access User 1's resource
+    get_res = client.get(f'/resource/{res_id}')
+    assert get_res.status_code == 404
+
+
+def test_view_resource_null_content_graceful_redirect(auth_client, app, test_user_id):
+    from app.extensions import db
+    from app.models.resource import Resource
+
+    with app.app_context():
+        # Older row with null content_json
+        res_obj = Resource(
+            user_id=test_user_id,
+            resource_type='quiz',
+            topic='Quiz: Old Era Topic',
+            content_json=None
+        )
+        db.session.add(res_obj)
+        db.session.commit()
+        res_id = res_obj.id
+
+    get_res = auth_client.get(f'/resource/{res_id}', follow_redirects=True)
+    assert get_res.status_code == 200
+    assert b"This resource was created before saving was added." in get_res.data
+

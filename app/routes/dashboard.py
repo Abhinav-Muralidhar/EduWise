@@ -111,3 +111,34 @@ def delete_resource(resource_id):
     db.session.commit()
     return jsonify({"success": True})
 
+
+@dashboard_bp.route('/resource/<int:resource_id>')
+@login_required
+def view_resource(resource_id):
+    # Only load if resource belongs to current user, else 404
+    resource = Resource.query.filter_by(id=resource_id, user_id=session['user_id']).first_or_404()
+
+    if not resource.content_json:
+        flash("This resource was created before saving was added.", "info")
+        return redirect(url_for('dashboard.index'))
+
+    import json
+    try:
+        data = json.loads(resource.content_json)
+    except Exception:
+        flash("Unable to load saved resource content.", "danger")
+        return redirect(url_for('dashboard.index'))
+
+    sources = data.get('sources', []) if isinstance(data, dict) else []
+
+    if resource.resource_type == 'quiz':
+        questions = data.get('questions', []) if isinstance(data, dict) else data
+        session['questions'] = questions
+        return render_template('quiz.html', questions=questions, topic=resource.topic, sources=sources)
+
+    elif resource.resource_type == 'flashcard':
+        flashcards = data.get('flashcards', []) if isinstance(data, dict) else data
+        return render_template('flashcards.html', flashcards=flashcards, sources=sources)
+
+    return redirect(url_for('dashboard.index'))
+

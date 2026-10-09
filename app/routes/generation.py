@@ -296,7 +296,11 @@ def generate_quiz():
     session['questions'] = questions
     quiz_topic = f"Quiz: {topic}"
     if user_id:
-        save_resource_to_db(quiz_topic, 'quiz', file_data=None)
+        quiz_payload = {
+            'questions': questions,
+            'sources': sources
+        }
+        save_resource_to_db(quiz_topic, 'quiz', file_data=None, content=quiz_payload)
     
     flash("Quiz generated successfully!", "success")
     return render_template('quiz.html', questions=questions, topic=quiz_topic, sources=sources)
@@ -356,7 +360,11 @@ def generate_flashcards():
         
     topic = f"Flashcards on: {topic_or_text[:50]}..."
     if user_id:
-        save_resource_to_db(topic, 'flashcard', file_data=None)
+        cards_payload = {
+            'flashcards': flashcards_data,
+            'sources': sources
+        }
+        save_resource_to_db(topic, 'flashcard', file_data=None, content=cards_payload)
     flash("Flashcards generated successfully!", "success")
     return render_template('flashcards.html', flashcards=flashcards_data, sources=sources)
 
