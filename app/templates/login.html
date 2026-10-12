@@ -33,6 +33,9 @@
                                maxlength="100" 
                                autofocus
                                autocomplete="username"
+                               autocapitalize="none"
+                               autocorrect="off"
+                               spellcheck="false"
                                class="studio-input pl-10" 
                                placeholder="e.g. alex or alex@university.edu">
                     </div>
@@ -127,6 +130,14 @@
             } else {
                 capsWarning.classList.add('hidden');
             }
+        });
+    }
+
+    // Force lowercase on username or email field
+    const identifierInput = document.getElementById('username_or_email');
+    if (identifierInput) {
+        identifierInput.addEventListener('input', function() {
+            this.value = this.value.toLowerCase();
         });
     }
 

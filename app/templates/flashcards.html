@@ -45,7 +45,7 @@
         {% endif %}
 
         <!-- Flashcard Viewport -->
-        <div class="relative h-[360px] sm:h-[400px] animate-enter flashcard-perspective" style="animation-delay: 80ms;">
+        <div class="relative h-[380px] sm:h-[420px] animate-enter flashcard-perspective" style="animation-delay: 80ms;">
             {% for card in flashcards %}
             <div id="card-{{ loop.index0 }}" class="flashcard-stack absolute inset-0 transition-all duration-300 {{ 'opacity-0 pointer-events-none translate-x-8' if not loop.first else 'opacity-100' }}">
                 <div class="flashcard-container w-full h-full" 
@@ -55,31 +55,35 @@
                     
                     <!-- Front Face -->
                     <div class="flashcard-face">
-                        <div class="flex justify-between items-center w-full">
+                        <div class="flex justify-between items-center w-full flex-shrink-0">
                             <span class="editorial-stamp">Question</span>
                             <span class="bracket-num">[#{{ "%02d" % loop.index }}]</span>
                         </div>
-                        <h2 class="text-xl sm:text-2xl font-bold font-heading leading-relaxed text-center px-4 my-auto" style="color: var(--text-primary);">
-                            {{ card.question }}
-                        </h2>
-                        <div class="flex items-center justify-center gap-2 text-xs font-mono font-medium" style="color: var(--text-muted);">
+                        <div class="flex-1 min-h-0 w-full overflow-y-auto no-scrollbar flex flex-col justify-center items-center my-auto py-2">
+                            <h2 class="text-lg sm:text-xl md:text-2xl font-bold font-heading leading-relaxed text-center px-2 sm:px-4" style="color: var(--text-primary);">
+                                {{ card.question }}
+                            </h2>
+                        </div>
+                        <div class="flex items-center justify-center gap-2 text-xs font-mono font-medium flex-shrink-0 pt-2" style="color: var(--text-muted);">
                             <i class="fas fa-rotate text-[10px]"></i>
-                            <span>Click card or hit Space to reveal</span>
+                            <span>Click card <span class="hidden md:inline">or hit Space</span> to reveal</span>
                         </div>
                     </div>
 
                     <!-- Back Face -->
                     <div class="flashcard-face flashcard-back">
-                        <div class="flex justify-between items-center w-full">
+                        <div class="flex justify-between items-center w-full flex-shrink-0">
                             <span class="editorial-stamp accent">Answer</span>
                             <span class="bracket-num">[#{{ "%02d" % loop.index }}]</span>
                         </div>
-                        <p class="text-base sm:text-lg font-medium leading-relaxed text-center px-4 my-auto" style="color: var(--text-primary);">
-                            {{ card.answer }}
-                        </p>
-                        <div class="flex items-center justify-center gap-2 text-xs font-mono font-medium" style="color: var(--text-muted);">
+                        <div class="flex-1 min-h-0 w-full overflow-y-auto no-scrollbar flex flex-col justify-center items-center my-auto py-2">
+                            <p class="text-sm sm:text-base md:text-lg font-medium leading-relaxed text-center px-2 sm:px-4" style="color: var(--text-primary);">
+                                {{ card.answer }}
+                            </p>
+                        </div>
+                        <div class="flex items-center justify-center gap-2 text-xs font-mono font-medium flex-shrink-0 pt-2" style="color: var(--text-muted);">
                             <i class="fas fa-rotate text-[10px]"></i>
-                            <span>Click card or hit Space to flip back</span>
+                            <span>Click card <span class="hidden md:inline">or hit Space</span> to flip back</span>
                         </div>
                     </div>
                 </div>
@@ -101,7 +105,7 @@
             </button>
         </div>
 
-        <p class="text-center mt-6 text-xs font-mono" style="color: var(--text-muted);">
+        <p class="hidden md:block text-center mt-6 text-xs font-mono" style="color: var(--text-muted);">
             Shortcuts: <kbd class="px-1.5 py-0.5 rounded border border-[var(--border-strong)] bg-[var(--surface-card)] text-[10px]">&larr;</kbd> <kbd class="px-1.5 py-0.5 rounded border border-[var(--border-strong)] bg-[var(--surface-card)] text-[10px]">&rarr;</kbd> and <kbd class="px-1.5 py-0.5 rounded border border-[var(--border-strong)] bg-[var(--surface-card)] text-[10px]">Space</kbd>
         </p>
     </div>

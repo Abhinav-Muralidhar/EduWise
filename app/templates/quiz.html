@@ -48,51 +48,53 @@
         <form id="quizForm" method="POST" action="{{ url_for('generation.submit_quiz') }}" class="flex-1 flex flex-col justify-center my-auto">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             
-            <div class="relative min-h-[440px] sm:min-h-[400px] w-full my-auto animate-enter" style="animation-delay: 80ms;">
+            <div class="relative min-h-[480px] sm:min-h-[450px] md:min-h-[420px] h-[520px] sm:h-[480px] md:h-[440px] w-full my-auto animate-enter" style="animation-delay: 80ms;">
                 {% for q in questions %}
                 {% set q_idx = loop.index0 %}
                 <div id="q-card-{{ q_idx }}" class="quiz-card-stack absolute inset-0 transition-all duration-300 {{ 'opacity-0 pointer-events-none translate-x-8' if not loop.first else 'opacity-100 translate-x-0' }}">
-                    <div class="studio-card p-6 sm:p-8 h-full flex flex-col justify-between" style="border: 2px solid var(--border-ink); box-shadow: var(--shadow-tactile-lg);">
+                    <div class="studio-card p-5 sm:p-7 md:p-8 h-full flex flex-col justify-between overflow-hidden" style="border: 2px solid var(--border-ink); box-shadow: var(--shadow-tactile-lg);">
                         
                         <!-- Side-by-side on desktop, stacked on mobile -->
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 flex-1 items-stretch">
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 flex-1 min-h-0 items-stretch overflow-hidden">
                             
                             <!-- Left: Question statement -->
-                            <div class="md:col-span-5 flex flex-col justify-between pb-4 md:pb-0 md:pr-6 md:border-r" style="border-color: var(--border);">
-                                <div>
-                                    <div class="flex items-center gap-2 mb-3">
+                            <div class="md:col-span-5 flex flex-col justify-between pb-3 md:pb-0 md:pr-6 md:border-r border-b md:border-b-0 max-h-[140px] md:max-h-none overflow-y-auto no-scrollbar flex-shrink-0 md:flex-shrink" style="border-color: var(--border);">
+                                <div class="space-y-2">
+                                    <div class="flex items-center gap-2">
                                         <span class="bracket-num text-xs">[Q {{ "%02d" % (q_idx + 1) }}]</span>
-                                        <span class="text-[11px] font-mono font-semibold" style="color: var(--text-muted);">Question</span>
+                                        <span class="text-[11px] font-mono font-semibold uppercase tracking-wider" style="color: var(--text-muted);">Question</span>
                                     </div>
-                                    <h2 class="text-lg sm:text-xl font-bold font-heading leading-snug" style="color: var(--text-primary);">
+                                    <h2 class="text-base sm:text-lg md:text-xl font-bold font-heading leading-snug" style="color: var(--text-primary);">
                                         {{ q.question }}
                                     </h2>
                                 </div>
-                                <div class="hidden md:block pt-4 text-[11px] font-mono" style="color: var(--text-muted);">
+                                <div class="hidden md:block pt-3 text-[11px] font-mono flex-shrink-0" style="color: var(--text-muted);">
                                     <span>Select the single best answer</span>
                                 </div>
                             </div>
 
-                            <!-- Right: Selectable Option Cards -->
-                            <div class="md:col-span-7 flex flex-col justify-center space-y-3">
-                                {% for option in q.options %}
-                                {% set opt_letter = ['A', 'B', 'C', 'D'][loop.index0] if loop.index0 < 4 else (loop.index0 + 1) %}
-                                <label class="quiz-option-label group" data-card-index="{{ q_idx }}">
-                                    <input type="radio" name="question_{{ q.id }}" value="{{ loop.index0 }}" required 
-                                           class="quiz-option-input sr-only">
-                                    <span class="quiz-option-pill">
-                                        {{ opt_letter }}
-                                    </span>
-                                    <span class="text-sm font-medium leading-relaxed flex-1 transition-colors" style="color: var(--text-primary);">
-                                        {{ option }}
-                                    </span>
-                                </label>
-                                {% endfor %}
+                            <!-- Right: Selectable Option Cards (Scrollable without visible scrollbar if lengthy) -->
+                            <div class="md:col-span-7 flex flex-col min-h-0 overflow-y-auto no-scrollbar justify-start md:justify-center pr-0.5">
+                                <div class="space-y-2 sm:space-y-2.5 py-1">
+                                    {% for option in q.options %}
+                                    {% set opt_letter = ['A', 'B', 'C', 'D'][loop.index0] if loop.index0 < 4 else (loop.index0 + 1) %}
+                                    <label class="quiz-option-label group" data-card-index="{{ q_idx }}">
+                                        <input type="radio" name="question_{{ q.id }}" value="{{ loop.index0 }}" required 
+                                               class="quiz-option-input sr-only">
+                                        <span class="quiz-option-pill">
+                                            {{ opt_letter }}
+                                        </span>
+                                        <span class="text-xs sm:text-sm font-medium leading-relaxed flex-1 transition-colors" style="color: var(--text-primary);">
+                                            {{ option }}
+                                        </span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Card Footer: Clean Key hints -->
-                        <div class="pt-4 mt-4 border-t flex justify-between items-center text-[11px] font-mono" style="border-color: var(--border); color: var(--text-muted);">
+                        <!-- Card Footer: Clean Key hints (Desktop only) -->
+                        <div class="hidden md:flex pt-3 mt-3 border-t justify-between items-center text-[11px] font-mono flex-shrink-0" style="border-color: var(--border); color: var(--text-muted);">
                             <span>Hotkeys: <kbd class="px-1 py-0.5 rounded border border-[var(--border-strong)] bg-[var(--surface-card)]">A</kbd> <kbd class="px-1 py-0.5 rounded border border-[var(--border-strong)] bg-[var(--surface-card)]">B</kbd> <kbd class="px-1 py-0.5 rounded border border-[var(--border-strong)] bg-[var(--surface-card)]">C</kbd> <kbd class="px-1 py-0.5 rounded border border-[var(--border-strong)] bg-[var(--surface-card)]">D</kbd></span>
                             <span class="hidden sm:inline">Press <kbd class="px-1.5 py-0.5 rounded border border-[var(--border-strong)] bg-[var(--surface-card)]">Enter</kbd> to proceed</span>
                         </div>
@@ -102,7 +104,7 @@
             </div>
 
             <!-- Stepper Controls (Matching Flashcards deck) -->
-            <div class="mt-8 flex justify-center items-center gap-4 animate-enter" style="animation-delay: 160ms;">
+            <div class="mt-5 sm:mt-6 flex justify-center items-center gap-4 animate-enter flex-shrink-0" style="animation-delay: 160ms;">
                 <button id="prevBtn" type="button" onclick="prevQuestion()" class="w-10 h-10 rounded-md flex items-center justify-center btn-soft !p-0 disabled:opacity-30 disabled:cursor-not-allowed" title="Previous question">
                     <i class="fas fa-arrow-left text-xs"></i>
                 </button>
@@ -113,7 +115,7 @@
                 </button>
             </div>
 
-            <p class="text-center mt-3 text-xs font-mono" style="color: var(--text-muted);">
+            <p class="hidden md:block text-center mt-2.5 sm:mt-3 text-xs font-mono flex-shrink-0" style="color: var(--text-muted);">
                 Navigate: <kbd class="px-1.5 py-0.5 rounded border border-[var(--border-strong)] bg-[var(--surface-card)] text-[10px]">&larr;</kbd> <kbd class="px-1.5 py-0.5 rounded border border-[var(--border-strong)] bg-[var(--surface-card)] text-[10px]">&rarr;</kbd>
             </p>
         </form>

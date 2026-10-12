@@ -29,17 +29,21 @@ def upgrade():
     if is_postgres:
         op.execute("CREATE EXTENSION IF NOT EXISTS vector;")
 
-    # Create knowledge_source table
-    op.create_table(
-        'knowledge_source',
-        sa.Column('id', sa.Integer(), primary_key=True),
-        sa.Column('user_id', sa.Integer(), sa.ForeignKey('user.id', ondelete='CASCADE'), nullable=False),
-        sa.Column('title', sa.String(length=255), nullable=False),
-        sa.Column('source_type', sa.String(length=20), server_default='txt', nullable=True),
-        sa.Column('file_url', sa.String(length=500), nullable=True),
-        sa.Column('chunk_count', sa.Integer(), server_default='0', nullable=False),
-        sa.Column('created_at', sa.DateTime(), nullable=False)
-    )
+    inspector = sa.inspect(bind)
+    tables = inspector.get_table_names()
+
+    # Create knowledge_source table if it does not already exist
+    if 'knowledge_source' not in tables:
+        op.create_table(
+            'knowledge_source',
+            sa.Column('id', sa.Integer(), primary_key=True),
+            sa.Column('user_id', sa.Integer(), sa.ForeignKey('user.id', ondelete='CASCADE'), nullable=False),
+            sa.Column('title', sa.String(length=255), nullable=False),
+            sa.Column('source_type', sa.String(length=20), server_default='txt', nullable=True),
+            sa.Column('file_url', sa.String(length=500), nullable=True),
+            sa.Column('chunk_count', sa.Integer(), server_default='0', nullable=False),
+            sa.Column('created_at', sa.DateTime(), nullable=False)
+        )
 
     # Embedding column type
     if is_postgres and HAS_PGVECTOR:
@@ -47,16 +51,17 @@ def upgrade():
     else:
         embedding_col = sa.Column('embedding', sa.Text(), nullable=True)
 
-    # Create knowledge_chunk table
-    op.create_table(
-        'knowledge_chunk',
-        sa.Column('id', sa.Integer(), primary_key=True),
-        sa.Column('source_id', sa.Integer(), sa.ForeignKey('knowledge_source.id', ondelete='CASCADE'), nullable=False),
-        sa.Column('content', sa.Text(), nullable=False),
-        sa.Column('chunk_index', sa.Integer(), server_default='0', nullable=False),
-        embedding_col,
-        sa.Column('created_at', sa.DateTime(), nullable=False)
-    )
+    # Create knowledge_chunk table if it does not already exist
+    if 'knowledge_chunk' not in tables:
+        op.create_table(
+            'knowledge_chunk',
+            sa.Column('id', sa.Integer(), primary_key=True),
+            sa.Column('source_id', sa.Integer(), sa.ForeignKey('knowledge_source.id', ondelete='CASCADE'), nullable=False),
+            sa.Column('content', sa.Text(), nullable=False),
+            sa.Column('chunk_index', sa.Integer(), server_default='0', nullable=False),
+            embedding_col,
+            sa.Column('created_at', sa.DateTime(), nullable=False)
+        )
 
 
 def downgrade():

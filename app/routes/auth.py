@@ -21,7 +21,7 @@ auth_bp = Blueprint('auth', __name__)
 @limiter.limit("20 per minute")
 def signup():
     if request.method == 'POST':
-        username = (request.form.get('username') or '').strip()
+        username = (request.form.get('username') or '').strip().lower()
         email = (request.form.get('email') or '').strip().lower()
         password = request.form.get('password') or ''
         confirm_password = request.form.get('confirm_password') or ''
