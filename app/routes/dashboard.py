@@ -142,3 +142,68 @@ def view_resource(resource_id):
 
     return redirect(url_for('dashboard.index'))
 
+
+@dashboard_bp.route('/about')
+def about():
+    """About EduWise & Creator showcase page."""
+    return render_template('about.html')
+
+
+@dashboard_bp.route('/privacy')
+def privacy():
+    """Privacy notice and data protection terms."""
+    return render_template('privacy.html')
+
+
+@dashboard_bp.route('/terms')
+def terms():
+    """Terms of service and permitted use."""
+    return render_template('terms.html')
+
+
+@dashboard_bp.route('/robots.txt')
+def robots():
+    """Search engine crawler directives."""
+    content = f"""User-agent: *
+Allow: /
+Allow: /about
+Allow: /login
+Allow: /signup
+Allow: /privacy
+Allow: /terms
+Disallow: /dashboard
+Disallow: /resource/
+Disallow: /download/
+Disallow: /profile
+Disallow: /knowledge/
+
+Sitemap: {request.url_root.rstrip('/')}/sitemap.xml
+"""
+    return Response(content, mimetype='text/plain')
+
+
+@dashboard_bp.route('/sitemap.xml')
+def sitemap():
+    """XML Sitemap for search engine indexation."""
+    base = request.url_root.rstrip('/')
+    pages = [
+        {'loc': f"{base}/", 'changefreq': 'weekly', 'priority': '1.0'},
+        {'loc': f"{base}/about", 'changefreq': 'monthly', 'priority': '0.9'},
+        {'loc': f"{base}/signup", 'changefreq': 'monthly', 'priority': '0.8'},
+        {'loc': f"{base}/login", 'changefreq': 'monthly', 'priority': '0.6'},
+        {'loc': f"{base}/privacy", 'changefreq': 'yearly', 'priority': '0.3'},
+        {'loc': f"{base}/terms", 'changefreq': 'yearly', 'priority': '0.3'},
+    ]
+
+    xml_lines = ['<?xml version="1.0" encoding="UTF-8"?>']
+    xml_lines.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
+    for p in pages:
+        xml_lines.append('  <url>')
+        xml_lines.append(f"    <loc>{p['loc']}</loc>")
+        xml_lines.append(f"    <changefreq>{p['changefreq']}</changefreq>")
+        xml_lines.append(f"    <priority>{p['priority']}</priority>")
+        xml_lines.append('  </url>')
+    xml_lines.append('</urlset>')
+
+    return Response("\n".join(xml_lines), mimetype='application/xml')
+

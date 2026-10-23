@@ -110,8 +110,8 @@
                         style="accent-color: var(--accent);">
                     <label for="terms" class="text-xs leading-tight cursor-pointer select-none"
                         style="color: var(--text-secondary);">
-                        I agree to EduWise's <a href="#" class="hover:underline font-bold"
-                            style="color: var(--accent);">Terms</a> and <a href="#" class="hover:underline font-bold"
+                        I agree to EduWise's <a href="{{ url_for('dashboard.terms') }}" target="_blank" rel="noopener noreferrer" class="hover:underline font-bold"
+                            style="color: var(--accent);">Terms</a> and <a href="{{ url_for('dashboard.privacy') }}" target="_blank" rel="noopener noreferrer" class="hover:underline font-bold"
                             style="color: var(--accent);">Privacy Notice</a>
                     </label>
                 </div>

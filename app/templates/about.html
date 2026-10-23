@@ -1,0 +1,250 @@
+{% extends "layout.html" %}
+
+{% block title %}About EduWise — Built by Abhinav M (Abhinav Muralidhar){% endblock %}
+
+{% block meta_description %}Learn about EduWise, the grounded AI study studio built by Abhinav M (Abhinav Muralidhar) to
+transform lecture notes into high-retention quizzes, flashcards, and slides.{% endblock %}
+
+{% block og_title %}About EduWise — Built by Abhinav M (Abhinav Muralidhar){% endblock %}
+{% block og_description %}Discover why EduWise was created and how its grounded RAG architecture turns static study
+materials into interactive quizzes, tactile flashcards, and presentation slides.{% endblock %}
+
+{% block content %}
+<div class="py-12 sm:py-20 px-4 sm:px-6 relative z-10 max-w-4xl mx-auto">
+    <!-- Top Philosophy Badge -->
+    <div class="text-center mb-10 animate-enter">
+        <div class="inline-flex items-center gap-2 mb-4">
+            <span class="editorial-stamp accent">
+                <i class="fas fa-compass text-[10px]"></i> Project &amp; Creator
+            </span>
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-bold font-heading tracking-tight leading-[1.15] mb-5"
+            style="color: var(--text-primary);">
+            Crafted for deep retention, not superficial skimming.
+        </h1>
+        <p class="text-base sm:text-lg leading-relaxed max-w-2xl mx-auto" style="color: var(--text-secondary);">
+            EduWise was born out of a simple conviction: studying shouldn't feel like wrestling with endless 150-page
+            slide decks and disconnected study apps.
+        </p>
+    </div>
+
+    <!-- The Mission / What is EduWise -->
+    <div class="studious-card p-6 sm:p-10 mb-12 shadow-sm"
+        style="background: var(--surface-card); border: 1.5px solid var(--border-ink);">
+        <div class="flex items-center gap-3 mb-6 pb-4 border-b" style="border-color: var(--border);">
+            <div class="w-10 h-10 rounded-md flex items-center justify-center text-base"
+                style="background: var(--accent); color: var(--accent-ink); border: 1.5px solid var(--border-ink);">
+                <i class="fas fa-lightbulb"></i>
+            </div>
+            <div>
+                <h2 class="font-heading font-bold text-xl sm:text-2xl" style="color: var(--text-primary);">
+                    What is EduWise?
+                </h2>
+                <p class="text-xs font-mono" style="color: var(--text-muted);">
+                    RAG-GROUNDED EDUCATIONAL STUDIO
+                </p>
+            </div>
+        </div>
+
+        <div class="prose max-w-none text-sm sm:text-base leading-relaxed space-y-4"
+            style="color: var(--text-secondary);">
+            <p>
+                Most AI study tools suffer from the same fatal flaw: they summarize everything through generic web
+                pretraining, hallucinate made-up facts, and lack the specific context of your actual professor's
+                syllabus, definitions, or exam format.
+            </p>
+            <p>
+                <strong>EduWise flips this paradigm completely.</strong> Using <em>Retrieval-Augmented Generation
+                    (RAG)</em>, EduWise indexes your uploaded course textbooks, lecture notes, and study PDFs into
+                semantic 768-dimensional vector spaces. When you request a quiz, presentation, or flashcard deck,
+                EduWise extracts the exact relevant passages and strictly grounds the AI generation on your real course
+                syllabus.
+            </p>
+        </div>
+
+        <!-- 4 Pillars Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 pt-6 border-t" style="border-color: var(--border);">
+            <div class="p-4 rounded-lg transition-colors"
+                style="background: var(--surface-subtle); border: 1px solid var(--border);">
+                <div class="flex items-center gap-2 mb-2 font-heading font-bold text-sm"
+                    style="color: var(--text-primary);">
+                    <i class="fas fa-layer-group text-xs" style="color: var(--accent);"></i>
+                    <span>Boundary-Aware Chunking</span>
+                </div>
+                <p class="text-xs leading-relaxed" style="color: var(--text-muted);">
+                    Documents are parsed sentence-by-sentence and paragraph-by-paragraph with 15% sliding semantic
+                    overlap to preserve complete conceptual context.
+                </p>
+            </div>
+
+            <div class="p-4 rounded-lg transition-colors"
+                style="background: var(--surface-subtle); border: 1px solid var(--border);">
+                <div class="flex items-center gap-2 mb-2 font-heading font-bold text-sm"
+                    style="color: var(--text-primary);">
+                    <i class="fas fa-database text-xs" style="color: var(--olive);"></i>
+                    <span>pgvector Semantic Search</span>
+                </div>
+                <p class="text-xs leading-relaxed" style="color: var(--text-muted);">
+                    High-performance cosine distance querying retrieves the top-5 most relevant passages from your
+                    indexed knowledge sources within milliseconds.
+                </p>
+            </div>
+
+            <div class="p-4 rounded-lg transition-colors"
+                style="background: var(--surface-subtle); border: 1px solid var(--border);">
+                <div class="flex items-center gap-2 mb-2 font-heading font-bold text-sm"
+                    style="color: var(--text-primary);">
+                    <i class="fas fa-brain text-xs" style="color: var(--ochre);"></i>
+                    <span>Gemini 3.1 Flash Synthesis</span>
+                </div>
+                <p class="text-xs leading-relaxed" style="color: var(--text-muted);">
+                    Generates interactive self-grading quizzes, tactile 3D flip flashcards, and teacher-like
+                    explanations strictly anchored to your uploaded syllabus.
+                </p>
+            </div>
+
+            <div class="p-4 rounded-lg transition-colors"
+                style="background: var(--surface-subtle); border: 1px solid var(--border);">
+                <div class="flex items-center gap-2 mb-2 font-heading font-bold text-sm"
+                    style="color: var(--text-primary);">
+                    <i class="fas fa-file-export text-xs" style="color: var(--accent);"></i>
+                    <span>Native Export Engines</span>
+                </div>
+                <p class="text-xs leading-relaxed" style="color: var(--text-muted);">
+                    Automated generation of publication-ready PowerPoint (<code
+                        class="text-[11px] font-mono">.pptx</code>) presentations and vectorized ReportLab (<code
+                        class="text-[11px] font-mono">.pdf</code>) study guides.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Creator Spotlight Card -->
+    <div class="studious-card p-6 sm:p-10 mb-12 shadow-sm relative overflow-hidden"
+        style="background: var(--surface-card); border: 1.5px solid var(--border-ink);">
+        <!-- Subtle corner watermark -->
+        <div class="absolute -right-6 -bottom-6 opacity-5 pointer-events-none select-none text-9xl">
+            <i class="fas fa-user-astronaut"></i>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-6 border-b"
+            style="border-color: var(--border);">
+            <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-xl flex items-center justify-center text-2xl font-bold font-heading shadow-sm"
+                    style="background: var(--accent); color: var(--accent-ink); border: 2px solid var(--border-ink);">
+                    AM
+                </div>
+                <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h2 class="font-heading font-bold text-2xl sm:text-3xl" style="color: var(--text-primary);">
+                            Abhinav M
+                        </h2>
+                        <span class="editorial-stamp !text-[10px] !py-0.5">Creator &amp; Architect</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Social Links / Buttons -->
+            <div class="flex flex-wrap items-center gap-2.5 pt-2 sm:pt-0">
+                <a href="https://github.com/Abhinav-Muralidhar" target="_blank" rel="noopener noreferrer"
+                    class="btn-soft !py-2 !px-3.5 !text-xs flex items-center gap-2 hover:!border-ink transition-all"
+                    title="View Abhinav's GitHub profile">
+                    <i class="fab fa-github text-sm"></i>
+                    <span>GitHub</span>
+                    <i class="fas fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
+                </a>
+
+                <a href="https://www.linkedin.com/in/abhinav-muralidhar/" target="_blank" rel="noopener noreferrer"
+                    class="btn-soft !py-2 !px-3.5 !text-xs flex items-center gap-2 hover:!border-ink transition-all"
+                    title="Connect on LinkedIn">
+                    <i class="fab fa-linkedin text-sm" style="color: #0A66C2;"></i>
+                    <span>LinkedIn</span>
+                    <i class="fas fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="space-y-4 text-sm sm:text-base leading-relaxed" style="color: var(--text-secondary);">
+            <p>
+                Hi! I'm <strong>Abhinav M</strong> (<span class="font-normal" style="color: var(--text-muted);">Abhinav
+                    Muralidhar</span>), a full-stack and AI developer passionate about engineering software that reduces
+                cognitive fatigue and makes learning rewarding.
+            </p>
+            <p>
+                I built <strong>EduWise</strong> to tackle a personal pain point experienced during intense exam cycles:
+                spending hours creating study questions, summarizing textbook chapters, and preparing presentation
+                slides instead of actually engaging with the concepts.
+            </p>
+            <p>
+                Rather than treating AI as a generic novelty chat box, I wanted to build a cohesive, tactile learning
+                environment that treats user documents as the authoritative ground truth. Every design decision—from the
+                tactile card borders and warm paper aesthetic to the custom pgvector dual-dialect storage—was chosen to
+                make serious learning focused, reliable, and distraction-free.
+            </p>
+        </div>
+
+        <!-- Tech Stack Tags -->
+        <div class="mt-8 pt-6 border-t" style="border-color: var(--border);">
+            <p class="text-xs font-mono font-bold uppercase tracking-wider mb-3" style="color: var(--text-muted);">
+                Engineered With
+            </p>
+            <div class="flex flex-wrap gap-2 text-xs">
+                <span class="px-3 py-1 rounded-md font-mono"
+                    style="background: var(--surface-subtle); border: 1px solid var(--border); color: var(--text-primary);">
+                    Python 3.11 &amp; Flask
+                </span>
+                <span class="px-3 py-1 rounded-md font-mono"
+                    style="background: var(--surface-subtle); border: 1px solid var(--border); color: var(--text-primary);">
+                    Google Gemini 3.1 Flash
+                </span>
+                <span class="px-3 py-1 rounded-md font-mono"
+                    style="background: var(--surface-subtle); border: 1px solid var(--border); color: var(--text-primary);">
+                    PostgreSQL + pgvector
+                </span>
+                <span class="px-3 py-1 rounded-md font-mono"
+                    style="background: var(--surface-subtle); border: 1px solid var(--border); color: var(--text-primary);">
+                    SQLAlchemy &amp; Neon DB
+                </span>
+                <span class="px-3 py-1 rounded-md font-mono"
+                    style="background: var(--surface-subtle); border: 1px solid var(--border); color: var(--text-primary);">
+                    ReportLab Vector PDF
+                </span>
+                <span class="px-3 py-1 rounded-md font-mono"
+                    style="background: var(--surface-subtle); border: 1px solid var(--border); color: var(--text-primary);">
+                    python-pptx Presentation Engine
+                </span>
+                <span class="px-3 py-1 rounded-md font-mono"
+                    style="background: var(--surface-subtle); border: 1px solid var(--border); color: var(--text-primary);">
+                    Tailwind + Custom Tactile CSS
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to action -->
+    <div class="text-center p-8 rounded-xl" style="background: var(--surface-card); border: 1.5px solid var(--border);">
+        <h3 class="font-heading font-bold text-xl sm:text-2xl mb-3" style="color: var(--text-primary);">
+            Start studying with your own documents today.
+        </h3>
+        <p class="text-xs sm:text-sm mb-6 max-w-lg mx-auto" style="color: var(--text-muted);">
+            Upload your syllabus or lecture PDF and generate interactive quizzes, flashcards, and notes in seconds.
+        </p>
+        <div class="flex flex-wrap items-center justify-center gap-3">
+            {% if session.get('user_id') %}
+            <a href="{{ url_for('dashboard.index') }}" class="btn-primary !py-2.5 !px-6 text-sm">
+                <span>Go to Workspace</span>
+                <i class="fas fa-arrow-right text-xs"></i>
+            </a>
+            {% else %}
+            <a href="{{ url_for('auth.signup') }}" class="btn-primary !py-2.5 !px-6 text-sm">
+                <span>Create Free Account</span>
+                <i class="fas fa-arrow-right text-xs"></i>
+            </a>
+            <a href="{{ url_for('dashboard.home') }}#quick-try" class="btn-soft !py-2.5 !px-5 text-sm">
+                <span>Try Guest Playground</span>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

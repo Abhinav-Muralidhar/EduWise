@@ -1,0 +1,110 @@
+{% extends "layout.html" %}
+
+{% block title %}Privacy Policy — EduWise{% endblock %}
+
+{% block meta_description %}Read EduWise's privacy policy regarding data collection, uploaded study documents, vector embeddings, and account security.{% endblock %}
+
+{% block content %}
+<div class="py-12 sm:py-20 px-4 sm:px-6 relative z-10 max-w-3xl mx-auto">
+    <div class="mb-10 animate-enter">
+        <div class="inline-flex items-center gap-2 mb-3">
+            <span class="editorial-stamp">
+                <i class="fas fa-shield-halved text-[10px]"></i> Legal &amp; Transparency
+            </span>
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-bold font-heading tracking-tight mb-3" style="color: var(--text-primary);">
+            Privacy Policy
+        </h1>
+        <p class="text-xs sm:text-sm font-mono" style="color: var(--text-muted);">
+            Last updated: October 2026 &middot; Effective for all EduWise users
+        </p>
+    </div>
+
+    <div class="studious-card p-6 sm:p-10 space-y-8 text-sm sm:text-base leading-relaxed"
+        style="background: var(--surface-card); border: 1.5px solid var(--border-ink); color: var(--text-secondary);">
+
+        <section>
+            <h2 class="font-heading font-bold text-lg sm:text-xl mb-3 flex items-center gap-2" style="color: var(--text-primary);">
+                <span class="bracket-num">[01]</span> Overview &amp; Philosophy
+            </h2>
+            <p>
+                EduWise is designed with privacy and student trust as foundational principles. We do not sell your personal data, monetize your study habits, or share your documents with data brokers. This policy explains what information we collect, how it is processed, and the measures we take to protect it.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-heading font-bold text-lg sm:text-xl mb-3 flex items-center gap-2" style="color: var(--text-primary);">
+                <span class="bracket-num">[02]</span> Information We Collect
+            </h2>
+            <ul class="list-disc pl-5 space-y-2">
+                <li>
+                    <strong>Account Information:</strong> When you register, we collect your chosen username and email address. Passwords are never stored in plain text; they are cryptographically hashed using PBKDF2 with SHA-256 and unique per-user salts.
+                </li>
+                <li>
+                    <strong>Uploaded Study Documents:</strong> Files you upload (PDF, DOCX, TXT) to the Knowledge Base are temporarily parsed into text chunks and converted into vector embeddings.
+                </li>
+                <li>
+                    <strong>Generated Resources:</strong> Quizzes, flashcards, presentation files, and summaries you create are saved to your private dashboard library for ongoing review.
+                </li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="font-heading font-bold text-lg sm:text-xl mb-3 flex items-center gap-2" style="color: var(--text-primary);">
+                <span class="bracket-num">[03]</span> How Your Study Materials Are Used
+            </h2>
+            <p class="mb-3">
+                Your study documents are used <em>solely</em> to generate your requested learning materials via Retrieval-Augmented Generation (RAG):
+            </p>
+            <div class="p-4 rounded-lg space-y-2 text-xs sm:text-sm" style="background: var(--surface-subtle); border: 1px solid var(--border);">
+                <p>
+                    <i class="fas fa-check-circle mr-1.5" style="color: var(--olive);"></i>
+                    <strong>Private to your account:</strong> Chunks and vector embeddings are strictly partitioned by your <code class="font-mono text-xs">user_id</code>. No other user can search or retrieve your uploaded documents.
+                </p>
+                <p>
+                    <i class="fas fa-check-circle mr-1.5" style="color: var(--olive);"></i>
+                    <strong>Not used for AI training:</strong> Text sent to Google Gemini APIs is processed solely for content generation and is not used to train public foundation models.
+                </p>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="font-heading font-bold text-lg sm:text-xl mb-3 flex items-center gap-2" style="color: var(--text-primary);">
+                <span class="bracket-num">[04]</span> Cookies &amp; Local Storage
+            </h2>
+            <p>
+                EduWise uses secure HTTP session cookies strictly for session authentication and CSRF protection. We also store non-sensitive aesthetic preferences (such as your chosen Light/Dark theme) in your browser's <code class="font-mono text-xs">localStorage</code>. We utilize privacy-conscious Google Analytics (<code class="font-mono text-xs">gtag.js</code>) to monitor site uptime and high-level feature engagement.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-heading font-bold text-lg sm:text-xl mb-3 flex items-center gap-2" style="color: var(--text-primary);">
+                <span class="bracket-num">[05]</span> Your Rights &amp; Data Deletion
+            </h2>
+            <p>
+                You maintain complete ownership of your data at all times:
+            </p>
+            <ul class="list-disc pl-5 space-y-1.5 mt-2">
+                <li>You can delete individual Knowledge Sources or generated resources directly from your workspace dashboard at any time.</li>
+                <li>You can permanently delete your entire account from your <a href="{{ url_for('auth.profile') if session.get('user_id') else url_for('auth.login') }}" class="underline font-bold" style="color: var(--accent);">Profile settings</a>. Doing so triggers a complete cascade deletion that immediately erases your account, credentials, uploaded sources, chunks, and generated files from the database.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="font-heading font-bold text-lg sm:text-xl mb-3 flex items-center gap-2" style="color: var(--text-primary);">
+                <span class="bracket-num">[06]</span> Contact &amp; Questions
+            </h2>
+            <p>
+                If you have questions about this privacy notice or data handling within EduWise, feel free to reach out via GitHub at <a href="https://github.com/Abhinav-Muralidhar" target="_blank" rel="noopener noreferrer" class="underline font-bold" style="color: var(--accent);">github.com/Abhinav-Muralidhar</a>.
+            </p>
+        </section>
+    </div>
+
+    <div class="mt-8 text-center">
+        <a href="{{ url_for('dashboard.home') }}" class="btn-soft !py-2 !px-4 text-xs font-semibold inline-flex items-center gap-2">
+            <i class="fas fa-arrow-left text-[10px]"></i>
+            <span>Return to Home</span>
+        </a>
+    </div>
+</div>
+{% endblock %}

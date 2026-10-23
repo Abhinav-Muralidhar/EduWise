@@ -206,3 +206,38 @@ def test_view_resource_null_content_graceful_redirect(auth_client, app, test_use
     assert get_res.status_code == 200
     assert b"This resource was created before saving was added." in get_res.data
 
+
+def test_public_pages_and_seo(client):
+    """Verify that About, Privacy, Terms, robots.txt, and sitemap.xml load correctly without authentication."""
+    # About page
+    res_about = client.get('/about')
+    assert res_about.status_code == 200
+    assert b"Abhinav M" in res_about.data
+    assert b"Abhinav Muralidhar" in res_about.data
+    assert b"https://github.com/Abhinav-Muralidhar" in res_about.data
+    assert b"https://www.linkedin.com/in/abhinav-muralidhar/" in res_about.data
+
+    # Privacy page
+    res_privacy = client.get('/privacy')
+    assert res_privacy.status_code == 200
+    assert b"Privacy Policy" in res_privacy.data
+
+    # Terms page
+    res_terms = client.get('/terms')
+    assert res_terms.status_code == 200
+    assert b"Terms of Service" in res_terms.data
+
+    # robots.txt
+    res_robots = client.get('/robots.txt')
+    assert res_robots.status_code == 200
+    assert res_robots.mimetype == 'text/plain'
+    assert b"User-agent: *" in res_robots.data
+    assert b"Sitemap:" in res_robots.data
+
+    # sitemap.xml
+    res_sitemap = client.get('/sitemap.xml')
+    assert res_sitemap.status_code == 200
+    assert res_sitemap.mimetype == 'application/xml'
+    assert b"<urlset" in res_sitemap.data
+    assert b"/about</loc>" in res_sitemap.data
+

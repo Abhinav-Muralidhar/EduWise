@@ -4,7 +4,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}EduWise — Studious AI Studio{% endblock %}</title>
+    <title>{% block title %}EduWise — AI-Powered Study & Learning Studio{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}EduWise transforms your lecture notes, PDFs, and textbooks into interactive quizzes, tactile flashcards, summary sheets, and structured slide decks using grounded RAG.{% endblock %}">
+    <meta name="keywords" content="AI study tools, RAG learning, lecture to quiz, PDF notes summary, flashcard generator, slide deck maker, Abhinav Muralidhar, Abhinav M, EduWise">
+    <meta name="author" content="Abhinav M (Abhinav Muralidhar)">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{{ request.base_url }}">
+
+    <!-- Open Graph / Facebook / LinkedIn / WhatsApp -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="EduWise">
+    <meta property="og:url" content="{{ request.base_url }}">
+    <meta property="og:title" content="{% block og_title %}EduWise — AI-Powered Study & Learning Studio{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Deep learning tools for serious minds. Synthesize dense course notes into sharp quizzes, tactile flashcards, and slides with grounded RAG.{% endblock %}">
+    <meta property="og:image" content="{{ url_for('static', filename='images/og-preview.jpg', _external=True) }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="675">
+    <meta property="og:image:alt" content="EduWise AI Study Studio Preview">
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="{{ request.base_url }}">
+    <meta name="twitter:title" content="{% block twitter_title %}EduWise — AI-Powered Study & Learning Studio{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Deep learning tools for serious minds. Synthesize dense course notes into sharp quizzes, tactile flashcards, and slides.{% endblock %}">
+    <meta name="twitter:image" content="{{ url_for('static', filename='images/og-preview.jpg', _external=True) }}">
+
+    <!-- JSON-LD Structured Data: Person & SoftwareApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "SoftwareApplication",
+          "name": "EduWise",
+          "applicationCategory": "EducationalApplication",
+          "operatingSystem": "Web",
+          "description": "AI-powered study studio that transforms lecture notes, PDFs, and textbooks into interactive quizzes, tactile flashcard decks, and presentation slides using grounded RAG.",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "author": {
+            "@type": "Person",
+            "name": "Abhinav Muralidhar",
+            "alternateName": "Abhinav M",
+            "url": "https://github.com/Abhinav-Muralidhar",
+            "sameAs": [
+              "https://github.com/Abhinav-Muralidhar",
+              "https://www.linkedin.com/in/abhinav-muralidhar/"
+            ]
+          }
+        },
+        {
+          "@type": "Person",
+          "@id": "https://github.com/Abhinav-Muralidhar#person",
+          "name": "Abhinav Muralidhar",
+          "alternateName": "Abhinav M",
+          "jobTitle": "Full-Stack AI Developer & Creator of EduWise",
+          "url": "https://github.com/Abhinav-Muralidhar",
+          "sameAs": [
+            "https://github.com/Abhinav-Muralidhar",
+            "https://www.linkedin.com/in/abhinav-muralidhar/"
+          ]
+        }
+      ]
+    }
+    </script>
 
     <!-- Typography: Fraunces (Expressive Serif) + Plus Jakarta Sans + Space Grotesk -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -90,11 +156,19 @@
                 <script>document.write(new Date().getFullYear())</script> EduWise &middot; Thoughtful AI learning for
                 deep retention.
             </p>
-            <div class="flex gap-6 text-xs font-semibold">
+            <div class="flex flex-wrap items-center gap-5 sm:gap-6 text-xs font-semibold">
+                <a href="{{ url_for('dashboard.about') }}" class="hover:underline transition-colors"
+                    style="color: var(--text-muted);">About</a>
+                <a href="{{ url_for('dashboard.privacy') }}" class="hover:underline transition-colors"
+                    style="color: var(--text-muted);">Privacy</a>
+                <a href="{{ url_for('dashboard.terms') }}" class="hover:underline transition-colors"
+                    style="color: var(--text-muted);">Terms</a>
+                {% if not session.get('user_id') %}
                 <a href="{{ url_for('dashboard.home') }}#features" class="hover:underline transition-colors"
                     style="color: var(--text-muted);">Features</a>
                 <a href="{{ url_for('dashboard.home') }}#quick-try" class="hover:underline transition-colors"
                     style="color: var(--accent);">Guest Studio</a>
+                {% endif %}
             </div>
         </div>
     </footer>

@@ -4,7 +4,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduWise — Studious AI Learning Studio</title>
+    <title>EduWise — AI-Powered Study & Learning Studio</title>
+    <meta name="description" content="EduWise transforms your lecture notes, PDFs, and textbooks into interactive quizzes, tactile flashcards, and structured presentation slides using grounded RAG.">
+    <meta name="keywords" content="AI study tools, RAG learning, lecture to quiz, PDF notes summary, flashcard generator, slide deck maker, Abhinav Muralidhar, Abhinav M, EduWise">
+    <meta name="author" content="Abhinav M (Abhinav Muralidhar)">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{{ request.base_url }}">
+
+    <!-- Open Graph / Social Cards -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="EduWise">
+    <meta property="og:url" content="{{ request.base_url }}">
+    <meta property="og:title" content="EduWise — AI-Powered Study & Learning Studio">
+    <meta property="og:description" content="Deep learning tools for serious minds. Synthesize dense course notes into sharp quizzes, tactile flashcards, and slides with grounded RAG.">
+    <meta property="og:image" content="{{ url_for('static', filename='images/og-preview.jpg', _external=True) }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="675">
+    <meta property="og:image:alt" content="EduWise AI Study Studio Preview">
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="{{ request.base_url }}">
+    <meta name="twitter:title" content="EduWise — AI-Powered Study & Learning Studio">
+    <meta name="twitter:description" content="Deep learning tools for serious minds. Synthesize dense course notes into sharp quizzes, tactile flashcards, and slides.">
+    <meta name="twitter:image" content="{{ url_for('static', filename='images/og-preview.jpg', _external=True) }}">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW08X3P4KT"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-ZW08X3P4KT');
+    </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -261,7 +293,13 @@
                 <script>document.write(new Date().getFullYear())</script> EduWise &middot; Thoughtful AI learning
                 studio.
             </p>
-            <div class="flex gap-6 text-xs font-semibold">
+            <div class="flex flex-wrap items-center gap-5 sm:gap-6 text-xs font-semibold">
+                <a href="{{ url_for('dashboard.about') }}" class="hover:underline transition-colors"
+                    style="color: var(--text-muted);">About</a>
+                <a href="{{ url_for('dashboard.privacy') }}" class="hover:underline transition-colors"
+                    style="color: var(--text-muted);">Privacy</a>
+                <a href="{{ url_for('dashboard.terms') }}" class="hover:underline transition-colors"
+                    style="color: var(--text-muted);">Terms</a>
                 <a href="{{ url_for('auth.login') }}" class="hover:underline" style="color: var(--text-muted);">Log
                     In</a>
                 <a href="{{ url_for('auth.signup') }}" class="hover:underline" style="color: var(--accent);">Sign Up</a>

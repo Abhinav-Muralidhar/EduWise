@@ -45,6 +45,10 @@
                             <i class="fas fa-book-bookmark text-xs w-4" style="color: var(--olive);"></i>
                             <span>Knowledge Base</span>
                         </a>
+                        <a href="{{ url_for('dashboard.about') }}" class="dropdown-item">
+                            <i class="fas fa-circle-info text-xs w-4" style="color: var(--accent);"></i>
+                            <span>About EduWise</span>
+                        </a>
                         <button type="button" onclick="toggleThemeFromMenu()" class="dropdown-item">
                             <i id="menuThemeIcon" class="fas fa-moon text-xs w-4" style="color: var(--ochre);"></i>
                             <span id="menuThemeText">Dark Mode</span>
@@ -74,6 +78,11 @@
                 <i class="fas fa-moon text-xs dark:hidden" style="color: var(--text-muted);"></i>
                 <i class="fas fa-sun text-xs hidden dark:block" style="color: var(--ochre);"></i>
             </button>
+
+            <a href="{{ url_for('dashboard.about') }}"
+                class="btn-ghost !text-xs !font-semibold !px-2.5 sm:!px-3 flex-shrink-0">
+                About
+            </a>
 
             <a href="{{ url_for('auth.login') }}"
                 class="btn-ghost !text-xs !font-semibold !px-2.5 sm:!px-3 flex-shrink-0">
