@@ -157,6 +157,9 @@ def generate_slide_content(topic, customization, theme_data, rag_context=None):
     prompt += "--- END INSTRUCTIONS ---\n"
     prompt += "You MUST return ONLY a JSON array of slide objects. Do not include any chat or preamble.\n"
     prompt += "Each object MUST have 'slide_type', 'title', 'points' (an array of strings), and 'image_query' ('none' if no image). \n"
+    prompt += "For each content slide, provide 2 to 4 substantive points in 'points'. Format each point as 'Core Concept: Clear, informative explanation' (e.g., 'Glycolysis: Cytoplasmic breakdown of glucose yielding 2 ATP') so it renders into an individual visual card.\n"
+    prompt += "Optional layout archetype: You can specify 'layout_style' as one of: 'bento_hero' (1 primary feature card + stacked secondary cards), 'timeline_process' (step-by-step sequence), 'comparison_split' (2-column side-by-side contrast), 'formula_callout' (central hero equation with breakdown), or 'grid_cards' (balanced bento cards).\n"
+    prompt += "For mathematical or scientific equations, write them cleanly using standard math symbols or LaTeX notation (e.g., '$$E = mc^2$$', '\\Delta G = \\Delta H - T\\Delta S', 'H_2O').\n"
     
     if customization.get('intro_slide') == 'true':
         prompt += "Start with a 'slide_type': 'intro' slide with just the title. \n"
@@ -199,8 +202,12 @@ def generate_detailed_content(topic, customization, theme_data, rag_context=None
     prompt += "   - '## Title' for main headings\n"
     prompt += "   - '### Title' for sub-headings\n"
     prompt += "   - '* ' for bullet points\n"
+    prompt += "   - '> Key Concept: ...' for callout boxes highlighting vital definitions, exam tips, or core takeaways\n"
+    prompt += "   - '| Header | Header |' for comparison or summary tables where helpful\n"
     prompt += "   - '**bold**' and '*italic*' for emphasis\n"
     prompt += "   - '```' blocks for code\n"
+    prompt += "   - '$$...$$' on its own line for core mathematical equations and formulas\n"
+    prompt += "   - For inline scientific notation, use clean math/chemical symbols (e.g., CO_2, H_2O, \\Delta, \\alpha, \\le, \\ge, x^2)\n"
     prompt += "2. DO NOT use '#' (single hash) for headings. Use '##' instead.\n"
     prompt += "3. DO NOT use '####' or more hashes. Stick to ## and ###.\n"
     prompt += "4. DO NOT use horizontal rules (---).\n"
