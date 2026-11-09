@@ -6,7 +6,10 @@ from pptx.util import Inches, Pt
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.enum.text import PP_ALIGN
 from pptx.dml.color import RGBColor
-from app.utils.colors import hex_to_rgbcolor, hex_to_rgb, is_dark_color, blend_hex
+from app.utils.colors import (
+    hex_to_rgbcolor, hex_to_rgb, is_dark_color, blend_hex,
+    ensure_contrast, ensure_accessible_accent, pick_best_text_color
+)
 from app.utils.math_formatter import format_math_for_pptx
 from app.services.image_search import get_image_urls_for_topic_google, download_image_to_tempfile
 from flask import current_app
@@ -15,6 +18,7 @@ def _get_palette(theme_data, customization):
     """
     Compute a cohesive, high-contrast Canva-style color palette
     from user theme preferences and background luminance.
+    Guarantees strict WCAG contrast (never white font on white background).
     """
     bg_hex = theme_data.get('bg-color', '#FFFFFF')
     title_hex = theme_data.get('font-color-title', '#1C1A17')
@@ -28,11 +32,8 @@ def _get_palette(theme_data, customization):
         bg_hex = bg_hex if is_dark_color(bg_hex) else '#18181B'
         card_bg_hex = blend_hex(bg_hex, '#FFFFFF', 0.08)
         card_border_hex = blend_hex(bg_hex, '#FFFFFF', 0.16)
-        title_hex = '#FFFFFF' if is_dark_color(title_hex) else title_hex
-        body_hex = '#D4D4D8' if is_dark_color(body_hex) else body_hex
         subtle_line_hex = blend_hex(bg_hex, '#FFFFFF', 0.20)
         badge_bg_hex = blend_hex(accent_hex, bg_hex, 0.70)
-        badge_text_hex = '#FFFFFF'
         pill_bg_hex = blend_hex(accent_hex, bg_hex, 0.80)
         hero_fill_hex = blend_hex(accent_hex, bg_hex, 0.88)
         alt_card_hex = blend_hex(bg_hex, '#FFFFFF', 0.12)
@@ -40,14 +41,17 @@ def _get_palette(theme_data, customization):
         bg_hex = bg_hex if not is_dark_color(bg_hex) else '#F8F9FA'
         card_bg_hex = '#FFFFFF'
         card_border_hex = blend_hex(bg_hex, '#000000', 0.10)
-        title_hex = '#111827' if not is_dark_color(title_hex) else title_hex
-        body_hex = '#4B5563' if not is_dark_color(body_hex) else body_hex
         subtle_line_hex = blend_hex(bg_hex, '#000000', 0.12)
         badge_bg_hex = accent_hex
-        badge_text_hex = '#FFFFFF'
         pill_bg_hex = blend_hex(accent_hex, '#FFFFFF', 0.88)
         hero_fill_hex = blend_hex(accent_hex, '#FFFFFF', 0.94)
         alt_card_hex = blend_hex(accent_hex, '#FFFFFF', 0.96)
+
+    # STRICT CONTRAST ENFORCEMENT TO GUARANTEE ACCESSIBLE VISIBILITY
+    title_hex = ensure_contrast(title_hex, bg_hex, min_ratio=4.5, dark_fallback='#0F172A', light_fallback='#FFFFFF')
+    body_hex = ensure_contrast(body_hex, card_bg_hex, min_ratio=4.5, dark_fallback='#334155', light_fallback='#E2E8F0')
+    accent_text_hex = ensure_accessible_accent(accent_hex, card_bg_hex, min_ratio=4.5)
+    badge_text_hex = pick_best_text_color(badge_bg_hex, dark_option='#0F172A', light_option='#FFFFFF')
 
     return {
         'is_dark': is_dark,
@@ -55,6 +59,7 @@ def _get_palette(theme_data, customization):
         'title_rgb': hex_to_rgbcolor(title_hex),
         'body_rgb': hex_to_rgbcolor(body_hex),
         'accent_rgb': hex_to_rgbcolor(accent_hex),
+        'accent_text_rgb': hex_to_rgbcolor(accent_text_hex),
         'card_bg_rgb': hex_to_rgbcolor(card_bg_hex),
         'card_border_rgb': hex_to_rgbcolor(card_border_hex),
         'subtle_line_rgb': hex_to_rgbcolor(subtle_line_hex),
@@ -64,6 +69,7 @@ def _get_palette(theme_data, customization):
         'hero_fill_rgb': hex_to_rgbcolor(hero_fill_hex),
         'alt_card_rgb': hex_to_rgbcolor(alt_card_hex),
         'accent_hex': accent_hex,
+        'accent_text_hex': accent_text_hex,
         'title_font': theme_data.get('font-title', 'Roboto'),
         'body_font': theme_data.get('font-body', 'Roboto')
     }

@@ -223,4 +223,119 @@ $$ \Delta G = \Delta H - T \Delta S $$
         assert pdf_buf is not None
         assert len(pdf_buf.getvalue()) > 3000
 
+def test_pdf_patterns_and_editorial_archetypes(app):
+    from app.utils.pdf_patterns import determine_pattern_style
+
+    # 1. Pattern selector tests
+    assert determine_pattern_style('Machine Learning Algorithms', '#2563EB') == 'circuit_nodes'
+    assert determine_pattern_style('Cellular Biology & Genetics', '#10B981') == 'isometric_grid'
+    assert determine_pattern_style('Macro Economics and Trade Policy', '#7C3AED') == 'diagonal_pinstripes'
+    assert determine_pattern_style('General Overview', '#E8590C') == 'dot_matrix'
+
+    with app.app_context():
+        # 2. Multi-archetype callout rendering
+        editorial_content = """
+## Advanced Orbital Mechanics & Celestial Navigation
+
+Here is the central governing body equation:
+
+$$ F = G \\frac{m_1 m_2}{r^2} $$
+
+> Exam Tip: Do not confuse orbital velocity with escape velocity; escape velocity is \\sqrt{2} times orbital velocity.
+
+> Real-World Application: The Apollo lunar transfer orbit utilized this exact patched-conic approximation for fuel efficiency.
+
+> Key Concept: Specific orbital energy is conserved along any Keplerian conic section.
+
+* Orbital Period: T^2 \\propto a^3 (Kepler's Third Law)
+* Universal Constant: G \\approx 6.674 \\times 10^{-11} m^3 kg^{-1} s^{-2}
+"""
+        theme = {
+            'font-title': 'Roboto',
+            'font-body': 'Roboto',
+            'font-color-title': '#0F172A',
+            'font-color-body': '#334155',
+            'bg-color': '#FFFFFF',
+            'accent-color': '#2563EB'
+        }
+
+        # Test full generation with cover page
+        buf_cover = create_pdf_reportlab('Orbital Mechanics', editorial_content, theme, {'intro_slide': 'true', 'theme_base': 'light'})
+        assert buf_cover is not None
+        assert len(buf_cover.getvalue()) > 4000
+
+        # Test dark mode generation with direct header
+        dark_theme = {
+            'font-title': 'Roboto',
+            'font-body': 'Roboto',
+            'font-color-title': '#FFFFFF',
+            'font-color-body': '#D1D5DB',
+            'bg-color': '#111827',
+            'accent-color': '#38BDF8'
+        }
+        buf_dark = create_pdf_reportlab('Orbital Mechanics', editorial_content, dark_theme, {'intro_slide': 'false', 'theme_base': 'dark'})
+        assert buf_dark is not None
+        assert len(buf_dark.getvalue()) > 4000
+
+def test_contrast_engine_prevents_low_visibility_and_white_on_white(app):
+    from app.utils.colors import (
+        get_contrast_ratio, ensure_contrast, ensure_accessible_accent, pick_best_text_color
+    )
+
+    # 1. Pure white on pure white must fail and be adjusted
+    assert round(get_contrast_ratio('#FFFFFF', '#FFFFFF'), 2) == 1.0
+    safe_on_white = ensure_contrast('#FFFFFF', '#FFFFFF', min_ratio=4.5)
+    assert safe_on_white != '#FFFFFF'
+    assert get_contrast_ratio(safe_on_white, '#FFFFFF') >= 4.5
+
+    # 2. Pure black on dark background must fail and be adjusted
+    assert get_contrast_ratio('#000000', '#18181B') < 2.0
+    safe_on_dark = ensure_contrast('#000000', '#18181B', min_ratio=4.5)
+    assert safe_on_dark != '#000000'
+    assert get_contrast_ratio(safe_on_dark, '#18181B') >= 4.5
+
+    # 3. Low visibility accents (like yellow on white) must be darkened
+    yellow_on_white = ensure_accessible_accent('#FBBF24', '#FFFFFF', min_ratio=4.5)
+    assert yellow_on_white != '#FBBF24'
+    assert get_contrast_ratio(yellow_on_white, '#FFFFFF') >= 4.5
+
+    # 4. Table header text picker
+    assert pick_best_text_color('#FBBF24') == '#0F172A'  # on yellow, pick dark text
+    assert pick_best_text_color('#1E293B') == '#FFFFFF'  # on navy, pick light text
+
+    # 5. Pathological theme generation test in both PDF and PPTX
+    with app.app_context():
+        bad_theme = {
+            'font-title': 'Roboto',
+            'font-body': 'Roboto',
+            'font-color-title': '#FFFFFF',  # White text on white page!
+            'font-color-body': '#FFFFFF',   # White text on white page!
+            'bg-color': '#FFFFFF',
+            'accent-color': '#FBBF24'       # Light yellow accent!
+        }
+        test_markdown = """
+## Pathological Visibility Stress Test
+This text must be readable and never render as invisible white-on-white.
+
+| Header A | Header B |
+| Value 1 | Value 2 |
+
+> Key Concept: Contrast must satisfy WCAG AA minimum 4.5:1.
+"""
+        # Test PDF generator with pathological white-on-white theme
+        pdf_buf = create_pdf_reportlab('Visibility Test', test_markdown, bad_theme, {'intro_slide': 'false', 'theme_base': 'light'})
+        assert pdf_buf is not None
+        assert len(pdf_buf.getvalue()) > 3000
+
+        # Test PPTX generator with pathological white-on-white theme
+        slides_data = [
+            {'slide_type': 'intro', 'title': 'Contrast Stress Test', 'points': []},
+            {'slide_type': 'content', 'title': 'Accessible Visibility', 'points': ['Point 1: High contrast', 'Point 2: Crisp visibility'], 'image_query': 'none'}
+        ]
+        pptx_buf = create_pptx_file(slides_data, bad_theme, {'theme_base': 'light', 'image_strategy': 'none'})
+        assert pptx_buf is not None
+        assert len(pptx_buf.getvalue()) > 1000
+
+
+
 

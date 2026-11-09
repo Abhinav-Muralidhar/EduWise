@@ -10,8 +10,12 @@ from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle, Image
 )
-from app.utils.colors import hex_to_reportlab_color, is_dark_color, blend_hex
+from app.utils.colors import (
+    hex_to_reportlab_color, is_dark_color, blend_hex,
+    ensure_contrast, ensure_accessible_accent, pick_best_text_color
+)
 from app.utils.math_formatter import format_math_for_reportlab, is_mathematical_line
+from app.utils.pdf_patterns import create_pattern_canvas_maker, draw_page_background
 from app.services.image_search import get_image_urls_for_topic_google, download_image_to_tempfile
 from flask import current_app
 
@@ -63,8 +67,7 @@ def create_pdf_reportlab(topic, content, theme_data, customization):
     is_dark = is_dark_color(bg_hex) or theme_base == 'dark'
 
     if is_dark:
-        title_hex = '#FFFFFF' if is_dark_color(title_hex) else title_hex
-        body_hex = '#D1D5DB' if is_dark_color(body_hex) else body_hex
+        bg_hex = bg_hex if is_dark_color(bg_hex) else '#18181B'
         card_bg_hex = '#1E242B'
         card_border_hex = '#374151'
         callout_bg_hex = blend_hex(accent_hex, '#18181B', 0.82)
@@ -75,8 +78,7 @@ def create_pdf_reportlab(topic, content, theme_data, customization):
         code_text_hex = '#F9FAFB'
         divider_hex = '#374151'
     else:
-        title_hex = '#111827' if not is_dark_color(title_hex) else title_hex
-        body_hex = '#374151' if not is_dark_color(body_hex) else body_hex
+        bg_hex = bg_hex if not is_dark_color(bg_hex) else '#FFFFFF'
         card_bg_hex = '#FAF9F6'
         card_border_hex = '#E5E7EB'
         callout_bg_hex = blend_hex(accent_hex, '#FFFFFF', 0.93)
@@ -87,13 +89,25 @@ def create_pdf_reportlab(topic, content, theme_data, customization):
         code_text_hex = '#F3F4F6'
         divider_hex = '#E5E7EB'
 
+    # STRICT CONTRAST ENFORCEMENT TO GUARANTEE ZERO WHITE-ON-WHITE OR LOW-VISIBILITY TEXT
+    title_hex = ensure_contrast(title_hex, bg_hex, min_ratio=4.5, dark_fallback='#0F172A', light_fallback='#FFFFFF')
+    body_hex = ensure_contrast(body_hex, bg_hex, min_ratio=4.5, dark_fallback='#334155', light_fallback='#E2E8F0')
+
+    # Accent color adjusted for legible typography on card backgrounds
+    accent_text_hex = ensure_accessible_accent(accent_hex, card_bg_hex, min_ratio=4.5)
+
+    # Table header text: dynamically pick whichever has highest contrast against table_hdr_hex
+    table_hdr_text_hex = pick_best_text_color(table_hdr_hex, dark_option='#0F172A', light_option='#FFFFFF')
+
     title_font_color = hex_to_reportlab_color(title_hex)
     body_font_color = hex_to_reportlab_color(body_hex)
     accent_color = hex_to_reportlab_color(accent_hex)
+    accent_text_color = hex_to_reportlab_color(accent_text_hex)
     card_bg_color = hex_to_reportlab_color(card_bg_hex)
     card_border_color = hex_to_reportlab_color(card_border_hex)
     callout_bg_color = hex_to_reportlab_color(callout_bg_hex)
     table_hdr_color = hex_to_reportlab_color(table_hdr_hex)
+    table_hdr_text_color = hex_to_reportlab_color(table_hdr_text_hex)
     table_even_color = hex_to_reportlab_color(table_even_hex)
     table_odd_color = hex_to_reportlab_color(table_odd_hex)
     divider_color = hex_to_reportlab_color(divider_hex)
@@ -105,38 +119,6 @@ def create_pdf_reportlab(topic, content, theme_data, customization):
         topMargin=0.85 * inch, bottomMargin=0.65 * inch
     )
     content_width = doc.width
-
-    # Header / Footer callback
-    def draw_header_footer(canvas, d):
-        canvas.saveState()
-        page_w, page_h = d.pagesize
-
-        # Running Footer (All Pages)
-        canvas.setStrokeColor(divider_color)
-        canvas.setLineWidth(0.5)
-        canvas.line(0.55 * inch, 0.5 * inch, page_w - 0.55 * inch, 0.5 * inch)
-
-        canvas.setFont(f"{body_font_name}", 8)
-        canvas.setFillColor(colors.HexColor('#6B7280'))
-        canvas.drawString(0.55 * inch, 0.35 * inch, "EduWise  ·  Grounded Active Learning Studio")
-        canvas.drawRightString(page_w - 0.55 * inch, 0.35 * inch, f"Page {d.page}")
-
-        # Running Header (Pages > 1)
-        if d.page > 1:
-            canvas.setStrokeColor(accent_color)
-            canvas.setLineWidth(0.75)
-            canvas.line(0.55 * inch, page_h - 0.55 * inch, page_w - 0.55 * inch, page_h - 0.55 * inch)
-
-            header_title = topic[:55] + ("..." if len(topic) > 55 else "")
-            canvas.setFont(f"{title_font_name}-Bold", 8.5)
-            canvas.setFillColor(title_font_color)
-            canvas.drawString(0.55 * inch, page_h - 0.45 * inch, header_title)
-
-            canvas.setFont(f"{body_font_name}", 8)
-            canvas.setFillColor(colors.HexColor('#6B7280'))
-            canvas.drawRightString(page_w - 0.55 * inch, page_h - 0.45 * inch, "Comprehensive Study Notes")
-
-        canvas.restoreState()
 
     styles = getSampleStyleSheet()
 
@@ -156,7 +138,7 @@ def create_pdf_reportlab(topic, content, theme_data, customization):
         fontName=f"{title_font_name}-Bold",
         fontSize=8.5,
         leading=11,
-        textColor=accent_color,
+        textColor=accent_text_color,
         spaceAfter=3,
         alignment=TA_LEFT
     )
@@ -185,7 +167,7 @@ def create_pdf_reportlab(topic, content, theme_data, customization):
         fontName=f"{title_font_name}-Bold",
         fontSize=8,
         leading=10,
-        textColor=accent_color,
+        textColor=accent_text_color,
         spaceAfter=2,
         alignment=TA_LEFT
     )
@@ -223,7 +205,7 @@ def create_pdf_reportlab(topic, content, theme_data, customization):
         fontName=f"{title_font_name}-Bold",
         fontSize=8.5,
         leading=11,
-        textColor=accent_color,
+        textColor=accent_text_color,
         spaceAfter=3,
         alignment=TA_LEFT
     )
@@ -242,7 +224,7 @@ def create_pdf_reportlab(topic, content, theme_data, customization):
         fontName=f"{title_font_name}-Bold",
         fontSize=8.5,
         leading=11,
-        textColor=accent_color,
+        textColor=accent_text_color,
         spaceAfter=3,
         alignment=TA_CENTER
     )
@@ -270,7 +252,7 @@ def create_pdf_reportlab(topic, content, theme_data, customization):
         fontName=f"{title_font_name}-Bold",
         fontSize=9.5,
         leading=12,
-        textColor=colors.white,
+        textColor=table_hdr_text_color,
         alignment=TA_LEFT
     )
 
@@ -287,17 +269,27 @@ def create_pdf_reportlab(topic, content, theme_data, customization):
 
     # Cover Page or Hero Header Card
     if customization.get('intro_slide') == 'true':
-        story.append(Spacer(1, 1.8 * inch))
+        story.append(Spacer(1, 1.1 * inch))
 
         cover_pill_style = ParagraphStyle(
             name='CoverPill',
             fontName=f"{title_font_name}-Bold",
-            fontSize=10,
+            fontSize=9.5,
             leading=12,
-            textColor=accent_color,
+            textColor=accent_text_color,
             spaceAfter=12
         )
-        story.append(Paragraph("•  STUDY GUIDE &amp; REFERENCE MANUAL", cover_pill_style))
+        pill_table = Table([[Paragraph("•  GROUNDED STUDY GUIDE &amp; REFERENCE MANUAL", cover_pill_style)]])
+        pill_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), card_bg_color),
+            ('BOX', (0, 0), (-1, -1), 0.75, accent_color),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ('LEFTPADDING', (0, 0), (-1, -1), 10),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+        ]))
+        story.append(pill_table)
+        story.append(Spacer(1, 0.15 * inch))
 
         cover_title_style = ParagraphStyle(
             name='CoverTitle',
@@ -305,19 +297,20 @@ def create_pdf_reportlab(topic, content, theme_data, customization):
             fontSize=28,
             leading=34,
             textColor=title_font_color,
-            spaceAfter=16
+            spaceAfter=14
         )
         story.append(Paragraph(saxutils.escape(topic), cover_title_style))
 
-        # Accent Rule
-        rule_table = Table([[""]], colWidths=[1.8 * inch], rowHeights=[4])
+        # Dual Accent Rule
+        rule_table = Table([["", ""]], colWidths=[2.0 * inch, 0.8 * inch], rowHeights=[4])
         rule_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, -1), accent_color),
+            ('BACKGROUND', (0, 0), (0, 0), accent_color),
+            ('BACKGROUND', (1, 0), (1, 0), divider_color),
             ('TOPPADDING', (0, 0), (-1, -1), 0),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
         ]))
         story.append(rule_table)
-        story.append(Spacer(1, 0.25 * inch))
+        story.append(Spacer(1, 0.22 * inch))
 
         cover_sub_style = ParagraphStyle(
             name='CoverSub',
@@ -325,50 +318,73 @@ def create_pdf_reportlab(topic, content, theme_data, customization):
             fontSize=11,
             leading=16,
             textColor=body_font_color,
-            spaceAfter=24
+            spaceAfter=20
         )
-        story.append(Paragraph("Structured educational synthesis grounded in syllabus reference materials for deep conceptual retention.", cover_sub_style))
+        story.append(Paragraph("Structured educational synthesis grounded in syllabus reference materials for deep conceptual retention and active recall.", cover_sub_style))
 
-        # Metadata Summary Card Table
-        meta_data = [
+        # 4-Quadrant Executive Scorecard Table
+        scorecard_data = [
             [
-                Paragraph("<b>Platform:</b> EduWise AI Studio", normal_style),
-                Paragraph("<b>Grounding:</b> Course Reference Materials", normal_style)
+                Paragraph(f'<font size="7" color="{accent_text_hex}"><b>STUDY DIFFICULTY</b></font><br/><b>Core to Advanced Mastery</b>', normal_style),
+                Paragraph(f'<font size="7" color="{accent_text_hex}"><b>ESTIMATED TIME</b></font><br/><b>~20–25 Mins Active Recall</b>', normal_style)
             ],
             [
-                Paragraph("<b>Methodology:</b> Active Recall &amp; Synthesis", normal_style),
-                Paragraph("<b>Format:</b> High-Retention Study Guide", normal_style)
+                Paragraph(f'<font size="7" color="{accent_text_hex}"><b>GROUNDING SOURCES</b></font><br/><b>Course Syllabus &amp; Documents</b>', normal_style),
+                Paragraph(f'<font size="7" color="{accent_text_hex}"><b>PEDAGOGICAL FORMAT</b></font><br/><b>Dual-Coding &amp; Spaced Retrieval</b>', normal_style)
             ]
         ]
-        meta_table = Table(meta_data, colWidths=[content_width * 0.5, content_width * 0.5])
-        meta_table.setStyle(TableStyle([
+        scorecard_table = Table(scorecard_data, colWidths=[content_width * 0.5, content_width * 0.5])
+        scorecard_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, -1), card_bg_color),
-            ('BOX', (0, 0), (-1, -1), 1, card_border_color),
+            ('BOX', (0, 0), (-1, -1), 0.75, card_border_color),
             ('INNERGRID', (0, 0), (-1, -1), 0.5, divider_color),
-            ('TOPPADDING', (0, 0), (-1, -1), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
             ('LEFTPADDING', (0, 0), (-1, -1), 12),
             ('RIGHTPADDING', (0, 0), (-1, -1), 12),
         ]))
-        story.append(meta_table)
+        story.append(scorecard_table)
+        story.append(Spacer(1, 0.2 * inch))
 
-        story.append(Spacer(1, 2.5 * inch))
+        # Key Learning Outcomes / Synthesis Goals Card
+        outcomes_cells = [
+            Paragraph("LEARNING OBJECTIVES &amp; SYNTHESIS GOALS", hero_kicker_style),
+            Paragraph("• <b>Conceptual Clarity:</b> Deconstruct foundational principles, domain boundaries, and core laws.<br/>"
+                      "• <b>Formulation Rigor:</b> Master analytical equations, variable dependencies, and boundary conditions.<br/>"
+                      "• <b>Active Recall:</b> Solidify long-term retention through dual-coding and retrieval practice.", normal_style)
+        ]
+        outcomes_table = Table([[outcomes_cells]], colWidths=[content_width])
+        outcomes_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), card_bg_color),
+            ('BOX', (0, 0), (-1, -1), 0.5, card_border_color),
+            ('LINELEFT', (0, 0), (0, 0), 3.5, accent_color),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LEFTPADDING', (0, 0), (-1, -1), 12),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+        ]))
+        story.append(outcomes_table)
+
+        story.append(Spacer(1, 1.2 * inch))
         story.append(PageBreak())
 
     else:
         # Top-of-Page Hero Header Card on Page 1
         hero_cell = [
-            Paragraph("REVISION &amp; STUDY NOTES", hero_kicker_style),
+            Paragraph("REVISION &amp; STUDY NOTES  ·  ACTIVE RECALL", hero_kicker_style),
             Paragraph(saxutils.escape(topic), hero_title_style),
-            Paragraph("Synthesized for active recall and grounded conceptual mastery.", hero_sub_style)
+            Paragraph("Synthesized for active recall, dual-coding retention, and grounded conceptual mastery.", hero_sub_style),
+            Paragraph(f'<font size="7.5" color="{accent_text_hex}"><b>[ ⏱ ~15 Mins Read ]</b></font>  &nbsp;·&nbsp;  '
+                      f'<font size="7.5" color="{accent_text_hex}"><b>[ 📚 Grounded Reference ]</b></font>  &nbsp;·&nbsp;  '
+                      f'<font size="7.5" color="{accent_text_hex}"><b>[ 🎯 Active Recall ]</b></font>', normal_style)
         ]
         hero_table = Table([[hero_cell]], colWidths=[content_width])
         hero_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, -1), card_bg_color),
             ('LINELEFT', (0, 0), (0, 0), 4, accent_color),
             ('BOX', (0, 0), (-1, -1), 0.5, card_border_color),
-            ('TOPPADDING', (0, 0), (-1, -1), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+            ('TOPPADDING', (0, 0), (-1, -1), 9),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 9),
             ('LEFTPADDING', (0, 0), (-1, -1), 14),
             ('RIGHTPADDING', (0, 0), (-1, -1), 14),
         ]))
@@ -445,24 +461,68 @@ def create_pdf_reportlab(topic, content, theme_data, customization):
             return
 
         combined_text = " ".join(callout_buffer).strip()
-        tag = "KEY CONCEPT &amp; TAKEAWAY"
         body_text = combined_text
 
-        # Detect tag prefix
-        for prefix in ["Key Concept:", "Important:", "Core Concept:", "Exam Tip:", "Definition:", "Formula:", "Note:"]:
-            if combined_text.lower().startswith(prefix.lower()):
-                tag = prefix.rstrip(":").upper()
-                body_text = combined_text[len(prefix):].strip()
-                break
+        # Determine callout archetype and tag
+        callout_type = 'concept'
+        tag = "KEY CONCEPT &amp; TAKEAWAY"
+
+        lower_c = combined_text.lower()
+        if any(lower_c.startswith(p) for p in ["exam tip:", "misconception:", "warning:", "caution:", "common error:", "avoid:", "trap:"]):
+            callout_type = 'warning'
+            for prefix in ["Exam Tip:", "Misconception:", "Warning:", "Caution:", "Common Error:", "Avoid:", "Trap:"]:
+                if combined_text.lower().startswith(prefix.lower()):
+                    tag = prefix.rstrip(":").upper()
+                    body_text = combined_text[len(prefix):].strip()
+                    break
+        elif any(lower_c.startswith(p) for p in ["real-world:", "application:", "case study:", "industry:", "example:", "in practice:"]):
+            callout_type = 'application'
+            for prefix in ["Real-World:", "Application:", "Case Study:", "Industry:", "Example:", "In Practice:"]:
+                if combined_text.lower().startswith(prefix.lower()):
+                    tag = prefix.rstrip(":").upper()
+                    body_text = combined_text[len(prefix):].strip()
+                    break
+        else:
+            for prefix in ["Key Concept:", "Important:", "Core Concept:", "Definition:", "Formula:", "Note:"]:
+                if combined_text.lower().startswith(prefix.lower()):
+                    tag = prefix.rstrip(":").upper()
+                    body_text = combined_text[len(prefix):].strip()
+                    break
+
+        if callout_type == 'warning':
+            border_c = hex_to_reportlab_color('#EF4444' if not is_dark else '#F87171')
+            bg_c = hex_to_reportlab_color('#FFF1F2' if not is_dark else '#2D1517')
+            icon_tag = f"⚠️  {tag}"
+            tag_c = border_c
+        elif callout_type == 'application':
+            border_c = hex_to_reportlab_color('#10B981' if not is_dark else '#34D399')
+            bg_c = hex_to_reportlab_color('#F0FDF4' if not is_dark else '#0E291E')
+            icon_tag = f"🌍  {tag}"
+            tag_c = border_c
+        else:
+            border_c = accent_color
+            bg_c = callout_bg_color
+            icon_tag = f"💡  {tag}"
+            tag_c = accent_color
+
+        c_tag_style = ParagraphStyle(
+            name=f'CalloutTag_{callout_type}_{len(story)}',
+            fontName=f"{title_font_name}-Bold",
+            fontSize=8.5,
+            leading=11,
+            textColor=tag_c,
+            spaceAfter=3,
+            alignment=TA_LEFT
+        )
 
         cell_flowables = [
-            Paragraph(f"💡  {tag}", callout_tag_style),
+            Paragraph(icon_tag, c_tag_style),
             Paragraph(parse_inline_markdown(body_text), callout_body_style)
         ]
         callout_table = Table([[cell_flowables]], colWidths=[content_width])
         callout_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, -1), callout_bg_color),
-            ('LINELEFT', (0, 0), (0, 0), 3.5, accent_color),
+            ('BACKGROUND', (0, 0), (-1, -1), bg_c),
+            ('LINELEFT', (0, 0), (0, 0), 3.5, border_c),
             ('BOX', (0, 0), (-1, -1), 0.5, card_border_color),
             ('TOPPADDING', (0, 0), (-1, -1), 8),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
@@ -639,8 +699,48 @@ def create_pdf_reportlab(topic, content, theme_data, customization):
     if is_parsing_table:
         flush_table()
 
-    # Build the PDF
-    doc.build(story, onFirstPage=draw_header_footer, onLaterPages=draw_header_footer)
+    # Active Recall Review & Retention Checklist Card
+    story.append(Spacer(1, 0.18 * inch))
+    checklist_cells = [
+        Paragraph("🎓  STUDY MASTERY &amp; ACTIVE RECALL CHECKLIST", formula_tag_style),
+        Paragraph("<b>[✓] Core Definitions:</b> Reviewed foundational principles, terminologies, and domain boundaries.", normal_style),
+        Paragraph("<b>[✓] Key Formulations:</b> Verified analytical relationships, state variables, and units.", normal_style),
+        Paragraph("<b>[✓] Active Retrieval:</b> Ready for self-testing with generated flashcards and practice quizzes.", normal_style)
+    ]
+    summary_card = Table([[checklist_cells]], colWidths=[content_width])
+    summary_card.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), card_bg_color),
+        ('BOX', (0, 0), (-1, -1), 0.75, card_border_color),
+        ('LINELEFT', (0, 0), (0, 0), 3.5, accent_color),
+        ('TOPPADDING', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 9),
+        ('LEFTPADDING', (0, 0), (-1, -1), 12),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+    ]))
+    story.append(summary_card)
+
+    # Build the PDF with Custom Numbered Vector Pattern Canvas
+    has_cover = (customization.get('intro_slide') == 'true')
+    canvas_maker = create_pattern_canvas_maker(
+        topic=topic,
+        title_font_name=title_font_name,
+        body_font_name=body_font_name,
+        bg_hex=bg_hex,
+        title_hex=title_hex,
+        body_hex=body_hex,
+        accent_hex=accent_hex,
+        is_dark=is_dark,
+        has_intro_cover=has_cover,
+        accent_text_hex=accent_text_hex
+    )
+
+    def first_page_cb(canv, document):
+        draw_page_background(canv, document, topic, accent_hex, bg_hex, is_dark, has_cover, accent_text_hex, is_first_page=True)
+
+    def later_pages_cb(canv, document):
+        draw_page_background(canv, document, topic, accent_hex, bg_hex, is_dark, has_cover, accent_text_hex, is_first_page=False)
+
+    doc.build(story, onFirstPage=first_page_cb, onLaterPages=later_pages_cb, canvasmaker=canvas_maker)
     buffer.seek(0)
 
     for path in temp_files_to_delete:

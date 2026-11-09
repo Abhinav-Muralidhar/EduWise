@@ -108,7 +108,29 @@ def get_dynamic_theme(topic, customization):
         theme_data['font-color-title'] = customization['accent_color']
     if customization.get('accent_color') != '#007BFF':
         theme_data['accent-color'] = customization['accent_color']
-            
+
+    # Sanitize theme data with strict WCAG contrast safeguards to prevent low visibility or white-on-white text
+    from app.utils.colors import is_dark_color, ensure_contrast
+    bg = theme_data.get('bg-color', '#FFFFFF')
+    title_c = theme_data.get('font-color-title', '#111827')
+    body_c = theme_data.get('font-color-body', '#374151')
+    accent_c = theme_data.get('accent-color', '#E8590C')
+
+    is_dark = is_dark_color(bg) or customization.get('theme_base') == 'dark'
+    if is_dark:
+        bg = bg if is_dark_color(bg) else '#18181B'
+        title_c = ensure_contrast(title_c, bg, min_ratio=4.5, dark_fallback='#0F172A', light_fallback='#FFFFFF')
+        body_c = ensure_contrast(body_c, bg, min_ratio=4.5, dark_fallback='#334155', light_fallback='#E2E8F0')
+    else:
+        bg = bg if not is_dark_color(bg) else '#FFFFFF'
+        title_c = ensure_contrast(title_c, bg, min_ratio=4.5, dark_fallback='#0F172A', light_fallback='#FFFFFF')
+        body_c = ensure_contrast(body_c, bg, min_ratio=4.5, dark_fallback='#334155', light_fallback='#E2E8F0')
+
+    theme_data['bg-color'] = bg
+    theme_data['font-color-title'] = title_c
+    theme_data['font-color-body'] = body_c
+    theme_data['accent-color'] = accent_c
+
     return theme_data
 
 def _format_rag_block(rag_context):
@@ -202,7 +224,9 @@ def generate_detailed_content(topic, customization, theme_data, rag_context=None
     prompt += "   - '## Title' for main headings\n"
     prompt += "   - '### Title' for sub-headings\n"
     prompt += "   - '* ' for bullet points\n"
-    prompt += "   - '> Key Concept: ...' for callout boxes highlighting vital definitions, exam tips, or core takeaways\n"
+    prompt += "   - '> Key Concept: ...' for foundational definitions and mental models\n"
+    prompt += "   - '> Exam Tip: ...' or '> Common Misconception: ...' for common traps and mistakes to avoid\n"
+    prompt += "   - '> Real-World Application: ...' for industry, engineering, or practical case studies\n"
     prompt += "   - '| Header | Header |' for comparison or summary tables where helpful\n"
     prompt += "   - '**bold**' and '*italic*' for emphasis\n"
     prompt += "   - '```' blocks for code\n"
@@ -212,7 +236,7 @@ def generate_detailed_content(topic, customization, theme_data, rag_context=None
     prompt += "3. DO NOT use '####' or more hashes. Stick to ## and ###.\n"
     prompt += "4. DO NOT use horizontal rules (---).\n"
     prompt += "5. DO NOT leave trailing hashes at the end of lines.\n"
-    prompt += "6. Write in a clean, professional, and educational tone.\n"
+    prompt += "6. Write in an authoritative, clear, and direct educational tone like a senior university professor. Avoid generic AI cliché words like 'delve into', 'in today's world', 'crucial role', 'pivotal', or 'a testament to'. Focus on causal mechanics, precise terminology, and clear definitions.\n"
     
     if image_strategy == 'all_slides' or image_strategy == 'cover_only':
         prompt += ("7. Insert visual aid tags on their own lines like this: "
