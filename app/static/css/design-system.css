@@ -381,7 +381,7 @@ body {
     border-bottom: 1.5px solid var(--border);
     position: sticky;
     top: 0;
-    z-index: 50;
+    z-index: 120;
     transition: border-color var(--dur-quick) ease, background-color var(--dur-quick) ease;
 }
 
@@ -474,7 +474,7 @@ body {
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-tactile-lg);
     padding: 6px;
-    z-index: 100;
+    z-index: 130;
     display: none;
     transform-origin: top right;
     animation: menuScale 0.15s var(--ease-tactile) forwards;
