@@ -241,3 +241,70 @@ def test_public_pages_and_seo(client):
     assert b"<urlset" in res_sitemap.data
     assert b"/about</loc>" in res_sitemap.data
 
+
+def test_resource_preview_api_endpoint(auth_client, app, test_user_id):
+    """Verify that /api/resource/<id>/preview returns structured JSON slide/doc data."""
+    import json
+    from app.extensions import db
+    from app.models.resource import Resource
+
+    deck_data = {
+        'slides': [
+            {'slide_type': 'intro', 'title': 'Quantum Mechanics 101', 'points': ['Wave function', 'Superposition']}
+        ],
+        'theme': {'bg-color': '#18181B', 'font-color-title': '#FFFFFF', 'accent-color': '#3B82F6'}
+    }
+    with app.app_context():
+        res_obj = Resource(
+            user_id=test_user_id,
+            resource_type='pptx',
+            topic='Quantum Mechanics 101',
+            file_url='https://res.cloudinary.com/dummy/raw/upload/test.pptx',
+            content_json=json.dumps(deck_data)
+        )
+        db.session.add(res_obj)
+        db.session.commit()
+        res_id = res_obj.id
+
+    res = auth_client.get(f'/api/resource/{res_id}/preview')
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data['success'] is True
+    assert data['topic'] == 'Quantum Mechanics 101'
+    assert data['resource_type'] == 'pptx'
+    assert 'slides' in data['content']
+    assert len(data['content']['slides']) == 1
+    assert data['content']['slides'][0]['title'] == 'Quantum Mechanics 101'
+
+
+def test_resource_preview_unauthorized_returns_404(client, app, test_user_id):
+    """Verify unauthorized users cannot access another user's preview data."""
+    import json
+    from app.extensions import db
+    from app.models.resource import Resource
+    from app.models.user import User
+    from werkzeug.security import generate_password_hash
+
+    with app.app_context():
+        user2 = User(username='previewuser2', email='preview2@example.com', password=generate_password_hash('pass12345'), session_version=1)
+        db.session.add(user2)
+        res_obj = Resource(
+            user_id=test_user_id,
+            resource_type='pptx',
+            topic='Private Notes',
+            content_json=json.dumps({'slides': []})
+        )
+        db.session.add(res_obj)
+        db.session.commit()
+        user2_id = user2.id
+        res_id = res_obj.id
+
+    with client.session_transaction() as sess:
+        sess['user_id'] = user2_id
+        sess['username'] = 'previewuser2'
+        sess['session_version'] = 1
+
+    res = client.get(f'/api/resource/{res_id}/preview')
+    assert res.status_code == 404
+
+

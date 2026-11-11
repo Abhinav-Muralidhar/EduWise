@@ -67,6 +67,9 @@ def download(resource_id):
     safe_name = re.sub(r'[^a-zA-Z0-9_-]', '_', resource.topic)[:50]
     download_name = f"{safe_name}.{ext}"
     
+    is_preview = (request.args.get('preview') == '1')
+    disposition = f'inline; filename="{download_name}"' if is_preview else f'attachment; filename="{download_name}"'
+    
     try:
         response = req.get(resource.file_url, timeout=30)
         response.raise_for_status()
@@ -74,13 +77,37 @@ def download(resource_id):
             response.content,
             mimetype=mimetype,
             headers={
-                'Content-Disposition': f'attachment; filename="{download_name}"'
+                'Content-Disposition': disposition
             }
         )
     except Exception as e:
         current_app.logger.exception("Download failed for resource: %s", e)
         flash("Download failed. Please try again in a moment.", "danger")
         return redirect(url_for('dashboard.index'))
+
+@dashboard_bp.route('/api/resource/<int:resource_id>/preview')
+@login_required
+def resource_preview(resource_id):
+    """API endpoint providing structured slide/document preview data."""
+    import json
+    resource = Resource.query.filter_by(id=resource_id, user_id=session['user_id']).first_or_404()
+    
+    content_data = {}
+    if resource.content_json:
+        try:
+            content_data = json.loads(resource.content_json)
+        except Exception:
+            content_data = {}
+            
+    return jsonify({
+        "success": True,
+        "id": resource.id,
+        "topic": resource.topic,
+        "resource_type": resource.resource_type,
+        "file_url": resource.file_url,
+        "created_at": resource.created_at.strftime('%b %d, %Y'),
+        "content": content_data
+    })
 
 @dashboard_bp.route('/keep-alive', methods=['GET'])
 def keep_alive():

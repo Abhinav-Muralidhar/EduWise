@@ -116,7 +116,10 @@ def generate_pptx():
             return _generation_error("We couldn't generate slides right now. Please try again in a moment.")
         
         file_bytes = pptx_builder.create_pptx_file(slides_data, theme_data, customization)
-        resource = save_resource_to_db(topic, 'pptx', file_bytes.getvalue())
+        resource = save_resource_to_db(
+            topic, 'pptx', file_bytes.getvalue(),
+            content={'slides': slides_data, 'theme': theme_data, 'customization': customization}
+        )
         file_bytes.seek(0)
         
         filename = f"{secure_filename(topic)}.pptx"
@@ -198,7 +201,10 @@ def generate_pdf():
             return _generation_error("We couldn't generate notes right now. Please try again in a moment.")
             
         file_bytes = pdf_builder.create_pdf_reportlab(topic, content, theme_data, customization)
-        resource = save_resource_to_db(topic, 'pdf', file_bytes.getvalue())
+        resource = save_resource_to_db(
+            topic, 'pdf', file_bytes.getvalue(),
+            content={'markdown': content, 'theme': theme_data, 'customization': customization}
+        )
         file_bytes.seek(0)
         
         filename = f"{secure_filename(topic)}.pdf"

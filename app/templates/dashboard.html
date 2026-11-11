@@ -39,6 +39,37 @@
     .btn-fav.inactive {
         color: var(--text-ghost);
     }
+
+    /* ── Document & Slide Previewer ── */
+    #documentPreviewModal .modal-content {
+        max-width: 1100px;
+        width: 95vw;
+        height: 90vh;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        overflow: hidden;
+        background: var(--surface-card);
+    }
+    .slide-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 9999px;
+        background: var(--border);
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    .slide-dot.active {
+        width: 22px;
+        background: var(--accent);
+    }
+    .slide-stage-container {
+        aspect-ratio: 16 / 9;
+        max-height: calc(90vh - 140px);
+        width: 100%;
+        max-width: 960px;
+    }
 </style>
 
 <!-- Progressive Loading Overlay -->
@@ -292,6 +323,11 @@
                             <i class="{{ 'fas fa-play' if resource.resource_type == 'quiz' else 'fas fa-eye' }} text-[10px]"></i>
                         </a>
                         {% elif resource.resource_type in ['pptx', 'pdf'] %}
+                        <button onclick="openResourcePreview({{ resource.id }}, '{{ resource.resource_type }}', '{{ resource.topic|replace('\'', '\\\'') }}')" 
+                            title="Preview {{ 'Slides' if resource.resource_type == 'pptx' else 'Notes' }}"
+                            class="w-7 h-7 rounded-md flex items-center justify-center transition-colors hover:bg-accent/10 hover:text-accent text-text-ghost">
+                            <i class="fas fa-eye text-[10px]"></i>
+                        </button>
                         <a href="{{ url_for('dashboard.download', resource_id=resource.id) }}" title="Download"
                             class="w-7 h-7 rounded-md flex items-center justify-center transition-colors hover:bg-accent/10 hover:text-accent text-text-ghost">
                             <i class="fas fa-download text-[10px]"></i>
@@ -340,6 +376,86 @@
     <div class="modal-content">
         <div class="p-7 sm:p-8">
             <div id="modalFormContent"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Document & Slides Studio Preview Modal -->
+<div id="documentPreviewModal" class="modal-overlay">
+    <div class="modal-content">
+        <!-- Studio Toolbar Header -->
+        <div class="px-4 sm:px-6 py-3 border-b border-border flex items-center justify-between gap-3 bg-surface-raised flex-shrink-0">
+            <!-- Left: Type badge & Topic -->
+            <div class="flex items-center gap-2.5 min-w-0">
+                <div id="previewTypeIcon" class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-semibold r-icon-pptx">
+                    <i id="previewTypeIconI" class="fas fa-file-powerpoint"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-2">
+                        <h2 id="previewTitle" class="text-sm sm:text-base font-bold truncate max-w-[180px] sm:max-w-md" style="color: var(--text-primary);">
+                            Document Title
+                        </h2>
+                        <span id="previewBadge" class="label-caps !text-[9px] px-2 py-0.5 rounded-full font-mono font-bold" style="background: var(--accent-surface); color: var(--accent);">
+                            SLIDES (16:9)
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center: Slides Navigation Controls -->
+            <div id="slideNavControls" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border" style="background: var(--surface-sunken);">
+                <button type="button" id="prevSlideBtn" onclick="navigateSlide(-1)" class="w-7 h-7 rounded flex items-center justify-center hover:bg-surface-raised transition-colors disabled:opacity-30 disabled:pointer-events-none" style="color: var(--text-primary);" title="Previous Slide (←)">
+                    <i class="fas fa-chevron-left text-xs"></i>
+                </button>
+                <span id="slideCounterText" class="text-xs font-mono font-bold px-2 min-w-[55px] text-center" style="color: var(--text-primary);">
+                    1 / 1
+                </span>
+                <button type="button" id="nextSlideBtn" onclick="navigateSlide(1)" class="w-7 h-7 rounded flex items-center justify-center hover:bg-surface-raised transition-colors disabled:opacity-30 disabled:pointer-events-none" style="color: var(--text-primary);" title="Next Slide (→)">
+                    <i class="fas fa-chevron-right text-xs"></i>
+                </button>
+            </div>
+
+            <!-- Right: Actions -->
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <button type="button" onclick="togglePreviewFullscreen()" class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-surface-sunken transition-colors" style="color: var(--text-muted);" title="Toggle Fullscreen">
+                    <i id="fullscreenIcon" class="fas fa-expand text-xs"></i>
+                </button>
+                <a id="previewDownloadBtn" href="#" class="btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5 shadow-sm" download>
+                    <i class="fas fa-download text-[11px]"></i>
+                    <span id="previewDownloadText">Download</span>
+                </a>
+                <button type="button" onclick="closePreviewModal()" class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-coral-surface transition-colors" style="color: var(--text-muted);" title="Close (Esc)">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Studio Body Stage -->
+        <div class="flex-1 relative overflow-hidden flex flex-col" style="background: var(--surface-sunken);">
+            <!-- PDF Viewer Container -->
+            <div id="pdfPreviewWrapper" class="w-full h-full hidden flex-col">
+                <iframe id="pdfPreviewFrame" class="w-full h-full border-0" src="about:blank"></iframe>
+            </div>
+
+            <!-- Slides Presentation Stage Container -->
+            <div id="slidesPreviewWrapper" class="w-full h-full flex flex-col items-center justify-between p-3 sm:p-6 overflow-y-auto">
+                <div class="w-full flex-1 flex items-center justify-center">
+                    <div id="slideStage" class="slide-stage-container rounded-xl shadow-2xl p-6 sm:p-10 flex flex-col justify-between transition-all duration-200 relative overflow-hidden border border-border select-none">
+                        <!-- Dynamic Slide Content rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- Slide Dots Navigation Bar -->
+                <div id="slideDotsContainer" class="flex items-center gap-1.5 mt-3 py-1.5 px-3 rounded-full border border-border flex-wrap justify-center max-w-full" style="background: var(--surface-raised);">
+                    <!-- Dots injected by JS -->
+                </div>
+            </div>
+
+            <!-- Loading Spinner Overlay -->
+            <div id="previewLoader" class="absolute inset-0 backdrop-blur-sm flex flex-col items-center justify-center z-10 hidden" style="background: rgba(var(--surface-card-rgb, 255, 255, 255), 0.85);">
+                <i class="fas fa-circle-notch fa-spin text-2xl mb-2" style="color: var(--accent);"></i>
+                <p class="text-xs font-semibold" style="color: var(--text-muted);">Loading presentation preview...</p>
+            </div>
         </div>
     </div>
 </div>
@@ -1063,16 +1179,48 @@
                 return false;
             }
 
-            const topic = formData.get('topic') || 'download';
+            const topic = formData.get('topic') || 'Untitled';
             const resourceType = form.action.includes('generate_pdf') ? 'pdf' : 'pptx';
-            await triggerBrowserDownload(response, `${topic}.${resourceType}`);
+            const filename = getDownloadFilename(response, `${topic}.${resourceType}`);
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
 
             const resourceData = buildResourceDataFromHeaders(response);
             if (resourceData) {
                 addResourceToHistory(resourceData);
-                if (window.showToast) window.showToast(resourceData.message, 'success');
-            } else if (window.showToast) {
-                window.showToast('Generated successfully!', 'success');
+            }
+
+            hideLoading();
+
+            if (resourceType === 'pdf') {
+                openPdfPreviewBlob(blobUrl, topic, filename);
+                if (window.showToast) window.showToast('Study Notes generated! Preview and download below.', 'success');
+            } else {
+                let previewOpened = false;
+                if (resourceData && resourceData.id) {
+                    try {
+                        const previewRes = await fetch(`/api/resource/${resourceData.id}/preview`);
+                        if (previewRes.ok) {
+                            const pData = await previewRes.json();
+                            if (pData.content && pData.content.slides && pData.content.slides.length > 0) {
+                                openSlidePreviewWithData(pData.content.slides, pData.content.theme, topic, blobUrl, filename);
+                                previewOpened = true;
+                                if (window.showToast) window.showToast('Presentation generated! Preview and download below.', 'success');
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Could not fetch slide preview, downloading file directly', e);
+                    }
+                }
+                if (!previewOpened) {
+                    const link = document.createElement('a');
+                    link.href = blobUrl;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    if (window.showToast) window.showToast('Presentation downloaded successfully!', 'success');
+                }
             }
         } catch (error) {
             console.error('Generation request failed', error);
@@ -1118,6 +1266,11 @@
                     <i id="fav-icon-${data.id}" class="far fa-star text-[11px]"></i>
                 </button>
                 ${['pptx', 'pdf'].includes(data.type) ? `
+                    <button onclick="openResourcePreview(${data.id}, '${data.type}', '${(data.topic || '').replace(/'/g, "\\'")}')"
+                        title="Preview"
+                        class="w-7 h-7 rounded-md flex items-center justify-center transition-colors hover:bg-accent/10 hover:text-accent text-text-ghost">
+                        <i class="fas fa-eye text-[10px]"></i>
+                    </button>
                     <a href="/download/${data.id}" class="btn-soft text-[12px] py-1.5 px-3">
                         <i class="fas fa-download text-[10px] mr-1"></i> Download
                     </a>
@@ -1210,13 +1363,508 @@
             });
     }
 
-    // Keyboard shortcuts for tool tiles
+    // ── Document & Slides Studio Preview Controller ──
+    let activeSlideDeck = [];
+    let activeSlideIndex = 0;
+    let activeSlideTheme = {};
+    let activeBlobUrl = null;
+
+    function formatMathForPreview(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/\\Delta/g, 'Δ')
+            .replace(/\\alpha/g, 'α')
+            .replace(/\\beta/g, 'β')
+            .replace(/\\theta/g, 'θ')
+            .replace(/\\lambda/g, 'λ')
+            .replace(/\\mu/g, 'μ')
+            .replace(/\\pi/g, 'π')
+            .replace(/\\sigma/g, 'σ')
+            .replace(/\\omega/g, 'ω')
+            .replace(/\\le/g, '≤')
+            .replace(/\\ge/g, '≥')
+            .replace(/\\ne/g, '≠')
+            .replace(/\\approx/g, '≈')
+            .replace(/\\times/g, '×')
+            .replace(/\\rightarrow/g, '→')
+            .replace(/\\sum/g, '∑')
+            .replace(/\\int/g, '∫')
+            .replace(/\\sqrt\{([^}]+)\}/g, '√($1)')
+            .replace(/\^2/g, '²')
+            .replace(/\^3/g, '³')
+            .replace(/\^([0-9a-zA-Z+-]+)/g, '<sup>$1</sup>')
+            .replace(/_([0-9a-zA-Z+-]+)/g, '<sub>$1</sub>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>');
+    }
+
+    function isDarkHex(hex) {
+        if (!hex || typeof hex !== 'string') return false;
+        const clean = hex.replace('#', '');
+        if (clean.length !== 6) return false;
+        const r = parseInt(clean.substring(0, 2), 16);
+        const g = parseInt(clean.substring(2, 4), 16);
+        const b = parseInt(clean.substring(4, 6), 16);
+        const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        return lum < 0.45;
+    }
+
+    function openPdfPreviewBlob(blobUrl, topic, filename) {
+        if (activeBlobUrl && activeBlobUrl !== blobUrl) {
+            URL.revokeObjectURL(activeBlobUrl);
+        }
+        activeBlobUrl = blobUrl;
+
+        const modalEl = document.getElementById('documentPreviewModal');
+        const pdfWrapper = document.getElementById('pdfPreviewWrapper');
+        const slidesWrapper = document.getElementById('slidesPreviewWrapper');
+        const navControls = document.getElementById('slideNavControls');
+        const iframe = document.getElementById('pdfPreviewFrame');
+        const titleEl = document.getElementById('previewTitle');
+        const badgeEl = document.getElementById('previewBadge');
+        const typeIcon = document.getElementById('previewTypeIcon');
+        const typeIconI = document.getElementById('previewTypeIconI');
+        const downloadBtn = document.getElementById('previewDownloadBtn');
+        const downloadText = document.getElementById('previewDownloadText');
+
+        titleEl.textContent = topic || 'Study Notes';
+        badgeEl.textContent = 'STUDY NOTES (PDF)';
+        badgeEl.style.background = 'var(--coral-surface)';
+        badgeEl.style.color = 'var(--coral)';
+
+        typeIcon.className = 'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-semibold r-icon-pdf';
+        typeIconI.className = 'fas fa-file-pdf';
+
+        downloadBtn.href = blobUrl;
+        downloadBtn.download = filename || `${topic || 'notes'}.pdf`;
+        downloadText.textContent = 'Download PDF';
+
+        slidesWrapper.classList.add('hidden');
+        navControls.classList.add('hidden');
+        pdfWrapper.classList.remove('hidden');
+        pdfWrapper.classList.add('flex');
+
+        iframe.src = blobUrl;
+        modalEl.classList.add('open');
+    }
+
+    function openPdfPreviewUrl(url, topic, filename, downloadUrl) {
+        const modalEl = document.getElementById('documentPreviewModal');
+        const pdfWrapper = document.getElementById('pdfPreviewWrapper');
+        const slidesWrapper = document.getElementById('slidesPreviewWrapper');
+        const navControls = document.getElementById('slideNavControls');
+        const iframe = document.getElementById('pdfPreviewFrame');
+        const titleEl = document.getElementById('previewTitle');
+        const badgeEl = document.getElementById('previewBadge');
+        const typeIcon = document.getElementById('previewTypeIcon');
+        const typeIconI = document.getElementById('previewTypeIconI');
+        const downloadBtn = document.getElementById('previewDownloadBtn');
+        const downloadText = document.getElementById('previewDownloadText');
+
+        titleEl.textContent = topic || 'Study Notes';
+        badgeEl.textContent = 'STUDY NOTES (PDF)';
+        badgeEl.style.background = 'var(--coral-surface)';
+        badgeEl.style.color = 'var(--coral)';
+
+        typeIcon.className = 'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-semibold r-icon-pdf';
+        typeIconI.className = 'fas fa-file-pdf';
+
+        downloadBtn.href = downloadUrl || url;
+        downloadBtn.download = filename || `${topic || 'notes'}.pdf`;
+        downloadText.textContent = 'Download PDF';
+
+        slidesWrapper.classList.add('hidden');
+        navControls.classList.add('hidden');
+        pdfWrapper.classList.remove('hidden');
+        pdfWrapper.classList.add('flex');
+
+        iframe.src = url;
+        modalEl.classList.add('open');
+    }
+
+    function openSlidePreviewWithData(slides, theme, topic, downloadUrlOrBlob, filename) {
+        activeSlideDeck = Array.isArray(slides) ? slides : [];
+        activeSlideTheme = theme || {};
+        activeSlideIndex = 0;
+
+        const modalEl = document.getElementById('documentPreviewModal');
+        const pdfWrapper = document.getElementById('pdfPreviewWrapper');
+        const slidesWrapper = document.getElementById('slidesPreviewWrapper');
+        const navControls = document.getElementById('slideNavControls');
+        const titleEl = document.getElementById('previewTitle');
+        const badgeEl = document.getElementById('previewBadge');
+        const typeIcon = document.getElementById('previewTypeIcon');
+        const typeIconI = document.getElementById('previewTypeIconI');
+        const downloadBtn = document.getElementById('previewDownloadBtn');
+        const downloadText = document.getElementById('previewDownloadText');
+
+        titleEl.textContent = topic || 'Presentation Deck';
+        badgeEl.textContent = 'SLIDES (16:9)';
+        badgeEl.style.background = 'var(--indigo-surface)';
+        badgeEl.style.color = 'var(--indigo-ink)';
+
+        typeIcon.className = 'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-semibold r-icon-pptx';
+        typeIconI.className = 'fas fa-file-powerpoint';
+
+        downloadBtn.href = downloadUrlOrBlob;
+        downloadBtn.download = filename || `${topic || 'presentation'}.pptx`;
+        downloadText.textContent = 'Download .PPTX';
+
+        pdfWrapper.classList.add('hidden');
+        slidesWrapper.classList.remove('hidden');
+        navControls.classList.remove('hidden');
+
+        renderSlideDeck();
+        modalEl.classList.add('open');
+    }
+
+    async function openResourcePreview(resourceId, resourceType, topic) {
+        const modalEl = document.getElementById('documentPreviewModal');
+        const loader = document.getElementById('previewLoader');
+        
+        if (resourceType === 'pdf') {
+            const previewUrl = `/download/${resourceId}?preview=1`;
+            const downloadUrl = `/download/${resourceId}`;
+            openPdfPreviewUrl(previewUrl, topic, `${topic}.pdf`, downloadUrl);
+            return;
+        }
+
+        // PPTX slide preview
+        loader.classList.remove('hidden');
+        modalEl.classList.add('open');
+        try {
+            const res = await fetch(`/api/resource/${resourceId}/preview`);
+            if (!res.ok) throw new Error('Preview fetch failed');
+            const data = await res.json();
+            
+            loader.classList.add('hidden');
+            if (data.content && data.content.slides && data.content.slides.length > 0) {
+                openSlidePreviewWithData(
+                    data.content.slides,
+                    data.content.theme,
+                    topic,
+                    `/download/${resourceId}`,
+                    `${topic}.pptx`
+                );
+            } else {
+                closePreviewModal();
+                if (window.showToast) window.showToast('Opening presentation directly...', 'info');
+                window.location.href = `/download/${resourceId}`;
+            }
+        } catch (err) {
+            console.error('Failed to preview resource', err);
+            loader.classList.add('hidden');
+            closePreviewModal();
+            if (window.showToast) window.showToast('Could not load preview. Opening download...', 'danger');
+            window.location.href = `/download/${resourceId}`;
+        }
+    }
+
+    function navigateSlide(delta) {
+        if (!activeSlideDeck.length) return;
+        const nextIdx = activeSlideIndex + delta;
+        if (nextIdx >= 0 && nextIdx < activeSlideDeck.length) {
+            activeSlideIndex = nextIdx;
+            renderCurrentSlide();
+        }
+    }
+
+    function jumpToSlide(idx) {
+        if (idx >= 0 && idx < activeSlideDeck.length) {
+            activeSlideIndex = idx;
+            renderCurrentSlide();
+        }
+    }
+
+    function renderSlideDeck() {
+        renderCurrentSlide();
+        renderSlideDots();
+    }
+
+    function renderSlideDots() {
+        const dotsContainer = document.getElementById('slideDotsContainer');
+        if (!dotsContainer) return;
+        dotsContainer.innerHTML = '';
+        activeSlideDeck.forEach((_, idx) => {
+            const dot = document.createElement('button');
+            dot.className = `slide-dot ${idx === activeSlideIndex ? 'active' : ''}`;
+            dot.setAttribute('title', `Go to Slide ${idx + 1}`);
+            dot.onclick = () => jumpToSlide(idx);
+            dotsContainer.appendChild(dot);
+        });
+    }
+
+    function renderCurrentSlide() {
+        const slide = activeSlideDeck[activeSlideIndex];
+        const stage = document.getElementById('slideStage');
+        const counterText = document.getElementById('slideCounterText');
+        const prevBtn = document.getElementById('prevSlideBtn');
+        const nextBtn = document.getElementById('nextSlideBtn');
+
+        if (!slide || !stage) return;
+
+        counterText.textContent = `${activeSlideIndex + 1} / ${activeSlideDeck.length}`;
+        prevBtn.disabled = (activeSlideIndex === 0);
+        nextBtn.disabled = (activeSlideIndex === activeSlideDeck.length - 1);
+
+        // Update active dot
+        const dots = document.querySelectorAll('.slide-dot');
+        dots.forEach((d, i) => {
+            if (i === activeSlideIndex) d.classList.add('active');
+            else d.classList.remove('active');
+        });
+
+        // Theme colors
+        const rawBg = activeSlideTheme['bg-color'] || '#FFFFFF';
+        const isDark = isDarkHex(rawBg);
+        const bgColor = isDark ? (isDarkHex(rawBg) ? rawBg : '#18181B') : (rawBg || '#FFFFFF');
+        const titleColor = activeSlideTheme['font-color-title'] || (isDark ? '#FFFFFF' : '#0F172A');
+        const bodyColor = activeSlideTheme['font-color-body'] || (isDark ? '#E2E8F0' : '#334155');
+        const accentColor = activeSlideTheme['accent-color'] || '#3B82F6';
+
+        const cardBg = isDark ? 'rgba(255, 255, 255, 0.05)' : '#F8FAFC';
+        const cardBorder = isDark ? 'rgba(255, 255, 255, 0.12)' : '#E2E8F0';
+        const pillBg = isDark ? 'rgba(59, 130, 246, 0.18)' : 'rgba(59, 130, 246, 0.10)';
+
+        stage.style.backgroundColor = bgColor;
+        stage.style.borderColor = cardBorder;
+
+        const points = Array.isArray(slide.points) ? slide.points : [];
+        const type = slide.slide_type || 'content';
+        const style = slide.layout_style || '';
+
+        let slideHtml = '';
+
+        if (type === 'intro') {
+            slideHtml = `
+                <div class="flex-1 flex flex-col justify-center pl-4 sm:pl-8 border-l-4 my-auto" style="border-color: ${accentColor};">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-bold tracking-wider uppercase mb-3 w-fit" style="background: ${pillBg}; color: ${accentColor};">
+                        <i class="fas fa-graduation-cap"></i> Academic Study Deck
+                    </div>
+                    <h1 class="text-xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight mb-3 leading-tight" style="color: ${titleColor};">
+                        ${formatMathForPreview(slide.title)}
+                    </h1>
+                    <div class="w-16 h-1 rounded-full mb-4" style="background: ${accentColor};"></div>
+                    <div class="space-y-2 max-w-2xl">
+                        ${points.map(p => `
+                            <div class="flex items-start gap-2.5 text-xs sm:text-sm font-medium" style="color: ${bodyColor};">
+                                <span class="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style="background: ${accentColor};"></span>
+                                <span>${formatMathForPreview(p)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-[10px] uppercase tracking-wider font-mono pt-3 border-t mt-4" style="border-color: ${cardBorder}; color: ${bodyColor}; opacity: 0.7;">
+                    <span>EduWise Studio · Dual-Coding Learning Deck</span>
+                    <span>Slide ${activeSlideIndex + 1} of ${activeSlideDeck.length}</span>
+                </div>
+            `;
+        } else if (type === 'thanks') {
+            slideHtml = `
+                <div class="flex-1 flex flex-col items-center justify-center text-center px-4 my-auto">
+                    <div class="w-11 h-11 rounded-2xl flex items-center justify-center mb-3 text-base shadow-sm" style="background: ${pillBg}; color: ${accentColor}; border: 1px solid ${accentColor}40;">
+                        <i class="fas fa-check-double"></i>
+                    </div>
+                    <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase mb-2" style="background: ${pillBg}; color: ${accentColor};">
+                        Presentation Complete
+                    </div>
+                    <h2 class="text-xl sm:text-3xl font-bold tracking-tight mb-2" style="color: ${titleColor};">
+                        ${formatMathForPreview(slide.title || 'Summary & Core Takeaways')}
+                    </h2>
+                    <p class="text-xs sm:text-sm max-w-lg mb-4 leading-relaxed" style="color: ${bodyColor};">
+                        Review these core concepts using active recall flashcards and self-grading quizzes on EduWise.
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-xl w-full text-left">
+                        ${points.slice(0, 4).map(p => `
+                            <div class="p-2 sm:p-2.5 rounded-lg border flex items-center gap-2 text-xs font-semibold" style="background: ${cardBg}; border-color: ${cardBorder}; color: ${titleColor};">
+                                <i class="fas fa-circle-check text-xs flex-shrink-0" style="color: ${accentColor};"></i>
+                                <span class="truncate">${formatMathForPreview(p)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="text-center text-[10px] uppercase tracking-wider font-mono pt-3 border-t mt-4" style="border-color: ${cardBorder}; color: ${bodyColor}; opacity: 0.6;">
+                    EduWise AI Studio · Deep Learning for Serious Minds
+                </div>
+            `;
+        } else {
+            const isMath = style === 'formula_callout' || points.some(p => /[=∑∫Δαβλμ^²³→√]/.test(p));
+            const isComparison = style === 'comparison_split' || points.length === 2;
+            const isStepper = style === 'timeline_process' || points.some(p => /step|phase|stage/i.test(p));
+            const is2x2 = style === 'two_by_two' || points.length === 4;
+
+            let archetypeBadge = 'CONCEPT ANALYSIS';
+            if (isMath) archetypeBadge = 'MATHEMATICAL & THEORETICAL FORMULATION';
+            else if (isComparison) archetypeBadge = 'COMPARATIVE ANALYSIS';
+            else if (isStepper) archetypeBadge = 'PROCESS FLOW & SEQUENCE';
+            else if (is2x2) archetypeBadge = 'QUADRANT MATRIX';
+
+            let bodyContent = '';
+
+            if (isMath && points.length > 0) {
+                const mainFormula = points[0];
+                const restPoints = points.slice(1);
+                bodyContent = `
+                    <div class="space-y-3">
+                        <div class="p-4 sm:p-5 rounded-xl border-l-4 shadow-sm" style="background: ${cardBg}; border-color: ${accentColor};">
+                            <span class="text-[10px] font-bold uppercase tracking-wider block mb-1" style="color: ${accentColor};">Key Formulation</span>
+                            <div class="text-base sm:text-xl font-bold font-mono text-center py-2" style="color: ${titleColor};">
+                                ${formatMathForPreview(mainFormula)}
+                            </div>
+                        </div>
+                        ${restPoints.length > 0 ? `
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                ${restPoints.map(p => `
+                                    <div class="p-3 rounded-lg border text-xs leading-relaxed" style="background: ${cardBg}; border-color: ${cardBorder}; color: ${bodyColor};">
+                                        ${formatMathForPreview(p)}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            } else if (isComparison && points.length === 2) {
+                bodyContent = `
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-auto">
+                        <div class="p-4 sm:p-5 rounded-xl border flex flex-col justify-between" style="background: ${cardBg}; border-color: ${cardBorder};">
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider block mb-2 px-2 py-0.5 rounded w-fit" style="background: ${pillBg}; color: ${accentColor};">Primary Concept</span>
+                                <p class="text-xs sm:text-sm font-medium leading-relaxed" style="color: ${bodyColor};">${formatMathForPreview(points[0])}</p>
+                            </div>
+                        </div>
+                        <div class="p-4 sm:p-5 rounded-xl border flex flex-col justify-between" style="background: ${cardBg}; border-color: ${cardBorder};">
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider block mb-2 px-2 py-0.5 rounded w-fit" style="background: ${cardBg}; color: ${titleColor}; border: 1px solid ${cardBorder};">Comparison / Counterpart</span>
+                                <p class="text-xs sm:text-sm font-medium leading-relaxed" style="color: ${bodyColor};">${formatMathForPreview(points[1])}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (isStepper && points.length >= 3) {
+                bodyContent = `
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 my-auto">
+                        ${points.slice(0, 3).map((p, idx) => `
+                            <div class="p-4 rounded-xl border relative" style="background: ${cardBg}; border-color: ${cardBorder};">
+                                <div class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold mb-2.5 font-mono" style="background: ${accentColor}; color: #FFFFFF;">
+                                    ${idx + 1}
+                                </div>
+                                <p class="text-xs sm:text-sm font-medium leading-relaxed" style="color: ${bodyColor};">
+                                    ${formatMathForPreview(p)}
+                                </p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (is2x2 && points.length === 4) {
+                bodyContent = `
+                    <div class="grid grid-cols-2 gap-2.5 sm:gap-3 my-auto">
+                        ${points.map((p, idx) => `
+                            <div class="p-3 sm:p-4 rounded-lg border" style="background: ${cardBg}; border-color: ${cardBorder};">
+                                <span class="text-[9px] font-bold uppercase tracking-wider block mb-1 font-mono" style="color: ${accentColor};">Q${idx + 1}</span>
+                                <p class="text-xs font-medium leading-relaxed" style="color: ${bodyColor};">${formatMathForPreview(p)}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                bodyContent = `
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 my-auto">
+                        ${points.slice(0, 3).map((p) => `
+                            <div class="p-4 rounded-xl border flex flex-col justify-between" style="background: ${cardBg}; border-color: ${cardBorder};">
+                                <div>
+                                    <div class="w-8 h-1 rounded-full mb-3" style="background: ${accentColor};"></div>
+                                    <p class="text-xs sm:text-sm font-medium leading-relaxed" style="color: ${bodyColor};">
+                                        ${formatMathForPreview(p)}
+                                    </p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            slideHtml = `
+                <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider font-mono px-2 py-0.5 rounded w-fit block mb-1.5" style="background: ${pillBg}; color: ${accentColor};">
+                        ${archetypeBadge}
+                    </span>
+                    <h2 class="text-lg sm:text-2xl font-bold tracking-tight mb-4" style="color: ${titleColor};">
+                        ${formatMathForPreview(slide.title)}
+                    </h2>
+                </div>
+                <div class="flex-1 flex flex-col justify-center">
+                    ${bodyContent}
+                </div>
+                <div class="flex items-center justify-between text-[10px] uppercase tracking-wider font-mono pt-3 border-t mt-4" style="border-color: ${cardBorder}; color: ${bodyColor}; opacity: 0.7;">
+                    <span>EduWise Studio · Grounded Active Recall</span>
+                    <span>Slide ${activeSlideIndex + 1} of ${activeSlideDeck.length}</span>
+                </div>
+            `;
+        }
+
+        stage.innerHTML = slideHtml;
+    }
+
+    function closePreviewModal() {
+        const modalEl = document.getElementById('documentPreviewModal');
+        if (modalEl) modalEl.classList.remove('open');
+        const iframe = document.getElementById('pdfPreviewFrame');
+        if (iframe) iframe.src = 'about:blank';
+        if (document.fullscreenElement) {
+            document.exitFullscreen().catch(() => {});
+        }
+    }
+
+    function togglePreviewFullscreen() {
+        const modalEl = document.getElementById('documentPreviewModal');
+        const icon = document.getElementById('fullscreenIcon');
+        if (!document.fullscreenElement) {
+            if (modalEl.requestFullscreen) {
+                modalEl.requestFullscreen().then(() => {
+                    if (icon) icon.className = 'fas fa-compress text-xs';
+                }).catch(() => {});
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen().then(() => {
+                    if (icon) icon.className = 'fas fa-expand text-xs';
+                }).catch(() => {});
+            }
+        }
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+        const icon = document.getElementById('fullscreenIcon');
+        if (icon) {
+            icon.className = document.fullscreenElement ? 'fas fa-compress text-xs' : 'fas fa-expand text-xs';
+        }
+    });
+
+    const previewModalEl = document.getElementById('documentPreviewModal');
+    if (previewModalEl) {
+        previewModalEl.addEventListener('click', (e) => {
+            if (e.target === previewModalEl) closePreviewModal();
+        });
+    }
+
+    // Keyboard shortcuts for tool tiles and preview
     document.addEventListener('keydown', (e) => {
+        const previewModal = document.getElementById('documentPreviewModal');
+        if (previewModal && previewModal.classList.contains('open')) {
+            if (e.key === 'Escape') {
+                closePreviewModal();
+            } else if (e.key === 'ArrowLeft') {
+                navigateSlide(-1);
+            } else if (e.key === 'ArrowRight') {
+                navigateSlide(1);
+            }
+            return;
+        }
+
         if (modal.classList.contains('open')) {
             if (e.key === 'Escape') closeFormModal();
             return;
         }
-        // Don't fire when user is typing in an input
         if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
 
         const keyMap = { '1': 'pptForm', '2': 'pdfForm', '3': 'explainForm', '4': 'quizForm', '5': 'flashcardForm', '6': 'summarizeForm' };
