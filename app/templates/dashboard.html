@@ -71,9 +71,23 @@
     }
     .slide-stage-container {
         aspect-ratio: 16 / 9;
-        max-height: calc(90vh - 140px);
         width: 100%;
         max-width: 960px;
+        min-height: 280px;
+        max-height: calc(90vh - 140px);
+    }
+    @media (max-width: 640px) {
+        #documentPreviewModal .modal-content {
+            width: 100vw;
+            height: calc(100vh - var(--header-height, 68px));
+            max-height: calc(100vh - var(--header-height, 68px));
+            border-radius: 0;
+        }
+        .slide-stage-container {
+            aspect-ratio: auto;
+            min-height: 300px;
+            max-height: none;
+        }
     }
 </style>
 
@@ -328,7 +342,7 @@
                             <i class="{{ 'fas fa-play' if resource.resource_type == 'quiz' else 'fas fa-eye' }} text-[10px]"></i>
                         </a>
                         {% elif resource.resource_type in ['pptx', 'pdf'] %}
-                        <button onclick="openResourcePreview({{ resource.id }}, '{{ resource.resource_type }}', '{{ resource.topic|replace('\'', '\\\'') }}')" 
+                        <button data-id="{{ resource.id }}" data-type="{{ resource.resource_type }}" data-topic="{{ resource.topic }}" onclick="openResourcePreviewFromBtn(this)" 
                             title="Preview {{ 'Slides' if resource.resource_type == 'pptx' else 'Notes' }}"
                             class="w-7 h-7 rounded-md flex items-center justify-center transition-colors hover:bg-accent/10 hover:text-accent text-text-ghost">
                             <i class="fas fa-eye text-[10px]"></i>
@@ -389,18 +403,18 @@
 <div id="documentPreviewModal" class="modal-overlay">
     <div class="modal-content">
         <!-- Studio Toolbar Header -->
-        <div class="px-4 sm:px-6 py-3 border-b border-border flex items-center justify-between gap-3 bg-surface-raised flex-shrink-0">
+        <div class="px-3 sm:px-6 py-2.5 sm:py-3 border-b border-border flex items-center justify-between gap-2 sm:gap-3 bg-surface-raised flex-shrink-0">
             <!-- Left: Type badge & Topic -->
-            <div class="flex items-center gap-2.5 min-w-0">
-                <div id="previewTypeIcon" class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-semibold r-icon-pptx">
+            <div class="flex items-center gap-2 min-w-0">
+                <div id="previewTypeIcon" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-xs sm:text-sm font-semibold r-icon-pptx">
                     <i id="previewTypeIconI" class="fas fa-file-powerpoint"></i>
                 </div>
                 <div class="min-w-0">
-                    <div class="flex items-center gap-2">
-                        <h2 id="previewTitle" class="text-sm sm:text-base font-bold truncate max-w-[180px] sm:max-w-md" style="color: var(--text-primary);">
+                    <div class="flex items-center gap-1.5 sm:gap-2">
+                        <h2 id="previewTitle" class="text-xs sm:text-sm font-bold truncate max-w-[110px] xs:max-w-[160px] sm:max-w-xs md:max-w-md" style="color: var(--text-primary);">
                             Document Title
                         </h2>
-                        <span id="previewBadge" class="label-caps !text-[9px] px-2 py-0.5 rounded-full font-mono font-bold" style="background: var(--accent-surface); color: var(--accent);">
+                        <span id="previewBadge" class="label-caps !text-[8px] sm:!text-[9px] px-1.5 sm:px-2 py-0.5 rounded-full font-mono font-bold hidden sm:inline" style="background: var(--accent-surface); color: var(--accent);">
                             SLIDES (16:9)
                         </span>
                     </div>
@@ -408,29 +422,29 @@
             </div>
 
             <!-- Center: Slides Navigation Controls -->
-            <div id="slideNavControls" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border" style="background: var(--surface-sunken);">
-                <button type="button" id="prevSlideBtn" onclick="navigateSlide(-1)" class="w-7 h-7 rounded flex items-center justify-center hover:bg-surface-raised transition-colors disabled:opacity-30 disabled:pointer-events-none" style="color: var(--text-primary);" title="Previous Slide (←)">
-                    <i class="fas fa-chevron-left text-xs"></i>
+            <div id="slideNavControls" class="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg border border-border flex-shrink-0" style="background: var(--surface-sunken);">
+                <button type="button" id="prevSlideBtn" onclick="navigateSlide(-1)" class="w-6 h-6 sm:w-7 sm:h-7 rounded flex items-center justify-center hover:bg-surface-raised transition-colors disabled:opacity-30 disabled:pointer-events-none" style="color: var(--text-primary);" title="Previous Slide (←)">
+                    <i class="fas fa-chevron-left text-[10px] sm:text-xs"></i>
                 </button>
-                <span id="slideCounterText" class="text-xs font-mono font-bold px-2 min-w-[55px] text-center" style="color: var(--text-primary);">
+                <span id="slideCounterText" class="text-[11px] sm:text-xs font-mono font-bold px-1 sm:px-2 min-w-[45px] sm:min-w-[55px] text-center" style="color: var(--text-primary);">
                     1 / 1
                 </span>
-                <button type="button" id="nextSlideBtn" onclick="navigateSlide(1)" class="w-7 h-7 rounded flex items-center justify-center hover:bg-surface-raised transition-colors disabled:opacity-30 disabled:pointer-events-none" style="color: var(--text-primary);" title="Next Slide (→)">
-                    <i class="fas fa-chevron-right text-xs"></i>
+                <button type="button" id="nextSlideBtn" onclick="navigateSlide(1)" class="w-6 h-6 sm:w-7 sm:h-7 rounded flex items-center justify-center hover:bg-surface-raised transition-colors disabled:opacity-30 disabled:pointer-events-none" style="color: var(--text-primary);" title="Next Slide (→)">
+                    <i class="fas fa-chevron-right text-[10px] sm:text-xs"></i>
                 </button>
             </div>
 
             <!-- Right: Actions -->
-            <div class="flex items-center gap-2 flex-shrink-0">
-                <button type="button" onclick="togglePreviewFullscreen()" class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-surface-sunken transition-colors" style="color: var(--text-muted);" title="Toggle Fullscreen">
+            <div class="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                <button type="button" onclick="togglePreviewFullscreen()" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center hover:bg-surface-sunken transition-colors" style="color: var(--text-muted);" title="Toggle Fullscreen">
                     <i id="fullscreenIcon" class="fas fa-expand text-xs"></i>
                 </button>
-                <a id="previewDownloadBtn" href="#" class="btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5 shadow-sm" download>
+                <a id="previewDownloadBtn" href="#" class="btn-primary text-xs py-1.5 px-2.5 sm:px-3 flex items-center gap-1.5 shadow-sm" download>
                     <i class="fas fa-download text-[11px]"></i>
-                    <span id="previewDownloadText">Download</span>
+                    <span id="previewDownloadText" class="hidden sm:inline">Download</span>
                 </a>
-                <button type="button" onclick="closePreviewModal()" class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-coral-surface transition-colors" style="color: var(--text-muted);" title="Close (Esc)">
-                    <i class="fas fa-times text-sm"></i>
+                <button type="button" onclick="closePreviewModal()" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center hover:bg-coral-surface transition-colors" style="color: var(--text-muted);" title="Close (Esc)">
+                    <i class="fas fa-times text-xs sm:text-sm"></i>
                 </button>
             </div>
         </div>
@@ -443,9 +457,9 @@
             </div>
 
             <!-- Slides Presentation Stage Container -->
-            <div id="slidesPreviewWrapper" class="w-full h-full flex flex-col items-center justify-between p-3 sm:p-6 overflow-y-auto">
+            <div id="slidesPreviewWrapper" class="w-full h-full flex flex-col items-center justify-between p-2.5 sm:p-6 overflow-y-auto">
                 <div class="w-full flex-1 flex items-center justify-center">
-                    <div id="slideStage" class="slide-stage-container rounded-xl shadow-2xl p-6 sm:p-10 flex flex-col justify-between transition-all duration-200 relative overflow-hidden border border-border select-none">
+                    <div id="slideStage" class="slide-stage-container rounded-xl shadow-2xl p-4 sm:p-8 lg:p-10 flex flex-col justify-between transition-all duration-200 relative overflow-hidden border border-border select-none">
                         <!-- Dynamic Slide Content rendered by JS -->
                     </div>
                 </div>
@@ -1019,20 +1033,20 @@
     function showFormModal(formId) {
         const template = document.getElementById(`${formId}Template`);
         if (!template) return;
-        modalContent.innerHTML = template.innerHTML;
-        modal.classList.add('open');
+        if (modalContent) modalContent.innerHTML = template.innerHTML;
+        if (modal) modal.classList.add('open');
         document.body.style.overflow = 'hidden';
         initializeModalValidation();
 
         // Auto-focus first input
         requestAnimationFrame(() => {
-            const firstInput = modalContent.querySelector('input[type="text"]:not([type="hidden"])');
+            const firstInput = modalContent ? modalContent.querySelector('input[type="text"]:not([type="hidden"])') : null;
             if (firstInput) firstInput.focus();
         });
     }
 
     function closeFormModal() {
-        modal.classList.remove('open');
+        if (modal) modal.classList.remove('open');
         document.body.style.overflow = '';
     }
 
@@ -1271,7 +1285,7 @@
                     <i id="fav-icon-${data.id}" class="far fa-star text-[11px]"></i>
                 </button>
                 ${['pptx', 'pdf'].includes(data.type) ? `
-                    <button onclick="openResourcePreview(${data.id}, '${data.type}', '${(data.topic || '').replace(/'/g, "\\'")}')"
+                    <button data-id="${data.id}" data-type="${data.type}" data-topic="${(data.topic || '').replace(/"/g, '&quot;')}" onclick="openResourcePreviewFromBtn(this)"
                         title="Preview"
                         class="w-7 h-7 rounded-md flex items-center justify-center transition-colors hover:bg-accent/10 hover:text-accent text-text-ghost">
                         <i class="fas fa-eye text-[10px]"></i>
@@ -1372,7 +1386,13 @@
     let activeSlideDeck = [];
     let activeSlideIndex = 0;
     let activeSlideTheme = {};
+    let activeSlideTopic = '';
     let activeBlobUrl = null;
+
+    window.handleSlideImgError = function(img) {
+        if (!img || !img.parentElement) return;
+        img.parentElement.innerHTML = '<div class="w-full h-full flex items-center justify-center p-4 text-xs font-mono opacity-50"><i class="fas fa-image mr-1.5"></i>Visual Preview</div>';
+    };
 
     function formatMathForPreview(str) {
         if (!str) return '';
@@ -1490,6 +1510,7 @@
     function openSlidePreviewWithData(slides, theme, topic, downloadUrlOrBlob, filename) {
         activeSlideDeck = Array.isArray(slides) ? slides : [];
         activeSlideTheme = theme || {};
+        activeSlideTopic = topic || 'Executive Presentation';
         activeSlideIndex = 0;
 
         const modalEl = document.getElementById('documentPreviewModal');
@@ -1521,6 +1542,14 @@
 
         renderSlideDeck();
         modalEl.classList.add('open');
+    }
+
+    function openResourcePreviewFromBtn(btn) {
+        if (!btn) return;
+        const id = btn.getAttribute('data-id');
+        const type = btn.getAttribute('data-type');
+        const topic = btn.getAttribute('data-topic') || '';
+        openResourcePreview(id, type, topic);
     }
 
     async function openResourcePreview(resourceId, resourceType, topic) {
@@ -1644,7 +1673,7 @@
             slideHtml = `
                 <div class="flex-1 flex flex-col justify-center pl-4 sm:pl-8 border-l-4 my-auto" style="border-color: ${accentColor};">
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-bold tracking-wider uppercase mb-3 w-fit" style="background: ${pillBg}; color: ${accentColor};">
-                        <i class="fas fa-graduation-cap"></i> Academic Study Deck
+                        <i class="fas fa-layer-group"></i> Executive Brief
                     </div>
                     <h1 class="text-xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight mb-3 leading-tight" style="color: ${titleColor};">
                         ${formatMathForPreview(slide.title)}
@@ -1660,24 +1689,29 @@
                     </div>
                 </div>
                 <div class="flex items-center justify-between text-[10px] uppercase tracking-wider font-mono pt-3 border-t mt-4" style="border-color: ${cardBorder}; color: ${bodyColor}; opacity: 0.7;">
-                    <span>EduWise Studio · Dual-Coding Learning Deck</span>
-                    <span>Slide ${activeSlideIndex + 1} of ${activeSlideDeck.length}</span>
+                    <span class="truncate max-w-[65%]">${activeSlideTopic || 'Executive Brief'}</span>
+                    <span class="flex-shrink-0">Slide ${activeSlideIndex + 1} of ${activeSlideDeck.length}</span>
                 </div>
             `;
         } else if (type === 'thanks') {
+            const thanksTitle = slide.title && !/thanks|thank you|untitled/i.test(slide.title) ? slide.title : 'Key Takeaways & Conclusion';
+            const thanksSubtitle = points && points.length > 0
+                ? (activeSlideTopic ? `Core conclusions and actionable synthesis for ${activeSlideTopic}.` : 'Core conclusions and actionable synthesis based on synthesized findings.')
+                : (activeSlideTopic ? `Summary of key insights, strategic outcomes, and next steps for ${activeSlideTopic}.` : 'Summary of key insights, strategic outcomes, and next steps.');
+
             slideHtml = `
                 <div class="flex-1 flex flex-col items-center justify-center text-center px-4 my-auto">
                     <div class="w-11 h-11 rounded-2xl flex items-center justify-center mb-3 text-base shadow-sm" style="background: ${pillBg}; color: ${accentColor}; border: 1px solid ${accentColor}40;">
-                        <i class="fas fa-check-double"></i>
+                        <i class="fas fa-flag-checkered"></i>
                     </div>
                     <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase mb-2" style="background: ${pillBg}; color: ${accentColor};">
-                        Presentation Complete
+                        SUMMARY & NEXT STEPS
                     </div>
                     <h2 class="text-xl sm:text-3xl font-bold tracking-tight mb-2" style="color: ${titleColor};">
-                        ${formatMathForPreview(slide.title || 'Summary & Core Takeaways')}
+                        ${formatMathForPreview(thanksTitle)}
                     </h2>
                     <p class="text-xs sm:text-sm max-w-lg mb-4 leading-relaxed" style="color: ${bodyColor};">
-                        Review these core concepts using active recall flashcards and self-grading quizzes on EduWise.
+                        ${thanksSubtitle}
                     </p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-xl w-full text-left">
                         ${points.slice(0, 4).map(p => `
@@ -1688,25 +1722,62 @@
                         `).join('')}
                     </div>
                 </div>
-                <div class="text-center text-[10px] uppercase tracking-wider font-mono pt-3 border-t mt-4" style="border-color: ${cardBorder}; color: ${bodyColor}; opacity: 0.6;">
-                    EduWise AI Studio · Deep Learning for Serious Minds
+                <div class="text-center text-[10px] uppercase tracking-wider font-mono pt-3 border-t mt-4" style="border-color: ${cardBorder}; color: ${bodyColor}; opacity: 0.7;">
+                    Open for Questions & Discussion
                 </div>
             `;
         } else {
-            const isMath = style === 'formula_callout' || points.some(p => /[=∑∫Δαβλμ^²³→√]/.test(p));
-            const isComparison = style === 'comparison_split' || points.length === 2;
-            const isStepper = style === 'timeline_process' || points.some(p => /step|phase|stage/i.test(p));
-            const is2x2 = style === 'two_by_two' || points.length === 4;
+            const hasImage = Boolean(slide.image_url);
+            const isSplitImage = (style === 'split_image' || hasImage) && style !== 'formula_callout' && style !== 'timeline_process';
+            const isMath = style === 'formula_callout' || (!isSplitImage && points.some(p => /[=∑∫Δαβλμ^²³→√]/.test(p)));
+            const isComparison = style === 'comparison_split' || (!isSplitImage && points.length === 2);
+            const isStepper = style === 'timeline_process' || (!isSplitImage && points.some(p => /step|phase|stage/i.test(p)));
+            const is2x2 = style === 'two_by_two' || (!isSplitImage && points.length === 4);
 
-            let archetypeBadge = 'CONCEPT ANALYSIS';
-            if (isMath) archetypeBadge = 'MATHEMATICAL & THEORETICAL FORMULATION';
-            else if (isComparison) archetypeBadge = 'COMPARATIVE ANALYSIS';
-            else if (isStepper) archetypeBadge = 'PROCESS FLOW & SEQUENCE';
-            else if (is2x2) archetypeBadge = 'QUADRANT MATRIX';
+            let archetypeBadge = 'KEY INSIGHTS';
+            if (isSplitImage) archetypeBadge = 'VISUAL OVERVIEW';
+            else if (isMath) archetypeBadge = 'KEY FORMULATION';
+            else if (isComparison) archetypeBadge = 'CORE COMPARISON';
+            else if (isStepper) archetypeBadge = 'WORKFLOW & SEQUENCE';
+            else if (is2x2) archetypeBadge = 'STRATEGIC MATRIX';
 
             let bodyContent = '';
 
-            if (isMath && points.length > 0) {
+            if (isSplitImage && slide.image_url) {
+                bodyContent = `
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 my-auto items-stretch">
+                        <!-- Left: Points Breakdown (7 cols on desktop) -->
+                        <div class="md:col-span-7 flex flex-col justify-center gap-2.5">
+                            ${points.slice(0, 3).map((p, idx) => {
+                                const parts = p.split(/:\s*(.+)/);
+                                const hl = parts.length > 1 ? parts[0] : '';
+                                const bd = parts.length > 1 ? parts[1] : p;
+                                return `
+                                    <div class="p-3 sm:p-3.5 rounded-xl border flex items-start gap-3" style="background: ${cardBg}; border-color: ${cardBorder};">
+                                        <span class="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold font-mono flex-shrink-0 mt-0.5" style="background: ${pillBg}; color: ${accentColor};">
+                                            ${String(idx + 1).padStart(2, '0')}
+                                        </span>
+                                        <div class="min-w-0">
+                                            ${hl ? `<span class="text-xs sm:text-sm font-bold block mb-0.5" style="color: ${titleColor};">${formatMathForPreview(hl)}</span>` : ''}
+                                            <p class="text-xs font-medium leading-relaxed" style="color: ${bodyColor};">${formatMathForPreview(bd)}</p>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+
+                        <!-- Right: Visual Image Card (5 cols on desktop) -->
+                        <div class="md:col-span-5 flex items-center justify-center">
+                            <div class="w-full h-full min-h-[180px] sm:min-h-[220px] rounded-xl overflow-hidden border shadow-sm relative group flex items-center justify-center" style="border-color: ${cardBorder}; background: ${cardBg};">
+                                <img src="${slide.image_url}" alt="${(slide.title || 'Slide Image').replace(/"/g, '&quot;')}" 
+                                     class="w-full h-full object-cover rounded-xl transition-transform duration-300 group-hover:scale-105"
+                                     loading="lazy"
+                                     onerror="window.handleSlideImgError(this)" />
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (isMath && points.length > 0) {
                 const mainFormula = points[0];
                 const restPoints = points.slice(1);
                 bodyContent = `
@@ -1762,7 +1833,7 @@
                 `;
             } else if (is2x2 && points.length === 4) {
                 bodyContent = `
-                    <div class="grid grid-cols-2 gap-2.5 sm:gap-3 my-auto">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 my-auto">
                         ${points.map((p, idx) => `
                             <div class="p-3 sm:p-4 rounded-lg border" style="background: ${cardBg}; border-color: ${cardBorder};">
                                 <span class="text-[9px] font-bold uppercase tracking-wider block mb-1 font-mono" style="color: ${accentColor};">Q${idx + 1}</span>
@@ -1801,8 +1872,8 @@
                     ${bodyContent}
                 </div>
                 <div class="flex items-center justify-between text-[10px] uppercase tracking-wider font-mono pt-3 border-t mt-4" style="border-color: ${cardBorder}; color: ${bodyColor}; opacity: 0.7;">
-                    <span>EduWise Studio · Grounded Active Recall</span>
-                    <span>Slide ${activeSlideIndex + 1} of ${activeSlideDeck.length}</span>
+                    <span class="truncate max-w-[65%]">${activeSlideTopic || 'Executive Brief'}</span>
+                    <span class="flex-shrink-0">Slide ${activeSlideIndex + 1} of ${activeSlideDeck.length}</span>
                 </div>
             `;
         }
@@ -1823,17 +1894,28 @@
     function togglePreviewFullscreen() {
         const modalEl = document.getElementById('documentPreviewModal');
         const icon = document.getElementById('fullscreenIcon');
+        if (!modalEl) return;
         if (!document.fullscreenElement) {
-            if (modalEl.requestFullscreen) {
-                modalEl.requestFullscreen().then(() => {
+            const req = modalEl.requestFullscreen || modalEl.webkitRequestFullscreen || modalEl.mozRequestFullScreen || modalEl.msRequestFullscreen;
+            if (req) {
+                try {
+                    req.call(modalEl).then(() => {
+                        if (icon) icon.className = 'fas fa-compress text-xs';
+                    }).catch(() => {});
+                } catch (_) {
                     if (icon) icon.className = 'fas fa-compress text-xs';
-                }).catch(() => {});
+                }
             }
         } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen().then(() => {
+            const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+            if (exit) {
+                try {
+                    exit.call(document).then(() => {
+                        if (icon) icon.className = 'fas fa-expand text-xs';
+                    }).catch(() => {});
+                } catch (_) {
                     if (icon) icon.className = 'fas fa-expand text-xs';
-                }).catch(() => {});
+                }
             }
         }
     }
@@ -1866,11 +1948,11 @@
             return;
         }
 
-        if (modal.classList.contains('open')) {
+        if (modal && modal.classList.contains('open')) {
             if (e.key === 'Escape') closeFormModal();
             return;
         }
-        if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+        if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) return;
 
         const keyMap = { '1': 'pptForm', '2': 'pdfForm', '3': 'explainForm', '4': 'quizForm', '5': 'flashcardForm', '6': 'summarizeForm' };
         if (keyMap[e.key]) {
@@ -1880,9 +1962,11 @@
     });
 
     // Close modal on backdrop click
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeFormModal();
-    });
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeFormModal();
+        });
+    }
 
     // Ensure loading overlay is hidden on normal page loads
     document.addEventListener('DOMContentLoaded', hideLoading);

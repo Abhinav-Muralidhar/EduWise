@@ -1,6 +1,7 @@
 import io
 import os
 import re
+from datetime import datetime
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.enum.shapes import MSO_SHAPE
@@ -103,7 +104,10 @@ def _draw_card_shape(slide, left, top, width, height, bg_rgb, border_rgb, border
         shape.line.fill.background()
     return shape
 
-def _render_intro_slide(slide, title, points, palette, prs_width, prs_height):
+def _render_intro_slide(slide, title, points, palette, prs_width, prs_height, topic="", customization=None):
+    customization = customization or {}
+    domain_kicker = (customization.get('domain_kicker') or customization.get('category') or "EXECUTIVE BRIEF").upper()
+
     # Left vertical decorative book-spine bar
     accent_spine = slide.shapes.add_shape(
         MSO_SHAPE.ROUNDED_RECTANGLE,
@@ -116,7 +120,7 @@ def _render_intro_slide(slide, title, points, palette, prs_width, prs_height):
     # Category Pill Badge
     pill = slide.shapes.add_shape(
         MSO_SHAPE.ROUNDED_RECTANGLE,
-        Inches(1.2), Inches(1.15), Inches(3.2), Inches(0.42)
+        Inches(1.2), Inches(1.15), Inches(2.8), Inches(0.42)
     )
     pill.fill.solid()
     pill.fill.fore_color.rgb = palette['pill_bg_rgb']
@@ -124,7 +128,7 @@ def _render_intro_slide(slide, title, points, palette, prs_width, prs_height):
     tf_pill = pill.text_frame
     tf_pill.word_wrap = False
     p_pill = tf_pill.paragraphs[0]
-    p_pill.text = "ACADEMIC STUDY DECK"
+    p_pill.text = domain_kicker
     p_pill.font.name = _safe_font_name(palette['title_font'])
     p_pill.font.size = Pt(10)
     p_pill.font.bold = True
@@ -172,22 +176,29 @@ def _render_intro_slide(slide, title, points, palette, prs_width, prs_height):
         tf_sub.word_wrap = True
         tf_sub.margin_left = Inches(0)
         p_sub = tf_sub.paragraphs[0]
-        p_sub.text = "Comprehensive course curriculum synthesized and grounded in your study materials."
+        p_sub.text = "Comprehensive overview and structured analytical synthesis."
         p_sub.font.name = _safe_font_name(palette['body_font'])
         p_sub.font.size = Pt(16)
         p_sub.font.color.rgb = palette['body_rgb']
 
-    # Bottom footer branding
+    # Clean date / presenter footer
     footer_box = slide.shapes.add_textbox(Inches(1.2), Inches(6.5), Inches(11.0), Inches(0.5))
     tf_foot = footer_box.text_frame
     tf_foot.margin_left = Inches(0)
     p_foot = tf_foot.paragraphs[0]
-    p_foot.text = "EduWise AI Studio  ·  Grounded Active Retention"
+    presenter_info = customization.get('presenter') or customization.get('presenter_name')
+    today_str = datetime.now().strftime("%B %Y")
+    if presenter_info:
+        p_foot.text = f"{presenter_info}  ·  {today_str}"
+    elif topic:
+        p_foot.text = f"{topic}  ·  Executive Overview"
+    else:
+        p_foot.text = f"Executive Presentation  ·  {today_str}"
     p_foot.font.name = _safe_font_name(palette['body_font'])
     p_foot.font.size = Pt(10)
     p_foot.font.color.rgb = palette['body_rgb']
 
-def _render_header_bar(slide, title, palette, slide_num, total_slides, kicker_text="CONCEPT BREAKDOWN"):
+def _render_header_bar(slide, title, palette, slide_num, total_slides, kicker_text="KEY INSIGHTS"):
     """Render consistent modern header bar across content slides."""
     kicker = slide.shapes.add_textbox(Inches(1.0), Inches(0.42), Inches(6.0), Inches(0.3))
     tf_k = kicker.text_frame
@@ -241,13 +252,45 @@ def _render_header_bar(slide, title, palette, slide_num, total_slides, kicker_te
     divider.fill.fore_color.rgb = palette['subtle_line_rgb']
     divider.line.fill.background()
 
+def _render_content_footer(slide, topic, palette, slide_num, total_slides):
+    """Render subtle, clean running footer on content slides with topic on left and slide number on right."""
+    divider = slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE,
+        Inches(1.0), Inches(6.85), Inches(11.4), Inches(0.012)
+    )
+    divider.fill.solid()
+    divider.fill.fore_color.rgb = palette['subtle_line_rgb']
+    divider.line.fill.background()
+
+    foot_left = slide.shapes.add_textbox(Inches(1.0), Inches(6.89), Inches(8.5), Inches(0.35))
+    tf_l = foot_left.text_frame
+    tf_l.word_wrap = True
+    tf_l.margin_left = Inches(0)
+    tf_l.margin_top = Inches(0)
+    p_l = tf_l.paragraphs[0]
+    p_l.text = topic or "Executive Brief"
+    p_l.font.name = _safe_font_name(palette['body_font'])
+    p_l.font.size = Pt(8.5)
+    p_l.font.color.rgb = palette['body_rgb']
+
+    foot_right = slide.shapes.add_textbox(Inches(9.5), Inches(6.89), Inches(2.9), Inches(0.35))
+    tf_r = foot_right.text_frame
+    tf_r.margin_right = Inches(0)
+    tf_r.margin_top = Inches(0)
+    p_r = tf_r.paragraphs[0]
+    p_r.text = f"Slide {slide_num} of {total_slides}"
+    p_r.font.name = _safe_font_name(palette['body_font'])
+    p_r.font.size = Pt(8.5)
+    p_r.font.color.rgb = palette['body_rgb']
+    p_r.alignment = PP_ALIGN.RIGHT
+
 # ----------------- DIVERSE CONTENT SLIDE ARCHETYPES -----------------
 
 def _render_bento_hero_slide(slide, title, points, palette, slide_num, total_slides):
     """Layout 1: 1 Prominent Hero Card on Left + 2 Stacked Cards on Right."""
-    _render_header_bar(slide, title, palette, slide_num, total_slides, "FOUNDATIONAL PRINCIPLE")
+    _render_header_bar(slide, title, palette, slide_num, total_slides, "CORE PRINCIPLE")
     top_y = Inches(1.75)
-    avail_h = Inches(5.1)
+    avail_h = Inches(4.9)
 
     pts = points if points else ["Key topic analysis and structured overview."]
     hero_pt = pts[0]
@@ -343,9 +386,9 @@ def _render_bento_hero_slide(slide, title, points, palette, slide_num, total_sli
 
 def _render_stepper_process_slide(slide, title, points, palette, slide_num, total_slides):
     """Layout 2: Horizontal Sequential Process Pipeline with Chevrons (Step 1 -> Step 2 -> Step 3)."""
-    _render_header_bar(slide, title, palette, slide_num, total_slides, "PROCESS & WORKFLOW PIPELINE")
+    _render_header_bar(slide, title, palette, slide_num, total_slides, "WORKFLOW & SEQUENCE")
     top_y = Inches(1.75)
-    avail_h = Inches(5.1)
+    avail_h = Inches(4.9)
 
     pts = points if points else ["Step 1", "Step 2", "Step 3"]
     step_count = min(max(len(pts), 2), 4)
@@ -401,7 +444,7 @@ def _render_stepper_process_slide(slide, title, points, palette, slide_num, tota
         # Connecting Arrow between cards
         if i < step_count - 1:
             arrow_x = cx + card_w + Inches(0.08)
-            arrow_box = slide.shapes.add_textbox(arrow_x, top_y + Inches(2.2), arrow_w + Inches(0.14), Inches(0.6))
+            arrow_box = slide.shapes.add_textbox(arrow_x, top_y + Inches(2.1), arrow_w + Inches(0.14), Inches(0.6))
             tf_a = arrow_box.text_frame
             p_a = tf_a.paragraphs[0]
             p_a.text = "→"
@@ -412,9 +455,9 @@ def _render_stepper_process_slide(slide, title, points, palette, slide_num, tota
 
 def _render_comparison_split_slide(slide, title, points, palette, slide_num, total_slides):
     """Layout 3: Two-Column Analytical Split (Option A vs Option B or Concept 1 vs Concept 2)."""
-    _render_header_bar(slide, title, palette, slide_num, total_slides, "COMPARATIVE ANALYSIS")
+    _render_header_bar(slide, title, palette, slide_num, total_slides, "CORE COMPARISON")
     top_y = Inches(1.75)
-    avail_h = Inches(5.1)
+    avail_h = Inches(4.9)
 
     pts = points if points else ["Dimension 1 Overview", "Dimension 2 Overview"]
     card_w = Inches(5.5)
@@ -473,7 +516,7 @@ def _render_comparison_split_slide(slide, title, points, palette, slide_num, tot
 
 def _render_formula_callout_slide(slide, title, points, palette, slide_num, total_slides):
     """Layout 4: Large Central Formula / Governing Law Hero Banner + Breakdown Cards Below."""
-    _render_header_bar(slide, title, palette, slide_num, total_slides, "MATHEMATICAL & THEORETICAL FORMULATION")
+    _render_header_bar(slide, title, palette, slide_num, total_slides, "KEY FORMULATION")
     top_y = Inches(1.75)
 
     pts = points if points else ["Core formula formulation"]
@@ -482,16 +525,16 @@ def _render_formula_callout_slide(slide, title, points, palette, slide_num, tota
 
     # Top Central Formula Hero Banner
     banner_w = Inches(11.4)
-    banner_h = Inches(1.85)
+    banner_h = Inches(1.8)
     _draw_card_shape(slide, Inches(1.0), top_y, banner_w, banner_h, palette['hero_fill_rgb'], palette['accent_rgb'], 1.5)
 
-    pill = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.3), top_y + Inches(0.2), Inches(3.2), Inches(0.32))
+    pill = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.3), top_y + Inches(0.2), Inches(2.6), Inches(0.32))
     pill.fill.solid()
     pill.fill.fore_color.rgb = palette['pill_bg_rgb']
     pill.line.fill.background()
     tf_p = pill.text_frame
     p_p = tf_p.paragraphs[0]
-    p_p.text = "CORE EQUATION & GOVERNING LAW"
+    p_p.text = "KEY FORMULATION"
     p_p.font.size = Pt(9.5)
     p_p.font.bold = True
     p_p.font.color.rgb = palette['accent_rgb']
@@ -511,8 +554,8 @@ def _render_formula_callout_slide(slide, title, points, palette, slide_num, tota
     p_eq.alignment = PP_ALIGN.CENTER
 
     # Bottom Breakdown Cards (2 or 3 cards)
-    bot_y = top_y + banner_h + Inches(0.3)
-    bot_h = Inches(5.1) - banner_h - Inches(0.3)
+    bot_y = top_y + banner_h + Inches(0.25)
+    bot_h = Inches(4.9) - banner_h - Inches(0.25)
     b_count = min(len(breakdown_pts), 3)
     c_w = (banner_w - Inches(0.35 * (b_count - 1))) / b_count
 
@@ -558,9 +601,9 @@ def _render_formula_callout_slide(slide, title, points, palette, slide_num, tota
 
 def _render_three_cards_slide(slide, title, points, palette, slide_num, total_slides):
     """Layout 5: Balanced 3-Column Bento Grid."""
-    _render_header_bar(slide, title, palette, slide_num, total_slides, "CONCEPT ANALYSIS")
+    _render_header_bar(slide, title, palette, slide_num, total_slides, "KEY INSIGHTS")
     top_y = Inches(1.75)
-    avail_h = Inches(5.1)
+    avail_h = Inches(4.9)
 
     pts = points if points else ["Key point 1", "Key point 2", "Key point 3"]
     card_w = Inches(3.55)
@@ -609,13 +652,13 @@ def _render_three_cards_slide(slide, title, points, palette, slide_num, total_sl
 
 def _render_two_by_two_slide(slide, title, points, palette, slide_num, total_slides):
     """Layout 6: 2x2 Matrix Grid (4 Quadrants)."""
-    _render_header_bar(slide, title, palette, slide_num, total_slides, "QUADRANT MATRIX")
+    _render_header_bar(slide, title, palette, slide_num, total_slides, "STRATEGIC MATRIX")
     top_y = Inches(1.75)
 
     card_w = Inches(5.5)
-    card_h = Inches(2.4)
+    card_h = Inches(2.28)
     gap_x = Inches(0.4)
-    gap_y = Inches(0.3)
+    gap_y = Inches(0.25)
     pts = points if points else ["Q1", "Q2", "Q3", "Q4"]
 
     for i, pt in enumerate(pts[:4]):
@@ -665,11 +708,11 @@ def _render_two_by_two_slide(slide, title, points, palette, slide_num, total_sli
 
 def _render_split_image_slide(slide, title, points, image_path, palette, slide_num, total_slides):
     """Layout 7: Split Layout with Framed Image."""
-    _render_header_bar(slide, title, palette, slide_num, total_slides, "VISUAL SYNTHESIS")
+    _render_header_bar(slide, title, palette, slide_num, total_slides, "VISUAL OVERVIEW")
     left_w = Inches(6.1)
     right_w = Inches(4.9)
     top_y = Inches(1.75)
-    avail_h = Inches(5.1)
+    avail_h = Inches(4.9)
 
     # Image Frame Card
     _draw_card_shape(slide, Inches(7.45), top_y, right_w, avail_h, palette['card_bg_rgb'], palette['card_border_rgb'], 1)
@@ -730,9 +773,9 @@ def _render_split_image_slide(slide, title, points, image_path, palette, slide_n
 
 def _render_chips_slide(slide, title, points, palette, slide_num, total_slides):
     """Layout 8: 5+ Points Across 2 Columns of Sleek Horizontal Chips."""
-    _render_header_bar(slide, title, palette, slide_num, total_slides, "DETAILED BREAKDOWN")
+    _render_header_bar(slide, title, palette, slide_num, total_slides, "CORE BREAKDOWN")
     top_y = Inches(1.75)
-    avail_h = Inches(5.1)
+    avail_h = Inches(4.9)
     pts = points if points else ["Point 1", "Point 2", "Point 3", "Point 4", "Point 5"]
     col_w = Inches(5.5)
     gap_x = Inches(0.4)
@@ -786,7 +829,7 @@ def _render_chips_slide(slide, title, points, palette, slide_num, total_slides):
                 pb.font.size = Pt(12)
                 pb.font.color.rgb = palette['body_rgb']
 
-def _render_thanks_slide(slide, title, points, palette, prs_width, prs_height):
+def _render_thanks_slide(slide, title, points, palette, prs_width, prs_height, topic=""):
     card_w = Inches(10.5)
     card_h = Inches(5.2)
     left_x = Inches(1.416)
@@ -799,24 +842,25 @@ def _render_thanks_slide(slide, title, points, palette, prs_width, prs_height):
     top_strip.fill.fore_color.rgb = palette['accent_rgb']
     top_strip.line.fill.background()
 
-    pill = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, left_x + Inches(3.75), top_y + Inches(0.6), Inches(3.0), Inches(0.38))
+    pill = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, left_x + Inches(3.65), top_y + Inches(0.6), Inches(3.2), Inches(0.38))
     pill.fill.solid()
     pill.fill.fore_color.rgb = palette['pill_bg_rgb']
     pill.line.fill.background()
     tf_pill = pill.text_frame
     p_pill = tf_pill.paragraphs[0]
-    p_pill.text = "PRESENTATION COMPLETE"
+    p_pill.text = "SUMMARY & NEXT STEPS"
     p_pill.font.name = _safe_font_name(palette['title_font'])
     p_pill.font.size = Pt(10)
     p_pill.font.bold = True
     p_pill.font.color.rgb = palette['accent_rgb']
     p_pill.alignment = PP_ALIGN.CENTER
 
+    resolved_title = title if title and not any(w in title.lower() for w in ['thanks', 'thank you', 'untitled']) else "Key Takeaways & Conclusion"
     tb = slide.shapes.add_textbox(left_x + Inches(0.8), top_y + Inches(1.2), card_w - Inches(1.6), Inches(1.2))
     tf = tb.text_frame
     tf.word_wrap = True
     p = tf.paragraphs[0]
-    p.text = format_math_for_pptx(title if title else "Summary & Key Takeaways")
+    p.text = format_math_for_pptx(resolved_title)
     p.font.name = _safe_font_name(palette['title_font'])
     p.font.size = Pt(32)
     p.font.bold = True
@@ -827,7 +871,10 @@ def _render_thanks_slide(slide, title, points, palette, prs_width, prs_height):
     tf_sub = sub_tb.text_frame
     tf_sub.word_wrap = True
     p_s = tf_sub.paragraphs[0]
-    p_s.text = "Review these core concepts using active recall flashcards and self-grading quizzes on EduWise."
+    if points:
+        p_s.text = f"Core conclusions and actionable synthesis for {topic}." if topic else "Core conclusions and actionable synthesis based on synthesized findings."
+    else:
+        p_s.text = f"Summary of key insights, strategic outcomes, and next steps for {topic}." if topic else "Summary of key insights, strategic outcomes, and next steps."
     p_s.font.name = _safe_font_name(palette['body_font'])
     p_s.font.size = Pt(16)
     p_s.font.color.rgb = palette['body_rgb']
@@ -846,21 +893,17 @@ def _render_thanks_slide(slide, title, points, palette, prs_width, prs_height):
     foot_tb = slide.shapes.add_textbox(left_x + Inches(1.0), top_y + Inches(4.5), card_w - Inches(2.0), Inches(0.4))
     tf_foot = foot_tb.text_frame
     p_f = tf_foot.paragraphs[0]
-    p_f.text = "EduWise AI Studio  ·  Deep Learning for Serious Minds"
+    p_f.text = "Open for Questions & Discussion"
     p_f.font.name = _safe_font_name(palette['body_font'])
-    p_f.font.size = Pt(10.5)
+    p_f.font.size = Pt(11)
     p_f.font.color.rgb = palette['body_rgb']
     p_f.alignment = PP_ALIGN.CENTER
 
-def _dispatch_content_layout(slide, title, points, image_path, palette, slide_num, total_slides, explicit_style=None):
+def _dispatch_content_layout(slide, title, points, image_path, palette, slide_num, total_slides, explicit_style=None, topic="", slide_info=None):
     """
     Intelligently select diverse, alternating visual archetypes
     so that every slide in the presentation has a unique, engaging structure.
     """
-    if image_path:
-        _render_split_image_slide(slide, title, points, image_path, palette, slide_num, total_slides)
-        return
-
     pts = points if points else []
     n_pts = len(pts)
 
@@ -872,26 +915,47 @@ def _dispatch_content_layout(slide, title, points, image_path, palette, slide_nu
     has_comparison = any(s in " ".join(pts).lower() for s in ['vs', 'versus', 'difference', 'compared to', 'contrast', 'pros and cons', 'advantage'])
 
     style = explicit_style or ""
+    chosen_style = None
 
-    if style == 'timeline_process' or has_process:
-        _render_stepper_process_slide(slide, title, points, palette, slide_num, total_slides)
-    elif style == 'formula_callout' or has_math:
+    # Priority 1: Clear mathematical or formula formulation
+    if style == 'formula_callout' or has_math:
+        chosen_style = 'formula_callout'
         _render_formula_callout_slide(slide, title, points, palette, slide_num, total_slides)
-    elif style == 'comparison_split' or has_comparison or n_pts == 2:
+    # Priority 2: Clear sequential process / pipeline
+    elif style == 'timeline_process' or has_process:
+        chosen_style = 'timeline_process'
+        _render_stepper_process_slide(slide, title, points, palette, slide_num, total_slides)
+    # Priority 3: Clear 2-column comparative contrast
+    elif style == 'comparison_split' or has_comparison:
+        chosen_style = 'comparison_split'
         _render_comparison_split_slide(slide, title, points, palette, slide_num, total_slides)
+    # Priority 4: Visual Concept Overview with Image
+    elif image_path:
+        chosen_style = 'split_image'
+        _render_split_image_slide(slide, title, points, image_path, palette, slide_num, total_slides)
+    # Priority 5: 4-Quadrant Matrix
     elif style == 'two_by_two' or n_pts == 4:
+        chosen_style = 'two_by_two'
         _render_two_by_two_slide(slide, title, points, palette, slide_num, total_slides)
+    # Priority 6: Detailed Breakdown Chips
     elif n_pts >= 5:
+        chosen_style = 'bento_chips'
         _render_chips_slide(slide, title, points, palette, slide_num, total_slides)
     else:
-        # Dynamically rotate between Bento Hero, 3-Card Grid, and Process Flow across consecutive slides
-        cycle_idx = slide_num % 3
+        # Dynamically rotate between Bento Hero and 3-Card Grid across consecutive slides
+        cycle_idx = slide_num % 2
         if cycle_idx == 1:
+            chosen_style = 'bento_hero'
             _render_bento_hero_slide(slide, title, points, palette, slide_num, total_slides)
-        elif cycle_idx == 2:
-            _render_three_cards_slide(slide, title, points, palette, slide_num, total_slides)
         else:
-            _render_stepper_process_slide(slide, title, points, palette, slide_num, total_slides)
+            chosen_style = 'three_cards'
+            _render_three_cards_slide(slide, title, points, palette, slide_num, total_slides)
+
+    if slide_info is not None:
+        slide_info['layout_style'] = chosen_style
+
+    _render_content_footer(slide, topic, palette, slide_num, total_slides)
+    return chosen_style
 
 def create_pptx_file(slides_data, theme_data, customization):
     """
@@ -908,6 +972,7 @@ def create_pptx_file(slides_data, theme_data, customization):
 
     total_content_slides = sum(1 for s in slides_data if s.get('slide_type', 'content') == 'content')
     current_content_slide = 0
+    topic = customization.get('topic', '') or (slides_data[0].get('title', '') if slides_data else '')
 
     try:
         for slide_info in slides_data:
@@ -925,10 +990,10 @@ def create_pptx_file(slides_data, theme_data, customization):
             fill.fore_color.rgb = palette['bg_rgb']
 
             if slide_type == 'intro':
-                _render_intro_slide(slide, title, points, palette, prs.slide_width, prs.slide_height)
+                _render_intro_slide(slide, title, points, palette, prs.slide_width, prs.slide_height, topic=topic, customization=customization)
 
             elif slide_type == 'thanks':
-                _render_thanks_slide(slide, title, points, palette, prs.slide_width, prs.slide_height)
+                _render_thanks_slide(slide, title, points, palette, prs.slide_width, prs.slide_height, topic=topic)
 
             else:
                 current_content_slide += 1
@@ -939,13 +1004,15 @@ def create_pptx_file(slides_data, theme_data, customization):
                         for url in image_urls:
                             image_path = download_image_to_tempfile(url)
                             if image_path:
+                                slide_info['image_url'] = url
                                 temp_files_to_delete.append(image_path)
                                 break
 
                 _dispatch_content_layout(
                     slide, title, points, image_path, palette,
                     current_content_slide, max(total_content_slides, 1),
-                    explicit_style=explicit_style
+                    explicit_style=explicit_style, topic=topic,
+                    slide_info=slide_info
                 )
 
         pptx_file = io.BytesIO()

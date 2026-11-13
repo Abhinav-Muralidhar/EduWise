@@ -1,6 +1,7 @@
 import requests
 import tempfile
 import os
+import urllib.parse
 from flask import current_app
 
 def get_image_urls_for_topic_google(query):
@@ -37,8 +38,9 @@ def get_image_urls_for_topic_google(query):
         image_urls = []
         if data.get('items') and len(data['items']) > 0:
             for item in data['items']:
-                image_url = item['link']
-                if image_url.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+                image_url = item.get('link', '')
+                clean_path = urllib.parse.urlparse(image_url).path.lower()
+                if clean_path.endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp')) or image_url.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp')):
                     image_urls.append(image_url)
             
             return image_urls

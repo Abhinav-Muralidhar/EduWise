@@ -258,6 +258,8 @@ def create_pattern_canvas_maker(topic, title_font_name, body_font_name, bg_hex, 
             font_title_bold = _safe_font(title_font_name, is_bold=True)
             font_body_reg = _safe_font(body_font_name, is_bold=False)
 
+            doc_topic_label = topic[:55] + ("..." if len(topic) > 55 else "") if topic else "Executive Summary"
+
             for idx, state in enumerate(self._saved_page_states):
                 self.__dict__.update(state)
                 page_num = idx + 1
@@ -275,12 +277,8 @@ def create_pattern_canvas_maker(topic, title_font_name, body_font_name, bg_hex, 
 
                         self.setFont(font_body_reg, 8)
                         self.setFillColor(muted_text_color)
-                        self.drawString(0.55 * inch, 0.35 * inch, "EduWise  ·  Grounded Active Learning Studio")
-                        self.drawRightString(page_w - 0.55 * inch, 0.35 * inch, "Page 1 of 1  ·  Complete")
-
-                        self.setFont(font_title_bold, 7)
-                        self.setFillColor(accent_label_color)
-                        self.drawRightString(page_w - 0.55 * inch, 0.55 * inch, "🎓 ACTIVE RECALL & RETENTION VERIFIED")
+                        self.drawString(0.55 * inch, 0.35 * inch, doc_topic_label)
+                        self.drawRightString(page_w - 0.55 * inch, 0.35 * inch, "Page 1 of 1")
                         self.restoreState()
 
                 # Multi-page document: Page 1
@@ -293,7 +291,7 @@ def create_pattern_canvas_maker(topic, title_font_name, body_font_name, bg_hex, 
 
                         self.setFont(font_body_reg, 8)
                         self.setFillColor(muted_text_color)
-                        self.drawString(0.55 * inch, 0.35 * inch, "EduWise  ·  Grounded Active Learning Studio")
+                        self.drawString(0.55 * inch, 0.35 * inch, doc_topic_label)
                         self.drawRightString(page_w - 0.55 * inch, 0.35 * inch, f"Page 1 of {num_pages}")
                         self.restoreState()
 
@@ -307,13 +305,8 @@ def create_pattern_canvas_maker(topic, title_font_name, body_font_name, bg_hex, 
 
                     self.setFont(font_body_reg, 8)
                     self.setFillColor(muted_text_color)
-                    self.drawString(0.55 * inch, 0.35 * inch, "EduWise  ·  Grounded Active Learning Studio")
-                    self.drawRightString(page_w - 0.55 * inch, 0.35 * inch, f"Page {page_num} of {num_pages}  ·  Complete")
-
-                    # Completion seal
-                    self.setFont(font_title_bold, 7)
-                    self.setFillColor(accent_label_color)
-                    self.drawRightString(page_w - 0.55 * inch, 0.55 * inch, "🎓 ACTIVE RECALL & RETENTION VERIFIED")
+                    self.drawString(0.55 * inch, 0.35 * inch, doc_topic_label)
+                    self.drawRightString(page_w - 0.55 * inch, 0.35 * inch, f"Page {page_num} of {num_pages}")
                     self.restoreState()
 
                 # Multi-page document: Interior Pages (1 < page_num < num_pages)
@@ -324,21 +317,20 @@ def create_pattern_canvas_maker(topic, title_font_name, body_font_name, bg_hex, 
                     self.setLineWidth(0.75)
                     self.line(0.55 * inch, page_h - 0.55 * inch, page_w - 0.55 * inch, page_h - 0.55 * inch)
 
-                    header_title = topic[:55] + ("..." if len(topic) > 55 else "")
                     self.setFont(font_title_bold, 8.5)
                     self.setFillColor(title_font_color)
-                    self.drawString(0.55 * inch, page_h - 0.45 * inch, header_title)
+                    self.drawString(0.55 * inch, page_h - 0.45 * inch, doc_topic_label)
 
                     self.setFont(font_body_reg, 8)
                     self.setFillColor(muted_text_color)
-                    self.drawRightString(page_w - 0.55 * inch, page_h - 0.45 * inch, "Comprehensive Study Notes  ▪ ▪ ▪")
+                    self.drawRightString(page_w - 0.55 * inch, page_h - 0.45 * inch, "Summary & Key Insights")
 
                     # Running Footer in bottom margin
                     self.setStrokeColor(divider_color)
                     self.setLineWidth(0.5)
                     self.line(0.55 * inch, 0.5 * inch, page_w - 0.55 * inch, 0.5 * inch)
 
-                    self.drawString(0.55 * inch, 0.35 * inch, "EduWise  ·  Grounded Active Learning Studio")
+                    self.drawString(0.55 * inch, 0.35 * inch, doc_topic_label)
                     self.drawRightString(page_w - 0.55 * inch, 0.35 * inch, f"Page {page_num} of {num_pages}")
                     self.restoreState()
 
