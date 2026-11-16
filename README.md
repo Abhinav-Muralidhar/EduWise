@@ -5,8 +5,9 @@
   <img src="https://img.shields.io/badge/RAG-pgvector-00E599?style=for-the-badge&logo=postgresql&logoColor=black" alt="pgvector" />
   <img src="https://img.shields.io/badge/Neon-Postgres-00E599?style=for-the-badge&logo=neon&logoColor=black" alt="Neon" />
   <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
-  <img src="https://img.shields.io/badge/PyTest-16_Passed-green?style=for-the-badge&logo=pytest&logoColor=white" alt="PyTest" />
+  <img src="https://img.shields.io/badge/PyTest-52_Passed-green?style=for-the-badge&logo=pytest&logoColor=white" alt="PyTest" />
   <img src="https://img.shields.io/badge/Cloudinary-3448C5?style=for-the-badge&logo=cloudinary&logoColor=white" alt="Cloudinary" />
+  <img src="https://komarev.com/ghpvc/?username=Abhinav-Muralidhar-EduWise&label=Views&color=3776AB&style=for-the-badge" alt="EduWise Views" />
 </p>
 
 <h1 align="center">🎓 EduWise</h1>
