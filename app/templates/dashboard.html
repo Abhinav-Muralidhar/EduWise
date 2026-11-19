@@ -387,8 +387,15 @@
                             {{ resource.topic }}
                         </h3>
                         {% endif %}
-                        <p class="text-[11px]" style="color: var(--text-muted);">
-                            {{ resource.resource_type.upper() }} &middot; {{ resource.created_at.strftime('%b %d, %Y') }}
+                        <p class="text-[11px] flex items-center gap-1.5 mt-0.5" style="color: var(--text-muted);">
+                            <span class="font-mono font-bold uppercase tracking-wider text-[10px] px-1.5 py-0.5 rounded" style="background: var(--surface-sunken); color: var(--text-secondary);">
+                                {{ resource.resource_type.upper() }}
+                            </span>
+                            <span>&middot;</span>
+                            <span class="inline-flex items-center gap-1 text-[11px]">
+                                <i class="far fa-clock text-[9px] opacity-70"></i>
+                                {{ resource.created_at.strftime('%b %d, %Y · %I:%M %p') }}
+                            </span>
                         </p>
                     </div>
 
@@ -452,6 +459,30 @@
                     <h3 class="empty-state-title">No matching resources</h3>
                     <p class="empty-state-desc">We couldn't find any materials matching your search. Try adjusting
                         keywords or clear favorite filters.</p>
+                </div>
+            </div>
+
+            <!-- Library Pagination Bar -->
+            <div id="libraryPagination" class="hidden flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-[var(--border)] mt-4">
+                <span id="paginationInfo" class="text-xs font-mono text-text-muted">
+                    Showing 1–8 of 0 materials
+                </span>
+                <div class="flex items-center gap-1.5">
+                    <button type="button" id="prevPageBtn" onclick="changeHistoryPage(-1)" 
+                        class="btn-soft text-xs py-1.5 px-3 flex items-center gap-1.5 disabled:opacity-30 disabled:pointer-events-none"
+                        title="Previous Page">
+                        <i class="fas fa-chevron-left text-[10px]"></i>
+                        <span>Previous</span>
+                    </button>
+                    <span id="pageIndicator" class="text-xs font-mono font-bold px-2.5 py-1 rounded bg-[var(--surface-sunken)] border border-[var(--border)] min-w-[70px] text-center" style="color: var(--text-primary);">
+                        1 / 1
+                    </span>
+                    <button type="button" id="nextPageBtn" onclick="changeHistoryPage(1)" 
+                        class="btn-soft text-xs py-1.5 px-3 flex items-center gap-1.5 disabled:opacity-30 disabled:pointer-events-none"
+                        title="Next Page">
+                        <span>Next</span>
+                        <i class="fas fa-chevron-right text-[10px]"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -1344,8 +1375,15 @@
             </div>
             <div class="flex-1 min-w-0">
                 <h3 class="text-[14px] font-semibold truncate" style="color: var(--text-primary);">${data.topic}</h3>
-                <p class="text-[11px]" style="color: var(--text-muted);">
-                    ${data.type.toUpperCase()} &middot; ${data.date}
+                <p class="text-[11px] flex items-center gap-1.5 mt-0.5" style="color: var(--text-muted);">
+                    <span class="font-mono font-bold uppercase tracking-wider text-[10px] px-1.5 py-0.5 rounded" style="background: var(--surface-sunken); color: var(--text-secondary);">
+                        ${data.type.toUpperCase()}
+                    </span>
+                    <span>&middot;</span>
+                    <span class="inline-flex items-center gap-1 text-[11px]">
+                        <i class="far fa-clock text-[9px] opacity-70"></i>
+                        ${data.date || 'Just now'}
+                    </span>
                 </p>
             </div>
             <div class="flex items-center gap-2 flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity">
@@ -2074,12 +2112,26 @@
         });
     }
 
-    function filterResources() {
+    const HISTORY_PAGE_SIZE = 8;
+    let currentHistoryPage = 1;
+
+    function changeHistoryPage(delta) {
+        currentHistoryPage += delta;
+        filterResources(false);
+        const heading = document.querySelector('.bracket-num');
+        if (heading) heading.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function filterResources(resetPage = true) {
+        if (resetPage) currentHistoryPage = 1;
+
         const query = (document.getElementById('searchInput').value || '').toLowerCase().trim();
         const favOnly = document.getElementById('favFilter').checked;
-        let visibleCount = 0;
 
-        document.querySelectorAll('.resource-row').forEach(row => {
+        const rows = Array.from(document.querySelectorAll('.resource-row'));
+        const matchedRows = [];
+
+        rows.forEach(row => {
             const topic = row.getAttribute('data-topic') || '';
             const isFav = row.getAttribute('data-isfav') === 'true';
             const type = row.getAttribute('data-type') || '';
@@ -2089,8 +2141,23 @@
             const matchType = (currentTypeFilter === 'all') || (type === currentTypeFilter);
 
             if (matchSearch && matchFav && matchType) {
+                matchedRows.push(row);
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        const totalMatched = matchedRows.length;
+        const totalPages = Math.ceil(totalMatched / HISTORY_PAGE_SIZE) || 1;
+        if (currentHistoryPage > totalPages) currentHistoryPage = totalPages;
+        if (currentHistoryPage < 1) currentHistoryPage = 1;
+
+        const startIdx = (currentHistoryPage - 1) * HISTORY_PAGE_SIZE;
+        const endIdx = startIdx + HISTORY_PAGE_SIZE;
+
+        matchedRows.forEach((row, idx) => {
+            if (idx >= startIdx && idx < endIdx) {
                 row.style.display = '';
-                visibleCount++;
             } else {
                 row.style.display = 'none';
             }
@@ -2098,11 +2165,36 @@
 
         const noMatchState = document.getElementById('noMatchState');
         if (noMatchState) {
-            const totalResources = document.querySelectorAll('.resource-row').length;
-            if (totalResources > 0 && visibleCount === 0) {
+            const totalResources = rows.length;
+            if (totalResources > 0 && totalMatched === 0) {
                 noMatchState.classList.remove('hidden');
             } else {
                 noMatchState.classList.add('hidden');
+            }
+        }
+
+        // Update Pagination Controls
+        const pagBar = document.getElementById('libraryPagination');
+        const pagInfo = document.getElementById('paginationInfo');
+        const pageInd = document.getElementById('pageIndicator');
+        const prevBtn = document.getElementById('prevPageBtn');
+        const nextBtn = document.getElementById('nextPageBtn');
+
+        if (pagBar) {
+            if (totalMatched > HISTORY_PAGE_SIZE) {
+                pagBar.classList.remove('hidden');
+                pagBar.classList.add('flex');
+                if (pagInfo) {
+                    const fromNum = startIdx + 1;
+                    const toNum = Math.min(endIdx, totalMatched);
+                    pagInfo.textContent = `Showing ${fromNum}–${toNum} of ${totalMatched} materials`;
+                }
+                if (pageInd) pageInd.textContent = `${currentHistoryPage} / ${totalPages}`;
+                if (prevBtn) prevBtn.disabled = (currentHistoryPage <= 1);
+                if (nextBtn) nextBtn.disabled = (currentHistoryPage >= totalPages);
+            } else {
+                pagBar.classList.add('hidden');
+                pagBar.classList.remove('flex');
             }
         }
     }
