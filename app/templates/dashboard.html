@@ -382,19 +382,29 @@
                                 {{ resource.topic }}
                             </h3>
                         </a>
+                        {% elif resource.resource_type in ['pptx', 'pdf'] %}
+                        <button type="button" data-id="{{ resource.id }}" data-type="{{ resource.resource_type }}" data-topic="{{ resource.topic }}" onclick="openResourcePreviewFromBtn(this)" class="group/title block text-left w-full">
+                            <h3 class="text-[14px] font-semibold truncate group-hover/title:text-accent transition-colors cursor-pointer" style="color: var(--text-primary);">
+                                {{ resource.topic }}
+                            </h3>
+                        </button>
                         {% else %}
                         <h3 class="text-[14px] font-semibold truncate" style="color: var(--text-primary);">
                             {{ resource.topic }}
                         </h3>
                         {% endif %}
-                        <p class="text-[11px] flex items-center gap-1.5 mt-0.5" style="color: var(--text-muted);">
-                            <span class="font-mono font-bold uppercase tracking-wider text-[10px] px-1.5 py-0.5 rounded" style="background: var(--surface-sunken); color: var(--text-secondary);">
-                                {{ resource.resource_type.upper() }}
+                        <p class="text-[11.5px] text-text-muted flex items-center gap-2 mt-0.5">
+                            <span class="font-medium text-text-secondary">
+                                {% if resource.resource_type == 'pptx' %}Presentation
+                                {% elif resource.resource_type == 'pdf' %}Study Notes
+                                {% elif resource.resource_type == 'quiz' %}Quiz
+                                {% elif resource.resource_type == 'flashcard' %}Flashcards
+                                {% else %}{{ resource.resource_type|capitalize }}{% endif %}
                             </span>
-                            <span>&middot;</span>
-                            <span class="inline-flex items-center gap-1 text-[11px]">
-                                <i class="far fa-clock text-[9px] opacity-70"></i>
-                                {{ resource.created_at.strftime('%b %d, %Y · %I:%M %p') }}
+                            <span class="text-text-ghost opacity-60">&middot;</span>
+                            <span class="inline-flex items-center gap-1.5 text-text-muted" title="{{ resource.created_at.strftime('%I:%M %p') }}">
+                                <i class="far fa-clock text-[10px] opacity-60"></i>
+                                <span>{{ resource.created_at.strftime('%b %d, %Y') }}</span>
                             </span>
                         </p>
                     </div>
@@ -1374,15 +1384,21 @@
                 <i class="fas ${faIcon}"></i>
             </div>
             <div class="flex-1 min-w-0">
-                <h3 class="text-[14px] font-semibold truncate" style="color: var(--text-primary);">${data.topic}</h3>
-                <p class="text-[11px] flex items-center gap-1.5 mt-0.5" style="color: var(--text-muted);">
-                    <span class="font-mono font-bold uppercase tracking-wider text-[10px] px-1.5 py-0.5 rounded" style="background: var(--surface-sunken); color: var(--text-secondary);">
-                        ${data.type.toUpperCase()}
+                ${['pptx', 'pdf'].includes(data.type) ? `
+                    <button type="button" data-id="${data.id}" data-type="${data.type}" data-topic="${(data.topic || '').replace(/"/g, '&quot;')}" onclick="openResourcePreviewFromBtn(this)" class="group/title block text-left w-full">
+                        <h3 class="text-[14px] font-semibold truncate group-hover/title:text-accent transition-colors cursor-pointer" style="color: var(--text-primary);">${data.topic}</h3>
+                    </button>
+                ` : `
+                    <h3 class="text-[14px] font-semibold truncate" style="color: var(--text-primary);">${data.topic}</h3>
+                `}
+                <p class="text-[11.5px] text-text-muted flex items-center gap-2 mt-0.5">
+                    <span class="font-medium text-text-secondary">
+                        ${data.type === 'pptx' ? 'Presentation' : (data.type === 'pdf' ? 'Study Notes' : (data.type === 'quiz' ? 'Quiz' : (data.type === 'flashcard' ? 'Flashcards' : (data.type || '').toUpperCase())))}
                     </span>
-                    <span>&middot;</span>
-                    <span class="inline-flex items-center gap-1 text-[11px]">
-                        <i class="far fa-clock text-[9px] opacity-70"></i>
-                        ${data.date || 'Just now'}
+                    <span class="text-text-ghost opacity-60">&middot;</span>
+                    <span class="inline-flex items-center gap-1.5 text-text-muted">
+                        <i class="far fa-clock text-[10px] opacity-60"></i>
+                        <span>${data.date || 'Just now'}</span>
                     </span>
                 </p>
             </div>
