@@ -411,7 +411,7 @@
 
                     <!-- Actions -->
                     <div
-                        class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 opacity-80 sm:opacity-60 group-hover:opacity-100 transition-opacity">
+                        class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                         {% set fav_status = 'active' if resource.is_favorite else 'inactive' %}
                         <button onclick="toggleFavorite(event, this.dataset.id)" data-id="{{ resource.id }}"
                             class="w-7 h-7 rounded-md flex items-center justify-center transition-colors btn-fav {{ fav_status }}"
@@ -1402,7 +1402,7 @@
                     </span>
                 </p>
             </div>
-            <div class="flex items-center gap-2 flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity">
+            <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                 <button onclick="toggleFavorite(event, ${data.id})" data-id="${data.id}"
                         class="w-7 h-7 rounded-md flex items-center justify-center transition-colors btn-fav inactive">
                     <i id="fav-icon-${data.id}" class="far fa-star text-[11px]"></i>
