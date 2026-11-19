@@ -40,6 +40,45 @@
         color: var(--text-ghost);
     }
 
+    /* ── Category Filter Pills ── */
+    .filter-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.25rem 0.65rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        background: var(--surface-card);
+        border: 1px solid var(--border);
+        transition: all 0.15s ease;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+    .filter-pill:hover {
+        color: var(--text-primary);
+        border-color: var(--border-strong);
+    }
+    .filter-pill.active {
+        background: var(--accent-surface);
+        color: var(--accent);
+        border-color: var(--accent);
+    }
+    .filter-count {
+        font-size: 0.65rem;
+        font-family: var(--font-mono, monospace);
+        padding: 0.05rem 0.35rem;
+        border-radius: 9999px;
+        background: var(--surface-sunken);
+        color: var(--text-secondary);
+        font-weight: 700;
+    }
+    .filter-pill.active .filter-count {
+        background: var(--accent);
+        color: #FFFFFF;
+    }
+
     /* ── Document & Slide Previewer ── */
     #documentPreviewModal {
         top: var(--header-height, 68px);
@@ -290,11 +329,40 @@
                 </div>
             </div>
 
+            <!-- Category Filter Pills Bar -->
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 mb-3 scrollbar-none">
+                <button type="button" class="filter-pill active" data-type-filter="all" onclick="setTypeFilter('all')">
+                    <span>All</span>
+                    <span class="filter-count" id="count-all">0</span>
+                </button>
+                <button type="button" class="filter-pill" data-type-filter="pptx" onclick="setTypeFilter('pptx')">
+                    <i class="fas fa-file-powerpoint text-[10px]"></i>
+                    <span>Slides</span>
+                    <span class="filter-count" id="count-pptx">0</span>
+                </button>
+                <button type="button" class="filter-pill" data-type-filter="pdf" onclick="setTypeFilter('pdf')">
+                    <i class="fas fa-file-pdf text-[10px]"></i>
+                    <span>Notes</span>
+                    <span class="filter-count" id="count-pdf">0</span>
+                </button>
+                <button type="button" class="filter-pill" data-type-filter="quiz" onclick="setTypeFilter('quiz')">
+                    <i class="fas fa-puzzle-piece text-[10px]"></i>
+                    <span>Quizzes</span>
+                    <span class="filter-count" id="count-quiz">0</span>
+                </button>
+                <button type="button" class="filter-pill" data-type-filter="flashcard" onclick="setTypeFilter('flashcard')">
+                    <i class="fas fa-layer-group text-[10px]"></i>
+                    <span>Flashcards</span>
+                    <span class="filter-count" id="count-flashcard">0</span>
+                </button>
+            </div>
+
             <!-- Resource list -->
             <div class="space-y-2">
                 {% if resources %}
                 {% for resource in resources %}
                 <div class="resource-row group" data-topic="{{ resource.topic|lower|escape }}"
+                    data-type="{{ resource.resource_type }}"
                     data-isfav="{{ 'true' if resource.is_favorite else 'false' }}">
                     {% set icon_class = 'r-icon-' ~ resource.resource_type if resource.resource_type in ['pptx', 'pdf',
                     'quiz', 'flashcard'] else 'r-icon-default' %}
@@ -1267,6 +1335,7 @@
         const row = document.createElement('div');
         row.className = 'resource-row group';
         row.setAttribute('data-topic', (data.topic || '').toLowerCase());
+        row.setAttribute('data-type', data.type || '');
         row.setAttribute('data-isfav', 'false');
 
         row.innerHTML = `
@@ -1308,6 +1377,7 @@
             historyContainer.appendChild(row);
         }
 
+        if (typeof updateFilterCounts === 'function') updateFilterCounts();
         if (typeof filterResources === 'function') filterResources();
     }
 
@@ -1370,6 +1440,8 @@
                         row.style.transform = 'translateX(10px)';
                         setTimeout(() => {
                             row.remove();
+                            if (typeof updateFilterCounts === 'function') updateFilterCounts();
+                            if (typeof filterResources === 'function') filterResources();
                             // Check if history is empty now
                             const container = document.querySelector('.space-y-2');
                             if (container && container.querySelectorAll('.resource-row').length === 0) {
@@ -1969,21 +2041,54 @@
     }
 
     // Ensure loading overlay is hidden on normal page loads
-    document.addEventListener('DOMContentLoaded', hideLoading);
+    document.addEventListener('DOMContentLoaded', () => {
+        hideLoading();
+        updateFilterCounts();
+        filterResources();
+    });
+
+    let currentTypeFilter = 'all';
+
+    function setTypeFilter(type) {
+        currentTypeFilter = type;
+        document.querySelectorAll('[data-type-filter]').forEach(btn => {
+            if (btn.getAttribute('data-type-filter') === type) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        filterResources();
+    }
+
+    function updateFilterCounts() {
+        const rows = document.querySelectorAll('.resource-row');
+        const counts = { all: rows.length, pptx: 0, pdf: 0, quiz: 0, flashcard: 0 };
+        rows.forEach(r => {
+            const t = r.getAttribute('data-type');
+            if (counts[t] !== undefined) counts[t]++;
+        });
+        ['all', 'pptx', 'pdf', 'quiz', 'flashcard'].forEach(k => {
+            const el = document.getElementById(`count-${k}`);
+            if (el) el.textContent = counts[k] || 0;
+        });
+    }
 
     function filterResources() {
-        const query = (document.getElementById('searchInput').value || '').toLowerCase();
+        const query = (document.getElementById('searchInput').value || '').toLowerCase().trim();
         const favOnly = document.getElementById('favFilter').checked;
         let visibleCount = 0;
 
         document.querySelectorAll('.resource-row').forEach(row => {
             const topic = row.getAttribute('data-topic') || '';
             const isFav = row.getAttribute('data-isfav') === 'true';
+            const type = row.getAttribute('data-type') || '';
 
-            const matchSearch = topic.includes(query);
+            const matchSearch = !query || topic.includes(query);
             const matchFav = !favOnly || isFav;
+            const matchType = (currentTypeFilter === 'all') || (type === currentTypeFilter);
 
-            if (matchSearch && matchFav) {
+            if (matchSearch && matchFav && matchType) {
                 row.style.display = '';
                 visibleCount++;
             } else {
